@@ -5,7 +5,7 @@ from esimport.connectors import ElevenMsSqlConnector
 
 
 def main():
-    with open("config/config.yml", 'r') as ymlfile:
+    with open("config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
     # Display Date Route
