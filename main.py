@@ -1,8 +1,10 @@
 import sys
 import yaml
-from connectors import ElevenMsSqlConnector
 
-if __name__ == '__main__':
+from esimport.connectors import ElevenMsSqlConnector
+
+
+def main():
     with open("config/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
@@ -27,3 +29,7 @@ if __name__ == '__main__':
 
     sqlConn = ElevenMsSqlConnector(connection)
     print('MaxID: {0}'.format(sqlConn.maxId()))
+
+
+if __name__ == '__main__':
+    main()

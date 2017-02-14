@@ -21,7 +21,7 @@ import datetime
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from elasticsearch import exceptions
-from models import Account
+from esimport.models import Account
 
 reload(sys)
 # this is the encoding of our DB
