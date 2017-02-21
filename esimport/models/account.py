@@ -15,7 +15,7 @@ import json
 
 
 class Account:
-    # Initialize from MsSql row
+
     def __init__(self, row):
         self.ID = row.ID
         self.Name = row.Name
@@ -48,7 +48,7 @@ class Account:
                                                                                          self.pay_details(), self.Price,
                                                                                          self.UpCap,
                                                                                          self.DownCap)
-
+    @property
     def action(self):
         action = {
             "_op_type": "update",
