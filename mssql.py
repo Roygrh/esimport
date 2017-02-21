@@ -12,16 +12,17 @@
 # ######################################################################################################################
 
 # DRIVER
-import pyodbc
-import logging
-from config import config
 import sys
 import time
+import pyodbc
 import datetime
+
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from elasticsearch import exceptions
+
 from esimport.models import Account
+
 
 reload(sys)
 # this is the encoding of our DB
