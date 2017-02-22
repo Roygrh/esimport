@@ -75,7 +75,10 @@ es = Elasticsearch(cfg['ES_HOST'] + ":" + cfg['ES_PORT'])
 
 # find max databaseId
 def max_id():
-    return cursor.execute("select max(id) from Member").fetchone()
+    result = cursor.execute("SELECT MAX(id) FROM Member").fetchone()
+    if result:
+        return int(result[0])
+    return 0
 
 
 def bulk_add(es, actions, retries, timeout):
