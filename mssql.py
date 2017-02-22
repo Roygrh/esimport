@@ -14,6 +14,7 @@
 # DRIVER
 import sys
 import time
+import yaml
 import pyodbc
 import datetime
 
@@ -28,26 +29,32 @@ reload(sys)
 # this is the encoding of our DB
 sys.setdefaultencoding('latin1')
 
-logging.basicConfig(filename='import.log', level=logging.WARNING)
+cfg = None
+with open("config.yml", 'r') as ymlfile:
+    cfg = yaml.load(ymlfile)
 
-step_size = config.config['step_size']
-position = config.config['position']
-esTimeout = config.elasticserver['timeout']
-esRetry = config.elasticserver['retries']
+state = {}
+with open(".state.yml", 'r') as ymlfile:
+    state = yaml.load(ymlfile)
+
+step_size = state['step_size']
+position = state['position']
+esTimeout = state['timeout']
+esRetry = state['retries']
 
 # Linux
-# conn = pyodbc.connect("DSN=sqlserverdatasource; \
-#       trusted_connection=no;UID={0};PWD={1}".format(config.sqlserver['user'], config.sqlserver['password']))
+conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
+             .format(cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
 
 # Windows
-conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
-       trusted_connection=no;UID={2};PWD={3}".format(config.sqlserver['host'], config.sqlserver['db'],
-                                                     config.sqlserver['user'], config.sqlserver['password']))
+# conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
+#        trusted_connection=no;UID={2};PWD={3}".format(cfg['ELEVEN_HOST'], cfg['ELEVEN_DB'],
+#                                                      cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
 
 cursor = conn.cursor()
 
 # defaults to localhost:9200
-es = Elasticsearch(config.elasticserver['host'] + ":" + config.elasticserver['port'])
+es = Elasticsearch(cfg['ES_HOST'] + ":" + cfg['ES_PORT'])
 
 
 # find max databaseId
