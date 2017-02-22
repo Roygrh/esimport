@@ -17,7 +17,6 @@ import time
 import yaml
 import pyodbc
 import logging
-import datetime
 import traceback
 
 from elasticsearch import Elasticsearch
