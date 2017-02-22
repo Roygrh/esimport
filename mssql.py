@@ -113,6 +113,10 @@ def add_accounts(start, end):
                 .format(count, position, position + step_size - 1))
         position += step_size
 
+        # save state
+        with open(".state.yml", 'wb') as ymlfile:
+            ymlfile.write(yaml.dump(state, default_flow_style=False))
+
     logger.info("Finished account import")
 
 # Exe
