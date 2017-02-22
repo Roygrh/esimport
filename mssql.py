@@ -16,7 +16,9 @@ import sys
 import time
 import yaml
 import pyodbc
+import logging
 import datetime
+import traceback
 
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
@@ -28,6 +30,20 @@ from esimport.models import Account
 reload(sys)
 # this is the encoding of our DB
 sys.setdefaultencoding('latin1')
+
+# Setup logging
+LOG_LEVEL = logging.DEBUG
+
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+formatter = logging.Formatter(LOG_FORMAT)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(LOG_LEVEL)
+ch.setFormatter(formatter)
+
+logger = logging.getLogger()
+logger.setLevel(LOG_LEVEL)
+logger.addHandler(ch)
 
 cfg = None
 with open("config.yml", 'r') as ymlfile:
@@ -70,18 +86,16 @@ def bulk_add(es, actions, retries, timeout):
             helpers.bulk(es, actions, request_timeout=timeout)
             return
         except exceptions.ConnectionTimeout as err:
-            print("ElasticSearch Connection Timeout..")
-            logging.warning("{0}: {1}".format(datetime.datetime.now(), err))
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
             time.sleep(attempts * 5)
-        except:
-            print("{0}: Unexpected error.. {1}".format(sys.exc_info()[0]))
-            logging.warning("{0}: Unexpected error.. {1}".format(sys.exc_info()[0]))
-            raise
-    raise
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
 
 
 def add_accounts(start, end):
-    logging.info("Adding Member_ID from {0} to {1}".format(start, end))
+    logger.info("Adding Member_ID from {0} to {1}".format(start, end))
     position = start
     while position <= end:
         count = 0
@@ -93,14 +107,11 @@ def add_accounts(start, end):
 
         # add batch of accounts to ElasticSearch
         bulk_add(es, actions, esRetry, esTimeout)
-        logging.debug(
-            "{0}: Added {1} entries {2} through {3}".format(datetime.datetime.now(), count, position,
-                                                            position + step_size - 1))
-        print("{0}: Added {1} entries {2} through {3}".format(datetime.datetime.now(), count, position,
-                                                              position + step_size - 1))
+        logger.debug("Added {0} entries {1} through {2}" \
+                .format(count, position, position + step_size - 1))
         position += step_size
 
-    logging.info("{0}: Finished account import.".format(datetime.datetime.now()))
+    logger.info("Finished account import")
 
 # Exe
 add_accounts(position, max_id())
