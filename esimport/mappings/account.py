@@ -2,6 +2,7 @@ import sys
 import time
 import yaml
 import pyodbc
+import logging
 import traceback
 
 from elasticsearch import Elasticsearch
@@ -9,7 +10,9 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport.models import Account
-from esimport.log import logger
+
+
+logger = logging.getLogger(__name__)
 
 
 class AccountMapping:

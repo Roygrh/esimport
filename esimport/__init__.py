@@ -1,11 +1,26 @@
+import sys
 import click
+import logging
 
+import settings
 from esimport.mappings.account import AccountMapping
+
+
+def setup_logging():
+    formatter = logging.Formatter(settings.LOG_FORMAT)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(settings.LOG_LEVEL)
+    ch.setFormatter(formatter)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(settings.LOG_LEVEL)
+    logger.addHandler(ch)
 
 
 @click.group()
 def cli():
-    pass
+    setup_logging()
 
 
 @cli.command()
