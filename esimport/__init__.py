@@ -16,7 +16,6 @@ import sys
 import time
 import yaml
 import pyodbc
-import logging
 import traceback
 
 from elasticsearch import Elasticsearch
@@ -24,25 +23,8 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport.models import Account
+from esimport.logging import logger
 
-
-reload(sys)
-# this is the encoding of our DB
-sys.setdefaultencoding('latin1')
-
-# Setup logging
-LOG_LEVEL = logging.DEBUG
-
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-formatter = logging.Formatter(LOG_FORMAT)
-
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(LOG_LEVEL)
-ch.setFormatter(formatter)
-
-logger = logging.getLogger()
-logger.setLevel(LOG_LEVEL)
-logger.addHandler(ch)
 
 cfg = None
 with open("config.yml", 'r') as ymlfile:
