@@ -126,4 +126,6 @@ def cli():
 @cli.command()
 @click.argument('mapping_name')
 def update(mapping_name):
+    setup_config()
+    setup_connection()
     add_accounts(position, max_id())
