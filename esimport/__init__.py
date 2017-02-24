@@ -118,6 +118,12 @@ def add_accounts(start, end):
     logger.info("Finished account import")
 
 
-@click.command()
+@click.group()
 def cli():
+    pass
+
+
+@cli.command()
+@click.argument('mapping_name')
+def update(mapping_name):
     add_accounts(position, max_id())
