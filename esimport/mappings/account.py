@@ -91,9 +91,7 @@ class AccountMapping:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
 
-    def get_accounts(self, max_id):
-        start = self.position
-        end = self.position + self.step_size
+    def get_accounts(self, start, end):
         logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
         q = Account.eleven_query(start, end)
         for row in self.cursor.execute(q):
@@ -104,7 +102,8 @@ class AccountMapping:
         while self.position <= max_id:
             count = 0
             actions = []
-            for account in self.get_accounts(max_id):
+            end = min(self.position + self.step_size, max_id)
+            for account in self.get_accounts(self.position, end):
                 count += 1
                 actions.append(account.action)
 
