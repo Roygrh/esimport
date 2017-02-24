@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='ESImport',
+    name='esimport',
     version='1.0.0',
     url='http://www.elevenwireless.com/',
     description='ElasticSearch Import Project',
