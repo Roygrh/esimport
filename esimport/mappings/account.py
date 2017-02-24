@@ -85,17 +85,21 @@ class AccountMapping:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
 
-
-    def add_accounts(self, end):
+    def get_accounts(self, max_id):
         start = self.position
+        end = self.position + self.step_size
         logger.info("Adding Member_ID from {0} to {1}".format(start, end))
-        while self.position <= end:
+        q = Account.eleven_query(start, end)
+        for row in self.cursor.execute(q):
+            logger.debug("Adding record {0}".format(row))
+            yield Account(row)
+
+    def add_accounts(self, max_id):
+        while self.position <= max_id:
             count = 0
             actions = []
-            for row in self.cursor.execute(Account.eleven_query(self.position, self.position + self.step_size)):
+            for account in self.get_accounts(max_id):
                 count += 1
-                account = Account(row)
-                logger.debug("Adding record {0}".format(row))
                 actions.append(account.action)
 
             # add batch of accounts to ElasticSearch
