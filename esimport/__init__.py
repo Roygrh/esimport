@@ -15,6 +15,7 @@
 import sys
 import time
 import yaml
+import click
 import pyodbc
 import traceback
 
@@ -97,5 +98,7 @@ def add_accounts(start, end):
 
     logger.info("Finished account import")
 
-# Exe
-add_accounts(position, max_id())
+
+@click.command()
+def cli():
+    add_accounts(position, max_id())

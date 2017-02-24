@@ -16,5 +16,10 @@ setup(
         'PyYAML==3.12',
         'pyodbc==4.0.6',
         'elasticsearch==5.2.0',
+        'click==6.7'
     ],
+    entry_points='''
+        [console_scripts]
+        esimport=esimport:cli
+    ''',
 )
