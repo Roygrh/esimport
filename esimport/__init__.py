@@ -107,6 +107,7 @@ def add_accounts(start, end):
         for row in cursor.execute(Account.eleven_query(position, position + step_size)):
             count += 1
             account = Account(row)
+            logger.debug("Adding record {0}".format(row))
             actions.append(account.action)
 
         # add batch of accounts to ElasticSearch
