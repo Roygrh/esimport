@@ -55,9 +55,9 @@ class Account:
             "_index": "elevenos",
             "_type": "account",
             "_id": self.ID,
+            "doc_as_upsert": True,
             "doc":
             {
-                "id": self.ID,
                 "Name": self.Name,
                 "Created": self.Created,
                 "Activated": self.Activated,
