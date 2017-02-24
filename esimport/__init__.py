@@ -28,31 +28,50 @@ from esimport.log import logger
 
 
 cfg = None
-with open("config.yml", 'r') as ymlfile:
-    cfg = yaml.load(ymlfile)
+state = None
 
-state = {}
-with open(".state.yml", 'r') as ymlfile:
-    state = yaml.load(ymlfile)
+step_size = None
+position = None
+esTimeout = None
+esRetry = None
 
-step_size = state['step_size']
-position = state['position']
-esTimeout = state['timeout']
-esRetry = state['retries']
+conn = None
+cursor = None
+es = None
 
-# Linux
-conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
-             .format(cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
 
-# Windows
-# conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
-#        trusted_connection=no;UID={2};PWD={3}".format(cfg['ELEVEN_HOST'], cfg['ELEVEN_DB'],
-#                                                      cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
+def setup_config():
+    if cfg is None:
+        with open("config.yml", 'r') as ymlfile:
+            cfg = yaml.load(ymlfile)
 
-cursor = conn.cursor()
+    if state is None:
+        with open(".state.yml", 'r') as ymlfile:
+            state = yaml.load(ymlfile)
 
-# defaults to localhost:9200
-es = Elasticsearch(cfg['ES_HOST'] + ":" + cfg['ES_PORT'])
+    step_size = state['step_size']
+    position = state['position']
+    esTimeout = state['timeout']
+    esRetry = state['retries']
+
+
+def setup_connection():
+    if conn is None:
+        # Linux
+        conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
+                     .format(cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
+
+        # Windows
+        # conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
+        #        trusted_connection=no;UID={2};PWD={3}".format(cfg['ELEVEN_HOST'], cfg['ELEVEN_DB'],
+        #                                                      cfg['ELEVEN_USER'], cfg['ELEVEN_PASSWORD']))
+
+    if conn and cursor is None:
+        cursor = conn.cursor()
+
+    if es is None:
+        # defaults to localhost:9200
+        es = Elasticsearch(cfg['ES_HOST'] + ":" + cfg['ES_PORT'])
 
 
 # find max databaseId
