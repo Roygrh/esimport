@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from . import settings
+import settings
 
 
 @property

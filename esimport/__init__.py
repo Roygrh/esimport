@@ -24,7 +24,7 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport.models import Account
-from esimport.logging import logger
+from esimport.log import logger
 
 
 cfg = None
