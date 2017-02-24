@@ -2,6 +2,7 @@ import sys
 import time
 import yaml
 import pyodbc
+import pprint
 import logging
 import traceback
 
@@ -27,6 +28,11 @@ class AccountMapping:
     conn = None
     cursor = None
     es = None
+
+
+    def __init__(self):
+        self.pp = pprint.PrettyPrinter(indent=2, depth=10)
+
 
     def setup_config(self):
         if self.cfg is None:
@@ -88,10 +94,10 @@ class AccountMapping:
     def get_accounts(self, max_id):
         start = self.position
         end = self.position + self.step_size
-        logger.info("Adding Member_ID from {0} to {1}".format(start, end))
+        logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
         q = Account.eleven_query(start, end)
         for row in self.cursor.execute(q):
-            logger.debug("Adding record {0}".format(row))
+            logger.debug("Record found: {0}".format(row))
             yield Account(row)
 
     def add_accounts(self, max_id):
@@ -103,9 +109,12 @@ class AccountMapping:
                 actions.append(account.action)
 
             if actions:
+                for action in actions:
+                    logger.debug("Adding Account: {0}".format(self.pp.pprint(action)))
+
                 # add batch of accounts to ElasticSearch
                 self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
-                logger.debug("Added {0} entries {1} through {2}" \
+                logger.info("Added {0} entries {1} through {2}" \
                         .format(count, self.position, self.position + self.step_size - 1))
 
             self.position += self.step_size
