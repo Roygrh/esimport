@@ -32,9 +32,6 @@ class Account:
         self.RoomNumber = row.RoomNumber
         self.AccessCodeUsed = row.AccessCodeUsed
         self.PayMethod = self.find_pay_method()
-        # self.Tax = self.Tax()
-        # self.LoyaltyTier = self.LoyaltyTier()
-        # self.LoyaltyNumber = self.LoyaltyNumber()
 
         if self.Created:
             self.Created = self.Created.isoformat()
@@ -72,9 +69,6 @@ class Account:
                 "RoomNumber": self.RoomNumber,
                 "AccessCodeUsed": self.AccessCodeUsed,
                 "PayMethod": self.PayMethod,
-                # "Tax": self.Tax,
-                # "LoyaltyTier": self.LoyaltyTier,
-                # "LoyaltyNumber": self.LoyaltyNumber
             }
         }
         return action
