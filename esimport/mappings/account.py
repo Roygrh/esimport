@@ -102,10 +102,12 @@ class AccountMapping:
                 count += 1
                 actions.append(account.action)
 
-            # add batch of accounts to ElasticSearch
-            self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
-            logger.debug("Added {0} entries {1} through {2}" \
-                    .format(count, self.position, self.position + self.step_size - 1))
+            if actions:
+                # add batch of accounts to ElasticSearch
+                self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
+                logger.debug("Added {0} entries {1} through {2}" \
+                        .format(count, self.position, self.position + self.step_size - 1))
+
             self.position += self.step_size
 
         logger.info("Finished account import")
