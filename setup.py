@@ -18,8 +18,7 @@ setup(
         'elasticsearch==5.2.0',
         'click==6.7'
     ],
-    entry_points='''
-        [console_scripts]
-        esimport=esimport:cli
-    ''',
+    entry_points={
+        'console_scripts': ['esimport = esimport:cli']
+    },
 )
