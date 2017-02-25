@@ -40,11 +40,10 @@ class Account:
             self.Activated = self.Activated.isoformat()
 
     def __str__(self):
-        return "{0} at {1} created {2}. Purchased via {3} for {4}. {5}up/{6}down".format(self.Name, self.Property,
-                                                                                         self.Timestamp,
-                                                                                         self.pay_details(), self.Price,
-                                                                                         self.UpCap,
-                                                                                         self.DownCap)
+        return "{0} at {1} created {2}. Purchased via {3} for {4}. {5}up/{6}down" \
+                .format(self.Name, self.Property, self.Timestamp,
+                         self.pay_details(), self.Price, self.UpCap,
+                         self.DownCap)
     @property
     def action(self):
         action = {
