@@ -2,3 +2,8 @@ PyYAML==3.12
 pyodbc==4.0.6
 elasticsearch==5.2.0
 click==6.7
+
+# tests
+pytest==3.0.6
+testing.elasticsearch2==1.0.0
+coverage==4.3.4

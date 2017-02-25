@@ -2,6 +2,7 @@ import sys
 import time
 import yaml
 import pyodbc
+import pprint
 import logging
 import traceback
 
@@ -27,6 +28,11 @@ class AccountMapping:
     conn = None
     cursor = None
     es = None
+
+
+    def __init__(self):
+        self.pp = pprint.PrettyPrinter(indent=2, depth=10)
+
 
     def setup_config(self):
         if self.cfg is None:
@@ -85,23 +91,31 @@ class AccountMapping:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
 
+    def get_accounts(self, start, end):
+        logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
+        q = Account.eleven_query(start, end)
+        for row in self.cursor.execute(q):
+            logger.debug("Record found: {0}".format(row))
+            yield Account(row)
 
-    def add_accounts(self, end):
-        start = self.position
-        logger.info("Adding Member_ID from {0} to {1}".format(start, end))
-        while self.position <= end:
+    def add_accounts(self, max_id):
+        while self.position <= max_id:
             count = 0
             actions = []
-            for row in self.cursor.execute(Account.eleven_query(self.position, self.position + self.step_size)):
+            end = min(self.position + self.step_size, max_id)
+            for account in self.get_accounts(self.position, end):
                 count += 1
-                account = Account(row)
-                logger.debug("Adding record {0}".format(row))
                 actions.append(account.action)
 
-            # add batch of accounts to ElasticSearch
-            self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
-            logger.debug("Added {0} entries {1} through {2}" \
-                    .format(count, self.position, self.position + self.step_size - 1))
+            if actions:
+                for action in actions:
+                    logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
+
+                # add batch of accounts to ElasticSearch
+                self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
+                logger.info("Added {0} entries {1} through {2}" \
+                        .format(count, self.position, self.position + self.step_size - 1))
+
             self.position += self.step_size
 
         logger.info("Finished account import")

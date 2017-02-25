@@ -9,7 +9,7 @@ setup(
     url='http://www.elevenwireless.com/',
     description='ElasticSearch Import Project',
     author='Eleven Wireless Inc',
-    packages=find_packages(),
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     zip_safe=False,
     install_require=[
@@ -21,4 +21,5 @@ setup(
     entry_points={
         'console_scripts': ['esimport = esimport:cli']
     },
+    zip_safe=False,
 )
