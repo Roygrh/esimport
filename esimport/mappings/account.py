@@ -31,7 +31,7 @@ class AccountMapping:
 
 
     def __init__(self):
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10)
+        self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
 
     def setup_config(self):
@@ -50,7 +50,7 @@ class AccountMapping:
 
 
     # FIXME: move it to connectors module
-    def setup_connection(self):
+    def setup_connection(self): # pragma: no cover
         if self.conn is None:
             # Linux
             self.conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
@@ -70,7 +70,7 @@ class AccountMapping:
 
 
     # find max Member.ID
-    def max_id(self):
+    def max_id(self): # pragma: no cover
         result = self.cursor.execute("SELECT MAX(id) FROM Member").fetchone()
         if result:
             return int(result[0])
@@ -110,7 +110,7 @@ class AccountMapping:
                 actions.append(account.action)
 
             if actions:
-                for action in actions:
+                for action in actions: # pragma: no cover
                     logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
                 # add batch of accounts to ElasticSearch
