@@ -87,7 +87,7 @@ class AccountMapping:
             except exceptions.ConnectionTimeout as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
-                time.sleep(attempts * 5)
+                time.sleep(attempts * 5) # pragma: no cover
             except Exception as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
