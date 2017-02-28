@@ -83,7 +83,7 @@ class AccountMapping:
             try:
                 attempts += 1
                 helpers.bulk(es, actions, request_timeout=timeout)
-                return
+                break
             except exceptions.ConnectionTimeout as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
