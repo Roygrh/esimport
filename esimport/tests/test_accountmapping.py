@@ -11,16 +11,20 @@ class TestAccountMapping(TestCase):
         self.am = AccountMapping()
 
     def test_setup_config(self):
-        assert self.am.cfg is None
-        assert self.am.step_size is None
-        assert self.am.position is None
-        assert self.am.esTimeout is None
-        assert self.am.esRetry is None
+        am = AccountMapping()
 
-        self.am.setup_config()
+        assert am.cfg is None
+        assert am.step_size is None
+        assert am.position is None
+        assert am.esTimeout is None
+        assert am.esRetry is None
 
-        assert self.am.cfg is not None
-        assert self.am.step_size is not None
-        assert self.am.position is not None
-        assert self.am.esTimeout is not None
-        assert self.am.esRetry is not None
+        am.setup_config()
+
+        assert am.cfg is not None
+        assert am.step_size is not None
+        assert am.position is not None
+        assert am.esTimeout is not None
+        assert am.esRetry is not None
+
+        am.setup_config()
