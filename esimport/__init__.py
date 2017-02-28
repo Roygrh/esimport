@@ -2,7 +2,7 @@ import sys
 import click
 import logging
 
-import settings
+from esimport import settings
 from esimport.mappings.account import AccountMapping
 
 
