@@ -134,6 +134,6 @@ Left Join Credit_Card on Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
-Where Zone_Plan_Account.ID IS NOT NULL and Member.ID >= {0} and Member.ID <= {1}"""
+Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0} and Zone_Plan_Account.ID <= {1}"""
         q = q.format(lower, upper)
         return q
