@@ -1,7 +1,6 @@
 import sys
 import time
 import yaml
-import pyodbc
 import pprint
 import logging
 import traceback
@@ -11,6 +10,7 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport.models import Account
+from esimport.connectors.mssql import MsSQLConnector
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,6 @@ class AccountMapping:
     esTimeout = None
     esRetry = None
 
-    conn = None
     cursor = None
     es = None
 
@@ -51,18 +50,8 @@ class AccountMapping:
 
     # FIXME: move it to connectors module
     def setup_connection(self): # pragma: no cover
-        if self.conn is None:
-            # Linux
-            self.conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
-                                .format(self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
-
-            # Windows
-            # self.conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
-            #        trusted_connection=no;UID={2};PWD={3}".format(self.cfg['ELEVEN_HOST'], self.cfg['ELEVEN_DB'],
-            #                                                      self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
-
-        if self.conn and self.cursor is None:
-            self.cursor = self.conn.cursor()
+        if self.cursor is None:
+            self.cursor = MsSQLConnector()
 
         if self.es is None:
             # defaults to localhost:9200
