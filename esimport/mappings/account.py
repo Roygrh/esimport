@@ -51,7 +51,7 @@ class AccountMapping:
     # FIXME: move it to connectors module
     def setup_connection(self): # pragma: no cover
         if self.cursor is None:
-            self.cursor = MsSQLConnector()
+            self.cursor = MsSQLConnector().cursor
 
         if self.es is None:
             # defaults to localhost:9200
