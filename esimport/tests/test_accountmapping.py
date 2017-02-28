@@ -65,4 +65,7 @@ class TestAccountMapping(TestCase):
 
 
     def test_add_accounts(self):
+        self.assertNotEqual(self.am.position, self.end)
+        new_end = self.am.position + self.am.step_size
         self.am.add_accounts(self.end)
+        self.assertEqual(self.am.position, new_end)
