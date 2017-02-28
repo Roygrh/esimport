@@ -58,9 +58,9 @@ class AccountMapping:
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
-    # find max Member.ID
+    # find max Zone_Plan_Account.ID
     def max_id(self): # pragma: no cover
-        result = self.cursor.execute("SELECT MAX(id) FROM Member").fetchone()
+        result = self.cursor.execute("SELECT MAX(ID) FROM Zone_Plan_Account").fetchone()
         if result:
             return int(result[0])
         return 0
@@ -83,7 +83,7 @@ class AccountMapping:
         return attempts
 
     def get_accounts(self, start, end):
-        logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
+        logger.debug("Searching by Zone_Plan_Account.ID from {0} to {1}".format(start, end))
         q = Account.eleven_query(start, end)
         for row in self.cursor.execute(q):
             logger.debug("Record found: {0}".format(row))
