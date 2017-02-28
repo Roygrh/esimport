@@ -35,3 +35,9 @@ Database = Eleven_OS
 Port = 1433
 ' > odbc.ini
 ```
+
+## Run tests with coverage
+
+```bash
+$ pytest --cov=esimport --cov-report=html
+```

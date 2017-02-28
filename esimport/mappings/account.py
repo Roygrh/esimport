@@ -1,7 +1,6 @@
 import sys
 import time
 import yaml
-import pyodbc
 import pprint
 import logging
 import traceback
@@ -11,6 +10,7 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport.models import Account
+from esimport.connectors.mssql import MsSQLConnector
 
 
 logger = logging.getLogger(__name__)
@@ -25,13 +25,12 @@ class AccountMapping:
     esTimeout = None
     esRetry = None
 
-    conn = None
     cursor = None
     es = None
 
 
     def __init__(self):
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10)
+        self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
 
     def setup_config(self):
@@ -49,27 +48,18 @@ class AccountMapping:
         self.esRetry = state['retries']
 
 
-    def setup_connection(self):
-        if self.conn is None:
-            # Linux
-            self.conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
-                         .format(self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
-
-            # Windows
-            # self.conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
-            #        trusted_connection=no;UID={2};PWD={3}".format(self.cfg['ELEVEN_HOST'], self.cfg['ELEVEN_DB'],
-            #                                                      self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
-
-        if self.conn and self.cursor is None:
-            self.cursor = self.conn.cursor()
+    # FIXME: move it to connectors module
+    def setup_connection(self): # pragma: no cover
+        if self.cursor is None:
+            self.cursor = MsSQLConnector().cursor
 
         if self.es is None:
             # defaults to localhost:9200
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
-    # find max databaseId
-    def max_id(self):
+    # find max Member.ID
+    def max_id(self): # pragma: no cover
         result = self.cursor.execute("SELECT MAX(id) FROM Member").fetchone()
         if result:
             return int(result[0])
@@ -82,14 +72,15 @@ class AccountMapping:
             try:
                 attempts += 1
                 helpers.bulk(es, actions, request_timeout=timeout)
-                return
+                break
             except exceptions.ConnectionTimeout as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
-                time.sleep(attempts * 5)
+                time.sleep(attempts * 5) # pragma: no cover
             except Exception as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
+        return attempts
 
     def get_accounts(self, start, end):
         logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
@@ -108,7 +99,7 @@ class AccountMapping:
                 actions.append(account.action)
 
             if actions:
-                for action in actions:
+                for action in actions: # pragma: no cover
                     logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
                 # add batch of accounts to ElasticSearch

@@ -20,6 +20,5 @@ setup(
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']
-    },
-    zip_safe=False,
+    }
 )
