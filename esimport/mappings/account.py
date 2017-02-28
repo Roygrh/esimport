@@ -90,6 +90,7 @@ class AccountMapping:
             except Exception as err:
                 logger.error(err)
                 traceback.print_exc(file=sys.stdout)
+        return attempts
 
     def get_accounts(self, start, end):
         logger.debug("Searching by Member.ID from {0} to {1}".format(start, end))
