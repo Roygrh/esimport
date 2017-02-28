@@ -49,11 +49,12 @@ class AccountMapping:
         self.esRetry = state['retries']
 
 
+    # FIXME: move it to connectors module
     def setup_connection(self):
         if self.conn is None:
             # Linux
             self.conn = pyodbc.connect("DSN=esimport_local;trusted_connection=no;UID={0};PWD={1}" \
-                         .format(self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
+                                .format(self.cfg['ELEVEN_USER'], self.cfg['ELEVEN_PASSWORD']))
 
             # Windows
             # self.conn = pyodbc.connect("DRIVER={{SQL Server}};SERVER={0}; database={1}; \
@@ -68,7 +69,7 @@ class AccountMapping:
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
-    # find max databaseId
+    # find max Member.ID
     def max_id(self):
         result = self.cursor.execute("SELECT MAX(id) FROM Member").fetchone()
         if result:
