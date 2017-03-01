@@ -1,0 +1,5 @@
+include *.txt
+include README.md
+include MANIFEST.in
+recursive-include tests *
+global-exclude __pycache__ *.py[cod]
