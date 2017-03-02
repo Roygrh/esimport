@@ -90,5 +90,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# pycharm project settings
+.idea
+
 config.yml
 odbc.ini
