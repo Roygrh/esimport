@@ -58,11 +58,17 @@ class AccountMapping:
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
-    # find max Zone_Plan_Account.ID
-    def max_id(self): # pragma: no cover
-        result = self.cursor.execute("SELECT MAX(ID) FROM Zone_Plan_Account").fetchone()
-        if result:
-            return int(result[0])
+    # find max Zone_Plan_Account.ID from ElasticSearch
+    def max_id(self):
+        filters = dict(index=Account.get_index(), doc_type=Account.get_type(),
+                        sort="_id:desc", size=1, _source=False)
+        response = self.es.search(**filters)
+        try:
+            _id = response['hits']['hits'][0]['_id']
+            return int(_id)
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
         return 0
 
 
