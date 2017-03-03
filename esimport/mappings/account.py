@@ -21,7 +21,6 @@ class AccountMapping:
     cfg = None
 
     step_size = None
-    position = None
     esTimeout = None
     esRetry = None
 
@@ -43,7 +42,6 @@ class AccountMapping:
             state = yaml.load(ymlfile)
 
         self.step_size = state['step_size']
-        self.position = state['position']
         self.esTimeout = state['timeout']
         self.esRetry = state['retries']
 
@@ -96,11 +94,13 @@ class AccountMapping:
             yield Account(row)
 
     def add_accounts(self, max_id):
-        while self.position <= max_id:
+        start = end = max_id
+        while True:
             count = 0
             actions = []
-            end = min(self.position + self.step_size, max_id)
-            for account in self.get_accounts(self.position, end):
+            start = end
+            end = start + self.step_size
+            for account in self.get_accounts(start, end):
                 count += 1
                 actions.append(account.action)
 
@@ -111,8 +111,4 @@ class AccountMapping:
                 # add batch of accounts to ElasticSearch
                 self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
                 logger.info("Added {0} entries {1} through {2}" \
-                        .format(count, self.position, self.position + self.step_size - 1))
-
-            self.position += self.step_size
-
-        logger.info("Finished account import")
+                        .format(count, start, end))
