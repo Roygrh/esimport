@@ -12,7 +12,7 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     zip_safe=False,
-    install_require=[
+    install_requires=[
         'PyYAML==3.12',
         'pyodbc==4.0.6',
         'elasticsearch==5.2.0',
