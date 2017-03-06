@@ -1,5 +1,8 @@
 FROM debian:jessie
 
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
 RUN apt update
 RUN apt install -y curl apt-transport-https git
 RUN apt install -y python3 python3-dev python3-pip
