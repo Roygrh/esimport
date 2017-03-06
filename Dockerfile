@@ -15,7 +15,7 @@ ADD docker/ssh_config /tmp
 RUN cat /tmp/ssh_config >> /etc/ssh/ssh_config
 RUN ssh -o StrictHostKeyChecking=no bitbucket.org
 # Needs ssh access key
-RUN pip3 install git+ssh://git@bitbucket.org/distrodev/esimport.git
+RUN pip3 install git+ssh://git@bitbucket.org/distrodev/esimport.git@develop
 
 ENTRYPOINT ["esimport"]
 CMD ["sync"]
