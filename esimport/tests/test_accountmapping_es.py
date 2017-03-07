@@ -21,7 +21,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am = AccountMapping()
         self.am.setup_config()
-        self.start = self.am.position
+        self.start = 0
         self.end = self.start + min(len(self.rows), self.am.step_size)
         self.am.cursor = Mock()
         self.am.cursor.execute = MagicMock(return_value=self.rows)
