@@ -59,11 +59,21 @@ class AccountMapping:
     # find max Zone_Plan_Account.ID from ElasticSearch
     def max_id(self):
         filters = dict(index=Account.get_index(), doc_type=Account.get_type(),
-                        sort="_id:desc", size=1, _source=False)
+                        body={
+                            "aggs": {
+                                "max_id": {
+                                  "max": {
+                                    "field": "ID"
+                                  }
+                                }
+                              },
+                              "size": 0
+                            })
         response = self.es.search(**filters)
         try:
-            _id = response['hits']['hits'][0]['_id']
-            return int(_id)
+            _id = response['aggregations']['max_id']['value']
+            if _id:
+                return int(_id)
         except Exception as err:
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
