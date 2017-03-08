@@ -65,6 +65,7 @@ class Account:
             "doc_as_upsert": True,
             "doc":
             {
+                "ID": self.ID,
                 "Name": self.Name,
                 "Created": self.Created,
                 "Activated": self.Activated,

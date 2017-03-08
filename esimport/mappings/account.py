@@ -21,7 +21,6 @@ class AccountMapping:
     cfg = None
 
     step_size = None
-    position = None
     esTimeout = None
     esRetry = None
 
@@ -43,7 +42,6 @@ class AccountMapping:
             state = yaml.load(ymlfile)
 
         self.step_size = state['step_size']
-        self.position = state['position']
         self.esTimeout = state['timeout']
         self.esRetry = state['retries']
 
@@ -58,11 +56,27 @@ class AccountMapping:
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
-    # find max Zone_Plan_Account.ID
-    def max_id(self): # pragma: no cover
-        result = self.cursor.execute("SELECT MAX(ID) FROM Zone_Plan_Account").fetchone()
-        if result:
-            return int(result[0])
+    # find max Zone_Plan_Account.ID from ElasticSearch
+    def max_id(self):
+        filters = dict(index=Account.get_index(), doc_type=Account.get_type(),
+                        body={
+                            "aggs": {
+                                "max_id": {
+                                  "max": {
+                                    "field": "ID"
+                                  }
+                                }
+                              },
+                              "size": 0
+                            })
+        response = self.es.search(**filters)
+        try:
+            _id = response['aggregations']['max_id']['value']
+            if _id:
+                return int(_id)
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
         return 0
 
 
@@ -90,11 +104,13 @@ class AccountMapping:
             yield Account(row)
 
     def add_accounts(self, max_id):
-        while self.position <= max_id:
+        start = end = max_id
+        while True:
             count = 0
             actions = []
-            end = min(self.position + self.step_size, max_id)
-            for account in self.get_accounts(self.position, end):
+            start = end
+            end = start + self.step_size
+            for account in self.get_accounts(start, end):
                 count += 1
                 actions.append(account.action)
 
@@ -105,8 +121,4 @@ class AccountMapping:
                 # add batch of accounts to ElasticSearch
                 self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
                 logger.info("Added {0} entries {1} through {2}" \
-                        .format(count, self.position, self.position + self.step_size - 1))
-
-            self.position += self.step_size
-
-        logger.info("Finished account import")
+                        .format(count, start, end))

@@ -2,7 +2,7 @@ from unittest import TestCase
 from datetime import datetime
 from collections import namedtuple
 
-import testing.elasticsearch
+import testing.elasticsearch5
 from elasticsearch import Elasticsearch
 from mock import Mock, MagicMock
 
@@ -21,13 +21,13 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am = AccountMapping()
         self.am.setup_config()
-        self.start = self.am.position
+        self.start = 0
         self.end = self.start + min(len(self.rows), self.am.step_size)
         self.am.cursor = Mock()
         self.am.cursor.execute = MagicMock(return_value=self.rows)
 
         # needs ES_HOME set to where elastic search is downloaded
-        self.elasticsearch = testing.elasticsearch.Elasticsearch()
+        self.elasticsearch = testing.elasticsearch5.Elasticsearch()
 
 
     # also an integration test

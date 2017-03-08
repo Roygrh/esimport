@@ -24,8 +24,7 @@ def cli():
 
 
 @cli.command()
-@click.argument('mapping_name')
-def update(mapping_name):
+def sync():
     am = AccountMapping()
     am.setup_config()
     am.setup_connection()
