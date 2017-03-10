@@ -9,6 +9,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from elasticsearch import exceptions
 
+from esimport import settings
 from esimport.models import Account
 from esimport.connectors.mssql import MsSQLConnector
 
@@ -34,11 +35,11 @@ class AccountMapping:
 
     def setup_config(self):
         if self.cfg is None:
-            with open("config.yml", 'r') as ymlfile:
+            with open(settings.CONFIG_PATH, 'r') as ymlfile:
                 self.cfg = yaml.load(ymlfile)
 
         state = {}
-        with open(".state.yml", 'r') as ymlfile:
+        with open(settings.STATE_PATH, 'r') as ymlfile:
             state = yaml.load(ymlfile)
 
         self.step_size = state['step_size']
