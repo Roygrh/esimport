@@ -6,6 +6,9 @@ The overall task is to move data from our T-SQL database into ElasticSearch for 
 
 ```bash
 cat <<< '
+# Environment
+OS: 'linux'
+
 # ElevenOS MsSQL Server
 ELEVEN_HOST: ''
 ELEVEN_DB: 'Eleven_OS'
@@ -15,12 +18,10 @@ ELEVEN_PASSWORD: ''
 # ElasticSearch
 ES_HOST: ''
 ES_PORT: '80'
-ES_TIMEOUT: 16
-ES_RETRIES: 7
-ES_index: ''
-
-# Environment
-OS: 'windows'
+ES_INDEX: ''
+ES_TIMEOUT: 30
+ES_RETRIES: 5
+ES_BULK_LIMIT: 500
 ' > config.yml
 ```
 
