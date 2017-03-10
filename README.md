@@ -25,8 +25,16 @@ ES_BULK_LIMIT: 500
 ' > config.yml
 ```
 
-## Run tests with coverage
+## HOW TO USE?
+
+```
+$ pip install ssh://git@bitbucket.org/distrodev/esimport.git
+$ export ESIMPORT_CONFIG=/path/to/config.yml
+$ esimport sync
+```
+
+## HOW TO RUN TESTS?
 
 ```bash
-$ pytest --cov=esimport --cov-report=html
+$ tox
 ```
