@@ -25,18 +25,6 @@ ES_BULK_LIMIT: 500
 ' > config.yml
 ```
 
-```bash
-cat <<< '
-[sqlserverdatasource]
-Driver = FreeTDS
-Description = ODBC connection via FreeTDS
-Trace = No
-Servername = elevenos
-Database = Eleven_OS
-Port = 1433
-' > odbc.ini
-```
-
 ## Run tests with coverage
 
 ```bash
