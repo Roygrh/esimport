@@ -38,13 +38,9 @@ class AccountMapping:
             with open(settings.CONFIG_PATH, 'r') as ymlfile:
                 self.cfg = yaml.load(ymlfile)
 
-        state = {}
-        with open(settings.STATE_PATH, 'r') as ymlfile:
-            state = yaml.load(ymlfile)
-
-        self.step_size = state['step_size']
-        self.esTimeout = state['timeout']
-        self.esRetry = state['retries']
+        self.step_size = self.cfg['ES_BULK_LIMIT']
+        self.esTimeout = self.cfg['ES_TIMEOUT']
+        self.esRetry = self.cfg['ES_RETRIES']
 
 
     # FIXME: move it to connectors module
