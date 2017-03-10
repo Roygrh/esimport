@@ -17,7 +17,8 @@ class MsSQLConnector:
             with open(settings.CONFIG_PATH, 'r') as ymlfile:
                 self.cfg = yaml.load(ymlfile)
 
-        args = dict(hostname=self.cfg['ELEVEN_HOST'],
+        args = dict(dsn=self.cfg.get('ELEVEN_DSN'),
+                    hostname=self.cfg.get('ELEVEN_HOST'),
                     database=self.cfg['ELEVEN_DB'],
                     username=self.cfg['ELEVEN_USER'],
                     password=self.cfg['ELEVEN_PASSWORD'])

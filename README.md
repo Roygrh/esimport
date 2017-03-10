@@ -9,7 +9,8 @@ cat <<< '
 # Environment
 OS: 'linux'
 
-# ElevenOS MsSQL Server
+# ElevenOS MSSQL Server (either DSN or HOST depending on OS)
+ELEVEN_DSN: ''
 ELEVEN_HOST: ''
 ELEVEN_DB: 'Eleven_OS'
 ELEVEN_USER: ''

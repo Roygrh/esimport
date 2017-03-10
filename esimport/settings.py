@@ -15,7 +15,7 @@ CONFIG_PATH = os.getenv('ESIMPORT_CONFIG', DEFAULT_CONFIG_PATH)
 TEST_FIXTURES_DIR = os.path.join(PKG_DIR, 'tests/fixtures')
 
 # *nix
-MSSQL_DSN = "DSN=esimport_local;UID=%(username)s;PWD=%(password)s;trusted_connection=no"
+MSSQL_DSN = "DSN=%(dsn)s;UID=%(username)s;PWD=%(password)s;trusted_connection=no"
 
 # Windows
 # MSSQL_DSN = """DRIVER={{SQL Server}};
