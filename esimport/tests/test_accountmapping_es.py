@@ -1,3 +1,5 @@
+import six
+
 from unittest import TestCase
 from datetime import datetime
 from collections import namedtuple
@@ -89,6 +91,19 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertGreater(doc1_saved_price, doc2_saved_price)
         self.assertGreater(doc2_saved.get('UpCap'), doc1_saved.get('UpCap'))
         self.assertGreater(doc2_saved.get('DownCap'), doc1_saved.get('DownCap'))
+
+
+    def test_get_es_count(self):
+        es = Elasticsearch(**self.elasticsearch.dsn())
+        es.indices.create(index=Account.get_index(), ignore=400)
+
+        _es = self.am.es
+        self.am.es = es
+        if six.PY2:
+            self.assertTrue(isinstance(self.am.get_es_count(), (int, long)))
+        else:
+            self.assertTrue(isinstance(self.am.get_es_count(), int))
+        self.am.es = _es
 
 
     def tearDown(self):
