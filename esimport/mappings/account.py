@@ -77,7 +77,7 @@ class AccountMapping:
         return 0
 
 
-    def bulk_add(self, es, actions, retries, timeout):
+    def bulk_add_or_update(self, es, actions, retries, timeout):
         attempts = 0
         while attempts < retries:
             try:
@@ -118,7 +118,7 @@ class AccountMapping:
                         logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
                 # add batch of accounts to ElasticSearch
-                self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
+                self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
                 logger.info("Added {0} entries {1} through {2}" \
                         .format(count, start, end))
                 retry = 0

@@ -31,14 +31,14 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     # also an integration test
-    def test_bulk_add(self):
+    def test_bulk_add_or_update(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
         es.indices.create(index=Account.get_index(), ignore=400)
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.get_accounts(self.start, self.end)
         actions = [account.action for account in accounts]
-        self.am.bulk_add(es, actions, self.am.esRetry, self.am.esTimeout)
+        self.am.bulk_add_or_update(es, actions, self.am.esRetry, self.am.esTimeout)
 
         _index = Account.get_index()
         _type = Account.get_type()
@@ -66,7 +66,7 @@ class TestAccountMappingElasticSearch(TestCase):
                     CreditCardNumber=None, CardType=None)
         doc1_tuple = namedtuple('GenericDict', doc1.keys())(**doc1)
         acc1 = Account(doc1_tuple)
-        self.am.bulk_add(es, [acc1.action], self.am.esRetry, self.am.esTimeout)
+        self.am.bulk_add_or_update(es, [acc1.action], self.am.esRetry, self.am.esTimeout)
         doc1_saved = es.get(index=_index, doc_type=_type, id=acc1.ID).get('_source', {})
         doc1_saved_price = float(doc1_saved.get('Price').replace(doc1_tuple.Currency, ''))
 
@@ -80,7 +80,7 @@ class TestAccountMappingElasticSearch(TestCase):
                     CreditCardNumber=None, CardType=None)
         doc2_tuple = namedtuple('GenericDict', doc2.keys())(**doc2)
         acc2 = Account(doc2_tuple)
-        self.am.bulk_add(es, [acc2.action], self.am.esRetry, self.am.esTimeout)
+        self.am.bulk_add_or_update(es, [acc2.action], self.am.esRetry, self.am.esTimeout)
         # note: getting by acc1.ID here
         doc2_saved = es.get(index=_index, doc_type=_type, id=acc1.ID).get('_source', {})
         doc2_saved_price = float(doc2_saved.get('Price').replace(doc2_tuple.Currency, ''))
