@@ -101,8 +101,9 @@ class AccountMapping:
             yield Account(row)
 
     def add_accounts(self, max_id):
+        retry = 10 # retry until N consecutive fails
         start = end = max_id
-        while True:
+        while retry > 0:
             count = 0
             actions = []
             start = end
@@ -119,3 +120,6 @@ class AccountMapping:
                 self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
                 logger.info("Added {0} entries {1} through {2}" \
                         .format(count, start, end))
+                retry = 0
+            else:
+                retry -= 1
