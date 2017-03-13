@@ -112,8 +112,9 @@ class AccountMapping:
                 actions.append(account.action)
 
             if actions:
-                for action in actions: # pragma: no cover
-                    logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
+                if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                    for action in actions:
+                        logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
                 # add batch of accounts to ElasticSearch
                 self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
