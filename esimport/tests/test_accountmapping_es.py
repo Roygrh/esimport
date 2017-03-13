@@ -33,6 +33,7 @@ class TestAccountMappingElasticSearch(TestCase):
     # also an integration test
     def test_bulk_add(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
+        es.indices.create(index=Account.get_index(), ignore=400)
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.get_accounts(self.start, self.end)
@@ -50,6 +51,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def test_upsert(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
+        es.indices.create(index=Account.get_index(), ignore=400)
 
         _index = Account.get_index()
         _type = Account.get_type()
