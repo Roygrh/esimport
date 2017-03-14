@@ -29,3 +29,12 @@ def sync():
     am.setup_config()
     am.setup_connection()
     am.add_accounts(am.max_id())
+
+
+@cli.command()
+@click.argument('mapping_name')
+def update(mapping_name):
+    am = AccountMapping()
+    am.setup_config()
+    am.setup_connection()
+    am.bulk_update(am.get_es_count())

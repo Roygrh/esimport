@@ -84,6 +84,18 @@ class Account:
         }
         return action
 
+    @staticmethod
+    def make_json(unique_id, doc):
+        _json_ = {
+            "_op_type": "update",
+            "_index": Account.get_index(),
+            "_type": Account.get_type(),
+            "_id": unique_id,
+            "doc_as_upsert": True,
+            "doc": doc
+        }
+        return _json_
+
     def find_pay_method(self):
         if self.CreditCardNumber is not None:
             return "Credit Card"
@@ -137,4 +149,36 @@ Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
 Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0} and Zone_Plan_Account.ID <= {1}"""
         q = q.format(lower, upper)
+        return q
+
+
+    @staticmethod
+    def query_records_by_zpa_id(ids):
+        q = """Select Zone_Plan_Account.ID as ID,
+Member.Name as Name,
+Organization.Number as Property,
+Zone_Plan_Account.Purchase_Price as Price,
+Zone_Plan_Account.Purchase_MAC_Address as PurchaseMacAddress,
+Zone_Plan_Account.Activation_Date_UTC as Activated,
+Zone_Plan_Account.Date_Created_UTC as Created,
+Network_Access_Limits.Up_kbs as UpCap,
+Network_Access_Limits.Down_kbs as DownCap,
+Currency.Code as Currency,
+Credit_Card.Masked_Number as CreditCardNumber,
+Credit_Card_Type.Name as CardType,
+PMS_Charge.Last_Name as LastName,
+PMS_Charge.Room_Number as RoomNumber,
+Access_Code.Access_Code_String as AccessCodeUsed
+From Member
+Left Join Organization on Organization.ID = Member.Organization_ID
+Left Join Zone_Plan_Account on Zone_Plan_Account.Member_ID = Member.ID
+Left Join Zone_Plan on Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
+Left Join Network_Access_Limits on Network_Access_Limits.ID = Zone_Plan.Network_Access_Limits_ID
+Left Join Currency on Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
+Left Join Credit_Card on Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
+Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
+Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
+Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
+Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})"""
+        q = q.format(','.join(ids))
         return q

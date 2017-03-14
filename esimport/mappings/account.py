@@ -77,7 +77,7 @@ class AccountMapping:
         return 0
 
 
-    def bulk_add(self, es, actions, retries, timeout):
+    def bulk_add_or_update(self, es, actions, retries, timeout):
         attempts = 0
         while attempts < retries:
             try:
@@ -118,9 +118,84 @@ class AccountMapping:
                         logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
                 # add batch of accounts to ElasticSearch
-                self.bulk_add(self.es, actions, self.esRetry, self.esTimeout)
+                self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
                 logger.info("Added {0} entries {1} through {2}" \
                         .format(count, start, end))
                 retry = 0
             else:
                 retry -= 1
+
+
+    def get_es_count(self):
+        filters = dict(index=Account.get_index(), doc_type=Account.get_type())
+        response = self.es.count(**filters)
+        try:
+            return response['count']
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+        return 0
+
+
+    """
+    Get existing accounts from ElasticSearch
+    """
+    def get_existing_accounts(self, start_zpa_id, limit):
+        logger.debug("Fetching {0} records from ES where ID >= {1}" \
+                .format(limit, start_zpa_id))
+        records = self.es.search(index=Account.get_index(), doc_type=Account.get_type(),
+                                 sort="ID:asc", size=limit,
+                                 q="ID:[{0} TO *]".format(start_zpa_id))
+        for record in records['hits']['hits']:
+            yield record.get('_source')
+
+
+    """
+    Get records from MSSQL based on records from ElasticSearch
+    """
+    def get_new_and_existing_accounts_tuples(self, start, limit):
+        ids = []
+        accounts = []
+        for account in self.get_existing_accounts(start, limit):
+            accounts.append(account)
+            ids.append(str(account.get('ID')))
+
+        q = Account.query_records_by_zpa_id(ids)
+        rows = self.cursor.execute(q)
+        columns = [column[0] for column in rows.description]
+        for row in rows:
+            logger.debug("Record found: {0}".format(row))
+            es_record = filter(lambda x: x if x.get('ID') == row.ID else [None], accounts)[0]
+            account = (dict(zip(columns, row)), es_record)
+            yield account
+
+
+    """
+    Filter records based on new fields found in MSSQL but not in ElasticSearch
+    """
+    def get_updated_records(self, start, limit):
+        ignore_fields = ['Price', 'Currency']
+
+        for new, current in self.get_new_and_existing_accounts_tuples(start, limit):
+            new_fields = set(new.keys()) - set(current.keys()) - set(ignore_fields)
+            for nfield in new_fields:
+                new_record = dict([(k, v) for k,v in new.items() if k in new_fields])
+                if len(new_record) > 0:
+                    new_account = Account.make_json(current.get('ID'), new_record)
+                    yield new_account
+
+    def bulk_update(self, total):
+        start = 0
+        limit = min(self.step_size, total)
+        end = start + limit
+
+        while start < total:
+            actions = list(self.get_updated_records(start, limit))
+            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                if actions:
+                    for action in actions:
+                        logger.debug("Updating Account: {0}".format(self.pp.pformat(action)))
+            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+
+            start = end + 1
+            end = min(start + limit, total)

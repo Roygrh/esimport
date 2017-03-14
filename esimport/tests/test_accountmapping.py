@@ -48,7 +48,7 @@ class TestAccountMapping(TestCase):
         accounts = self.am.get_accounts(self.start, self.end)
         actions = [account.action for account in accounts]
 
-        attempts = self.am.bulk_add(es, actions, 1, self.am.esTimeout)
+        attempts = self.am.bulk_add_or_update(es, actions, 1, self.am.esTimeout)
         self.assertGreater(attempts, 0)
 
 
