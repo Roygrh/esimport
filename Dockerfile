@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM amazon/aws-eb-python:3.4.2-onbuild-3.5.1
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
