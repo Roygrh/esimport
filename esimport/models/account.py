@@ -11,6 +11,7 @@
 # Copyright @ 2017 Eleven Wireless Inc.
 #
 # ######################################################################################################################
+import six
 import json
 
 
@@ -65,7 +66,7 @@ class Account:
             "doc_as_upsert": True,
             "doc":
             {
-                "ID": self.ID,
+                "ID": long(self.ID) if six.PY2 else int(self.ID),
                 "Name": self.Name,
                 "Created": self.Created,
                 "Activated": self.Activated,
