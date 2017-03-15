@@ -165,9 +165,12 @@ class AccountMapping:
         columns = [column[0] for column in rows.description]
         for row in rows:
             logger.debug("Record found: {0}".format(row))
-            es_record = filter(lambda x: x if x.get('ID') == row.ID else [None], accounts)[0]
-            account = (dict(zip(columns, row)), es_record)
-            yield account
+            es_records = filter(lambda x: x if x.get('ID') == row.ID else [None], accounts)
+            if not isinstance(es_records, list):
+                es_records = list(es_records)
+            if es_records:
+                account = (dict(zip(columns, row)), es_records[0])
+                yield account
 
 
     """
@@ -178,11 +181,10 @@ class AccountMapping:
 
         for new, current in self.get_new_and_existing_accounts_tuples(start, limit):
             new_fields = set(new.keys()) - set(current.keys()) - set(ignore_fields)
-            for nfield in new_fields:
-                new_record = dict([(k, v) for k,v in new.items() if k in new_fields])
-                if len(new_record) > 0:
-                    new_account = Account.make_json(current.get('ID'), new_record)
-                    yield new_account
+            new_record = dict([(k, v) for k,v in new.items() if k in new_fields])
+            if len(new_record) > 0:
+                new_account = Account.make_json(current.get('ID'), new_record)
+                yield new_account
 
     def bulk_update(self, total):
         start = 0
