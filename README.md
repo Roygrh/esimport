@@ -43,5 +43,6 @@ $ esimport update account
 ## HOW TO RUN TESTS?
 
 ```bash
+$ export ES_HOME=/path/to/elasticsearch-5.1.1/
 $ tox
 ```
