@@ -101,29 +101,24 @@ class AccountMapping:
             yield Account(row)
 
     def add_accounts(self, max_id):
-        retry = 10 # retry until N consecutive fails
         start = end = max_id
-        while retry > 0:
-            count = 0
-            actions = []
-            start = end
-            end = start + self.step_size
-            for account in self.get_accounts(start, end):
-                count += 1
-                actions.append(account.action)
+        count = 0
+        actions = []
+        start = end
+        end = start + self.step_size
+        for account in self.get_accounts(start, end):
+            count += 1
+            actions.append(account.action)
 
-            if actions:
-                if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                    for action in actions:
-                        logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
+        if actions:
+            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                for action in actions:
+                    logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
-                # add batch of accounts to ElasticSearch
-                self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
-                logger.info("Added {0} entries {1} through {2}" \
-                        .format(count, start, end))
-                retry = 0
-            else:
-                retry -= 1
+            # add batch of accounts to ElasticSearch
+            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+            logger.info("Added {0} entries {1} through {2}" \
+                    .format(count, start, end))
 
 
     def get_es_count(self):
