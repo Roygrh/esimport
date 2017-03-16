@@ -101,7 +101,7 @@ class AccountMapping:
             yield Account(row)
 
     def add_accounts(self, max_id):
-        start = end = max_id
+        start = end = max_id + 1
         count = 0
         actions = []
         start = end
