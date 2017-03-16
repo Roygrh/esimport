@@ -35,6 +35,7 @@ class AccountMapping:
 
     def setup_config(self):
         if self.cfg is None:
+            logger.info("Setting up configs")
             with open(settings.CONFIG_PATH, 'r') as ymlfile:
                 self.cfg = yaml.load(ymlfile)
 
@@ -46,15 +47,19 @@ class AccountMapping:
     # FIXME: move it to connectors module
     def setup_connection(self): # pragma: no cover
         if self.cursor is None:
+            logger.info("Setting up DB connection")
             self.cursor = MsSQLConnector().cursor
 
         if self.es is None:
+            logger.info("Setting up ES connection")
             # defaults to localhost:9200
             self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
 
 
     # find max Zone_Plan_Account.ID from ElasticSearch
     def max_id(self):
+        logger.info("Finding max id from index: %s, type: %s" % (
+                    Account.get_index(), Account.get_type()))
         filters = dict(index=Account.get_index(), doc_type=Account.get_type(),
                         body={
                             "aggs": {
@@ -122,6 +127,8 @@ class AccountMapping:
 
 
     def get_es_count(self):
+        logger.info("Finding records count from index: %s, type: %s" % (
+                    Account.get_index(), Account.get_type()))
         filters = dict(index=Account.get_index(), doc_type=Account.get_type())
         response = self.es.count(**filters)
         try:
