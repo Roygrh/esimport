@@ -143,8 +143,6 @@ class TestAccountMappingElasticSearch(TestCase):
         _rows = self.am.cursor.execute
         self.am.cursor.execute = MagicMock(return_value=updated_records)
         actions = list(self.am.get_updated_records(self.start, limit))
-        for action in actions:
-            print(action)
         self.assertEqual(len(actions), len(updated_records))
 
         # update ES records with new fields only
