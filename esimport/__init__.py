@@ -28,7 +28,11 @@ def sync():
     am = AccountMapping()
     am.setup_config()
     am.setup_connection()
-    am.add_accounts(am.max_id())
+    try:
+        while True:
+            am.add_accounts(am.max_id())
+    except KeyboardInterrupt:
+        pass
 
 
 @cli.command()
