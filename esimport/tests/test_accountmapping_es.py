@@ -12,6 +12,7 @@ from mock import Mock, MagicMock
 from esimport.models.account import Account
 from esimport.mappings.account import AccountMapping
 from esimport import tests
+from esimport import settings
 
 
 """
@@ -36,14 +37,14 @@ class TestAccountMappingElasticSearch(TestCase):
     # also an integration test
     def test_bulk_add_or_update(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=Account.get_index(), ignore=400)
+        es.indices.create(index=settings.ES_INDEX, ignore=400)
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.get_accounts(self.start, self.end)
         actions = [account.action for account in accounts]
         self.am.bulk_add_or_update(es, actions, self.am.esRetry, self.am.esTimeout)
 
-        _index = Account.get_index()
+        _index = settings.ES_INDEX
         _type = Account.get_type()
         for action in actions:
             es_record = es.get(index=_index, doc_type=_type, id=action.get('_id'))
@@ -54,9 +55,9 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def test_upsert(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=Account.get_index(), ignore=400)
+        es.indices.create(index=settings.ES_INDEX, ignore=400)
 
-        _index = Account.get_index()
+        _index = settings.ES_INDEX
         _type = Account.get_type()
 
         doc1 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
@@ -96,7 +97,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def test_get_es_count(self):
         es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=Account.get_index(), ignore=400)
+        es.indices.create(index=settings.ES_INDEX, ignore=400)
 
         _es = self.am.es
         self.am.es = es
@@ -108,7 +109,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def test_update_new_fields_only(self):
-        _index = Account.get_index()
+        _index = settings.ES_INDEX
         _type = Account.get_type()
 
         es = Elasticsearch(**self.elasticsearch.dsn())

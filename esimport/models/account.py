@@ -14,6 +14,8 @@
 import six
 import json
 
+from esimport import settings
+
 
 class Account:
 
@@ -46,11 +48,6 @@ class Account:
                          self.pay_details(), self.Price, self.UpCap,
                          self.DownCap)
 
-    _index = "elevenos"
-    @staticmethod
-    def get_index():
-        return Account._index
-
     _type = "account"
     @staticmethod
     def get_type():
@@ -60,7 +57,7 @@ class Account:
     def action(self):
         action = {
             "_op_type": "update",
-            "_index": self.get_index(),
+            "_index": settings.ES_INDEX,
             "_type": self.get_type(),
             "_id": self.ID,
             "doc_as_upsert": True,
@@ -89,7 +86,7 @@ class Account:
     def make_json(unique_id, doc):
         _json_ = {
             "_op_type": "update",
-            "_index": Account.get_index(),
+            "_index": settings.ES_INDEX,
             "_type": Account.get_type(),
             "_id": unique_id,
             "doc_as_upsert": True,

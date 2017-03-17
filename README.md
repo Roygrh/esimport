@@ -2,35 +2,37 @@
 
 The overall task is to move data from our T-SQL database into ElasticSearch for reporting and dashboard use.
 
-## Create config files
+## Create settings file
 
 ```bash
 cat <<< '
-# Environment
-OS: 'linux'
-
 # ElevenOS MSSQL Server (either DSN or HOST depending on OS)
-ELEVEN_DSN: ''
-ELEVEN_HOST: ''
-ELEVEN_DB: 'Eleven_OS'
-ELEVEN_USER: ''
-ELEVEN_PASSWORD: ''
+DATABASES = {
+    'default': {
+        'DSN': '', # either DSN or HOST
+        'HOST': '',
+        'PORT': None,
+        'NAME': 'Eleven_OS',
+        'USER': '',
+        'PASSWORD': '',
+    }
+}
 
 # ElasticSearch
-ES_HOST: ''
-ES_PORT: '80'
-ES_INDEX: ''
-ES_TIMEOUT: 30
-ES_RETRIES: 5
-ES_BULK_LIMIT: 500
-' > config.yml
+ES_HOST = ''
+ES_PORT = '9200'
+ES_INDEX = ''
+ES_TIMEOUT = 30
+ES_RETRIES = 5
+ES_BULK_LIMIT = 500
+' > local_settings.py
 ```
 
 ## HOW TO USE?
 
 ```bash
 $ pip install ssh://git@bitbucket.org/distrodev/esimport.git
-$ export ESIMPORT_CONFIG=/path/to/config.yml
+$ export PYTHONPATH=/path/to/local_settings.py
 $ esimport sync
 ```
 
@@ -43,6 +45,7 @@ $ esimport update account
 ## HOW TO RUN TESTS?
 
 ```bash
+$ export PYTHONPATH=/path/to/local_settings.py
 $ export ES_HOME=/path/to/elasticsearch-5.1.1/
 $ tox
 ```

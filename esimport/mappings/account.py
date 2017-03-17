@@ -19,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 class AccountMapping:
 
-    cfg = None
-
     step_size = None
     esTimeout = None
     esRetry = None
@@ -33,15 +31,11 @@ class AccountMapping:
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
 
+    # FIXME: drop this function
     def setup_config(self):
-        if self.cfg is None:
-            logger.debug("Setting up configs")
-            with open(settings.CONFIG_PATH, 'r') as ymlfile:
-                self.cfg = yaml.load(ymlfile)
-
-        self.step_size = self.cfg['ES_BULK_LIMIT']
-        self.esTimeout = self.cfg['ES_TIMEOUT']
-        self.esRetry = self.cfg['ES_RETRIES']
+        self.step_size = settings.ES_BULK_LIMIT
+        self.esTimeout = settings.ES_TIMEOUT
+        self.esRetry = settings.ES_RETRIES
 
 
     # FIXME: move it to connectors module
@@ -53,14 +47,14 @@ class AccountMapping:
         if self.es is None:
             logger.debug("Setting up ES connection")
             # defaults to localhost:9200
-            self.es = Elasticsearch(self.cfg['ES_HOST'] + ":" + self.cfg['ES_PORT'])
+            self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
     # find max Zone_Plan_Account.ID from ElasticSearch
     def max_id(self):
         logger.debug("Finding max id from index: %s, type: %s" % (
-                    Account.get_index(), Account.get_type()))
-        filters = dict(index=Account.get_index(), doc_type=Account.get_type(),
+                    settings.ES_INDEX, Account.get_type()))
+        filters = dict(index=settings.ES_INDEX, doc_type=Account.get_type(),
                         body={
                             "aggs": {
                                 "max_id": {
@@ -128,8 +122,8 @@ class AccountMapping:
 
     def get_es_count(self):
         logger.debug("Finding records count from index: %s, type: %s" % (
-                    Account.get_index(), Account.get_type()))
-        filters = dict(index=Account.get_index(), doc_type=Account.get_type())
+                    settings.ES_INDEX, Account.get_type()))
+        filters = dict(index=settings.ES_INDEX, doc_type=Account.get_type())
         response = self.es.count(**filters)
         try:
             return response['count']
@@ -145,7 +139,7 @@ class AccountMapping:
     def get_existing_accounts(self, start_zpa_id, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                 .format(limit, start_zpa_id))
-        records = self.es.search(index=Account.get_index(), doc_type=Account.get_type(),
+        records = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(),
                                  sort="ID:asc", size=limit,
                                  q="ID:[{0} TO *]".format(start_zpa_id))
         for record in records['hits']['hits']:
