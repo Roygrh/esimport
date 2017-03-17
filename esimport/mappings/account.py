@@ -1,4 +1,5 @@
 import sys
+import six
 import time
 import yaml
 import pprint
@@ -92,9 +93,9 @@ class AccountMapping:
                 traceback.print_exc(file=sys.stdout)
         return attempts
 
-    def get_accounts(self, start, end):
-        logger.debug("Searching by Zone_Plan_Account.ID from {0} to {1}".format(start, end))
-        q = Account.eleven_query(start, end)
+    def get_accounts(self, start, limit):
+        logger.debug("Searching by Zone_Plan_Account.ID from {0} (limit: {1})".format(start, limit))
+        q = Account.eleven_query(start, limit)
         for row in self.cursor.execute(q):
             logger.debug("Record found: {0}".format(row))
             yield Account(row)
@@ -103,10 +104,9 @@ class AccountMapping:
         start = end = max_id + 1
         count = 0
         actions = []
-        start = end
-        end = start + self.step_size
-        for account in self.get_accounts(start, end):
+        for account in self.get_accounts(start, self.step_size):
             count += 1
+            end = long(account.ID) if six.PY2 else int(account.ID)
             actions.append(account.action)
 
         if actions:
