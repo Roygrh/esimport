@@ -119,7 +119,7 @@ class Account:
                           sort_keys=True, indent=4, encoding='latin1')
 
     @staticmethod
-    def eleven_query(start, limit):
+    def eleven_query(start_date, start_zpa_id, limit):
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Name as Name,
 Organization.Number as Property,
@@ -145,9 +145,9 @@ Left Join Credit_Card on Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
-Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0}
+Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0} and Zone_Plan_Account.Date_Created_UTC >= '{2}'
 ORDER BY Zone_Plan_Account.ID ASC"""
-        q = q.format(start, limit)
+        q = q.format(start_zpa_id, limit, start_date)
         return q
 
 

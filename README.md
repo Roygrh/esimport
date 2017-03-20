@@ -36,6 +36,10 @@ $ export PYTHONPATH=/path/to/local_settings.py
 $ esimport sync
 ```
 
+```bash
+$ esimport sync --start-date 2014-01-01
+```
+
 #### Update existing records in ElasticSearch
 
 ```bash

@@ -93,18 +93,19 @@ class AccountMapping:
                 traceback.print_exc(file=sys.stdout)
         return attempts
 
-    def get_accounts(self, start, limit):
-        logger.debug("Searching by Zone_Plan_Account.ID from {0} (limit: {1})".format(start, limit))
-        q = Account.eleven_query(start, limit)
+    def get_accounts(self, start, limit, start_date='1900-01-01'):
+        logger.debug("Searching by Zone_Plan_Account.ID from {0} (limit: {1}) and Zone_Plan_Account.Date_Created_UTC >= {2}"
+                .format(start, limit, start_date))
+        q = Account.eleven_query(start_date, start, limit)
         for row in self.cursor.execute(q):
             logger.debug("Record found: {0}".format(row))
             yield Account(row)
 
-    def add_accounts(self, max_id):
+    def add_accounts(self, max_id, start_date='1900-01-01'):
         start = end = max_id + 1
         count = 0
         actions = []
-        for account in self.get_accounts(start, self.step_size):
+        for account in self.get_accounts(start, self.step_size, start_date):
             count += 1
             end = long(account.ID) if six.PY2 else int(account.ID)
             actions.append(account.action)
