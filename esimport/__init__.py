@@ -24,13 +24,14 @@ def cli():
 
 
 @cli.command()
-def sync():
+@click.option('--start-date', help='Since when to import data (YYYY-MM-DD)')
+def sync(start_date):
     am = AccountMapping()
     am.setup_config()
     am.setup_connection()
     try:
         while True:
-            am.add_accounts(am.max_id())
+            am.add_accounts(am.max_id(), start_date)
     except KeyboardInterrupt:
         pass
 
