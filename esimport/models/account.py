@@ -24,7 +24,7 @@ class Account:
         self.Name = row.Name
         self.Created = row.Created
         self.Activated = row.Activated
-        self.Property = row.Property
+        self.ServiceArea = row.ServiceArea
         self.Price = str(row.Price) + str(row.Currency)
         self.PurchaseMacAddress = row.PurchaseMacAddress
         self.ServicePlan = row.ServicePlan
@@ -46,7 +46,7 @@ class Account:
 
     def __str__(self):
         return "{0} at {1} created {2}. Purchased {3} via {4} for {5}. {6}up/{7}down" \
-                .format(self.Name, self.Property, self.Timestamp,
+                .format(self.Name, self.ServiceArea, self.Timestamp,
                          self.ServicePlan, self.pay_details(), self.Price,
                          self.UpCap, self.DownCap)
 
@@ -69,7 +69,7 @@ class Account:
                 "Name": self.Name,
                 "Created": self.Created,
                 "Activated": self.Activated,
-                "Property": self.Property,
+                "ServiceArea": self.ServiceArea,
                 "Price": self.Price,
                 "PurchaseMacAddress": self.PurchaseMacAddress,  # PII
                 "ServicePlan" : self.ServicePlan,
@@ -126,7 +126,7 @@ class Account:
     def eleven_query(start_date, start_zpa_id, limit):
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Name as Name,
-Organization.Number as Property,
+Organization.Number as ServiceArea,
 Zone_Plan_Account.Purchase_Price as Price,
 Zone_Plan_Account.Purchase_MAC_Address as PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC as Activated,
@@ -161,7 +161,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
 Member.Name as Name,
-Organization.Number as Property,
+Organization.Number as ServiceArea,
 Zone_Plan_Account.Purchase_Price as Price,
 Zone_Plan_Account.Purchase_MAC_Address as PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC as Activated,
