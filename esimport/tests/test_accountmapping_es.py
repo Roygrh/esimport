@@ -66,6 +66,7 @@ class TestAccountMappingElasticSearch(TestCase):
                     Property="FF-471-20", Price=12.95, Currency="USD", PayMethod="",
                     RoomNumber=101, AccessCodeUsed=None,
                     PurchaseMacAddress="34-C0-59-D8-31-08",
+                    ServicePlan="One Day Pass", ServicePlanNumber="1dp_02",
                     UpCap=4096, DownCap=4096,
                     CreditCardNumber=None, CardType=None)
         doc1_tuple = namedtuple('GenericDict', doc1.keys())(**doc1)
@@ -80,6 +81,7 @@ class TestAccountMappingElasticSearch(TestCase):
                     Property="FF-471-20", Price=4, Currency="USD", PayMethod="",
                     RoomNumber=101, AccessCodeUsed=None,
                     PurchaseMacAddress="34-C0-59-D8-31-08",
+                    ServicePlan="Weekly Pass", ServicePlanNumber="1week_16",
                     UpCap=12288, DownCap=12288,
                     CreditCardNumber=None, CardType=None)
         doc2_tuple = namedtuple('GenericDict', doc2.keys())(**doc2)

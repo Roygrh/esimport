@@ -27,6 +27,8 @@ class Account:
         self.Property = row.Property
         self.Price = str(row.Price) + str(row.Currency)
         self.PurchaseMacAddress = row.PurchaseMacAddress
+        self.ServicePlan = row.ServicePlan
+        self.ServicePlanNumber = row.ServicePlanNumber
         self.UpCap = row.UpCap
         self.DownCap = row.DownCap
         self.CreditCardNumber = row.CreditCardNumber
@@ -43,10 +45,10 @@ class Account:
             self.Activated = self.Activated.isoformat()
 
     def __str__(self):
-        return "{0} at {1} created {2}. Purchased via {3} for {4}. {5}up/{6}down" \
+        return "{0} at {1} created {2}. Purchased {3} via {4} for {5}. {6}up/{7}down" \
                 .format(self.Name, self.Property, self.Timestamp,
-                         self.pay_details(), self.Price, self.UpCap,
-                         self.DownCap)
+                         self.ServicePlan, self.pay_details(), self.Price,
+                         self.UpCap, self.DownCap)
 
     _type = "account"
     @staticmethod
@@ -70,6 +72,8 @@ class Account:
                 "Property": self.Property,
                 "Price": self.Price,
                 "PurchaseMacAddress": self.PurchaseMacAddress,  # PII
+                "ServicePlan" : self.ServicePlan,
+                "ServicePlanNumber": self.ServicePlanNumber,
                 "UpCap": self.UpCap,
                 "DownCap": self.DownCap,
                 "CreditCardNumber": self.CreditCardNumber,
@@ -127,6 +131,8 @@ Zone_Plan_Account.Purchase_Price as Price,
 Zone_Plan_Account.Purchase_MAC_Address as PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC as Activated,
 Zone_Plan_Account.Date_Created_UTC as Created,
+Zone_Plan.Name as ServicePlan,
+Zone_Plan.Plan_Number as ServicePlanNumber,
 Network_Access_Limits.Up_kbs as UpCap,
 Network_Access_Limits.Down_kbs as DownCap,
 Currency.Code as Currency,
@@ -160,6 +166,8 @@ Zone_Plan_Account.Purchase_Price as Price,
 Zone_Plan_Account.Purchase_MAC_Address as PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC as Activated,
 Zone_Plan_Account.Date_Created_UTC as Created,
+Zone_Plan.Name as ServicePlan,
+Zone_Plan.Plan_Number as ServicePlanNumber,
 Network_Access_Limits.Up_kbs as UpCap,
 Network_Access_Limits.Down_kbs as DownCap,
 Currency.Code as Currency,
