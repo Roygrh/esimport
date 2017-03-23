@@ -38,6 +38,7 @@ class Account:
         self.AccessCodeUsed = row.AccessCodeUsed
         self.PayMethod = self.find_pay_method()
         self.ZoneType = row.ZoneType
+        self.DiscountCode = row.DiscountCode
 
         if self.Created:
             self.Created = self.Created.isoformat()
@@ -83,7 +84,8 @@ class Account:
                 "RoomNumber": self.RoomNumber,
                 "AccessCodeUsed": self.AccessCodeUsed,
                 "PayMethod": self.PayMethod,
-                "ZoneType": self.ZoneType
+                "ZoneType": self.ZoneType,
+                "DiscountCode": self.DiscountCode
             }
         }
         return action
@@ -143,7 +145,8 @@ Credit_Card_Type.Name as CardType,
 PMS_Charge.Last_Name as LastName,
 PMS_Charge.Room_Number as RoomNumber,
 Access_Code.Access_Code_String as AccessCodeUsed,
-Org_Value.Value as ZoneType
+Org_Value.Value as ZoneType,
+Promotional_Code.Code as DiscountCode
 From Member
 Left Join Organization on Organization.ID = Member.Organization_ID
 Left Join Zone_Plan_Account on Zone_Plan_Account.Member_ID = Member.ID
@@ -155,6 +158,9 @@ Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
 Left Join Org_Value on Org_Value.Organization_ID = Organization.ID
+Left Join Zone_Plan_Account_Promotional_Code
+on Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
+Left Join Promotional_Code on Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
 Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0} and Zone_Plan_Account.Date_Created_UTC >= '{2}'
 and Org_Value.Name = 'ZoneType'
 ORDER BY Zone_Plan_Account.ID ASC"""
@@ -181,7 +187,8 @@ Credit_Card_Type.Name as CardType,
 PMS_Charge.Last_Name as LastName,
 PMS_Charge.Room_Number as RoomNumber,
 Access_Code.Access_Code_String as AccessCodeUsed,
-Org_Value.Value as ZoneType
+Org_Value.Value as ZoneType,
+Promotional_Code.Code as DiscountCode
 From Member
 Left Join Organization on Organization.ID = Member.Organization_ID
 Left Join Zone_Plan_Account on Zone_Plan_Account.Member_ID = Member.ID
@@ -193,6 +200,9 @@ Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
 Left Join Org_Value on Org_Value.Organization_ID = Organization.ID
+Left Join Zone_Plan_Account_Promotional_Code
+on Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
+Left Join Promotional_Code on Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
 Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})
 and Org_Value.Name = 'ZoneType'"""
         q = q.format(','.join(ids))

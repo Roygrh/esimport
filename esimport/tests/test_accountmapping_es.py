@@ -68,7 +68,8 @@ class TestAccountMappingElasticSearch(TestCase):
                     PurchaseMacAddress="34-C0-59-D8-31-08",
                     ServicePlan="One Day Pass", ServicePlanNumber="1dp_02",
                     UpCap=4096, DownCap=4096,
-                    CreditCardNumber=None, CardType=None, ZoneType="GuestRoom")
+                    CreditCardNumber=None, CardType=None, ZoneType="GuestRoom",
+                    DiscountCode="NANO")
         doc1_tuple = namedtuple('GenericDict', doc1.keys())(**doc1)
         acc1 = Account(doc1_tuple)
         self.am.bulk_add_or_update(es, [acc1.action], self.am.esRetry, self.am.esTimeout)
@@ -83,7 +84,8 @@ class TestAccountMappingElasticSearch(TestCase):
                     PurchaseMacAddress="34-C0-59-D8-31-08",
                     ServicePlan="Weekly Pass", ServicePlanNumber="1week_16",
                     UpCap=12288, DownCap=12288,
-                    CreditCardNumber=None, CardType=None, ZoneType="Meeting")
+                    CreditCardNumber=None, CardType=None, ZoneType="Meeting",
+                    DiscountCode="TPASS072")
         doc2_tuple = namedtuple('GenericDict', doc2.keys())(**doc2)
         acc2 = Account(doc2_tuple)
         self.am.bulk_add_or_update(es, [acc2.action], self.am.esRetry, self.am.esTimeout)
