@@ -63,12 +63,12 @@ class TestAccountMappingElasticSearch(TestCase):
         doc1 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
                     Created=datetime.now().date(),
                     Activated=datetime.now().date(),
-                    Property="FF-471-20", Price=12.95, Currency="USD", PayMethod="",
+                    ServiceArea="FF-471-20", Price=12.95, Currency="USD", PayMethod="",
                     RoomNumber=101, AccessCodeUsed=None,
                     PurchaseMacAddress="34-C0-59-D8-31-08",
                     ServicePlan="One Day Pass", ServicePlanNumber="1dp_02",
                     UpCap=4096, DownCap=4096,
-                    CreditCardNumber=None, CardType=None)
+                    CreditCardNumber=None, CardType=None, ZoneType="GuestRoom")
         doc1_tuple = namedtuple('GenericDict', doc1.keys())(**doc1)
         acc1 = Account(doc1_tuple)
         self.am.bulk_add_or_update(es, [acc1.action], self.am.esRetry, self.am.esTimeout)
@@ -78,12 +78,12 @@ class TestAccountMappingElasticSearch(TestCase):
         doc2 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
                     Created=datetime.now().date(),
                     Activated=datetime.now().date(),
-                    Property="FF-471-20", Price=4, Currency="USD", PayMethod="",
+                    ServiceArea="FF-471-20", Price=4, Currency="USD", PayMethod="",
                     RoomNumber=101, AccessCodeUsed=None,
                     PurchaseMacAddress="34-C0-59-D8-31-08",
                     ServicePlan="Weekly Pass", ServicePlanNumber="1week_16",
                     UpCap=12288, DownCap=12288,
-                    CreditCardNumber=None, CardType=None)
+                    CreditCardNumber=None, CardType=None, ZoneType="Meeting")
         doc2_tuple = namedtuple('GenericDict', doc2.keys())(**doc2)
         acc2 = Account(doc2_tuple)
         self.am.bulk_add_or_update(es, [acc2.action], self.am.esRetry, self.am.esTimeout)

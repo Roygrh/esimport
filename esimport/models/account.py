@@ -37,6 +37,7 @@ class Account:
         self.RoomNumber = row.RoomNumber
         self.AccessCodeUsed = row.AccessCodeUsed
         self.PayMethod = self.find_pay_method()
+        self.ZoneType = row.ZoneType
 
         if self.Created:
             self.Created = self.Created.isoformat()
@@ -82,6 +83,7 @@ class Account:
                 "RoomNumber": self.RoomNumber,
                 "AccessCodeUsed": self.AccessCodeUsed,
                 "PayMethod": self.PayMethod,
+                "ZoneType": self.ZoneType
             }
         }
         return action
@@ -140,7 +142,8 @@ Credit_Card.Masked_Number as CreditCardNumber,
 Credit_Card_Type.Name as CardType,
 PMS_Charge.Last_Name as LastName,
 PMS_Charge.Room_Number as RoomNumber,
-Access_Code.Access_Code_String as AccessCodeUsed
+Access_Code.Access_Code_String as AccessCodeUsed,
+Org_Value.Value as ZoneType
 From Member
 Left Join Organization on Organization.ID = Member.Organization_ID
 Left Join Zone_Plan_Account on Zone_Plan_Account.Member_ID = Member.ID
@@ -151,7 +154,9 @@ Left Join Credit_Card on Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
+Left Join Org_Value on Org_Value.Organization_ID = Organization.ID
 Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID >= {0} and Zone_Plan_Account.Date_Created_UTC >= '{2}'
+and Org_Value.Name = 'ZoneType'
 ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(start_zpa_id, limit, start_date)
         return q
@@ -175,7 +180,8 @@ Credit_Card.Masked_Number as CreditCardNumber,
 Credit_Card_Type.Name as CardType,
 PMS_Charge.Last_Name as LastName,
 PMS_Charge.Room_Number as RoomNumber,
-Access_Code.Access_Code_String as AccessCodeUsed
+Access_Code.Access_Code_String as AccessCodeUsed,
+Org_Value.Value as ZoneType
 From Member
 Left Join Organization on Organization.ID = Member.Organization_ID
 Left Join Zone_Plan_Account on Zone_Plan_Account.Member_ID = Member.ID
@@ -186,6 +192,8 @@ Left Join Credit_Card on Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 Left Join Credit_Card_Type on Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 Left Join PMS_Charge on PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
 Left Join Access_Code on Access_Code.ID = Zone_Plan_Account.Access_Code_ID
-Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})"""
+Left Join Org_Value on Org_Value.Organization_ID = Organization.ID
+Where Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})
+and Org_Value.Name = 'ZoneType'"""
         q = q.format(','.join(ids))
         return q
