@@ -39,6 +39,10 @@ class Account:
         self.PayMethod = row.PayMethod
         self.ZoneType = row.ZoneType
         self.DiscountCode = row.DiscountCode
+        self.ConsumableTime = row.ConsumableTime
+        self.ConsumableUnit = row.ConsumableUnit
+        self.SpanTime = row.SpanTime
+        self.SpanUnit = row.SpanUnit
 
         if self.Created:
             self.Created = self.Created.isoformat()
@@ -85,7 +89,8 @@ class Account:
                 "AccessCodeUsed": self.AccessCodeUsed,
                 "PayMethod": self.PayMethod,
                 "ZoneType": self.ZoneType,
-                "DiscountCode": self.DiscountCode
+                "DiscountCode": self.DiscountCode,
+                "Duration": self.find_duration()
             }
         }
         return action
@@ -101,6 +106,14 @@ class Account:
             "doc": doc
         }
         return _json_
+
+    def find_duration(self):
+        if self.ConsumableTime is not None:
+            return self.ConsumableTime + self.ConsumableTime
+        if self.SpanTime is not None:
+            return self.SpanTime + self.SpanUnit
+        else:
+            return None
 
     def pay_details(self):
         if self.PayMethod is "CC":
