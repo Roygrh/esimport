@@ -36,7 +36,7 @@ class Account:
         self.LastName = row.LastName
         self.RoomNumber = row.RoomNumber
         self.AccessCodeUsed = row.AccessCodeUsed
-        self.PayMethod = self.find_pay_method()
+        self.PayMethod = row.PayMethod
         self.ZoneType = row.ZoneType
         self.DiscountCode = row.DiscountCode
 
@@ -102,25 +102,17 @@ class Account:
         }
         return _json_
 
-    def find_pay_method(self):
-        if self.CreditCardNumber is not None:
-            return "Credit Card"
-        if self.LastName is not None:
-            return "PMS"
-        if self.AccessCodeUsed is not None:
-            return "Access Code"
-        else:
-            return "Free"
-
     def pay_details(self):
-        if self.PayMethod is "Credit Card":
+        if self.PayMethod is "CC":
             return "{0}{1}".format(self.CardType, self.CreditCardNumber)
         if self.PayMethod is "PMS":
             return "PMS {0}/{1}".format(self.LastName, self.RoomNumber)
-        if self.PayMethod is "Access Code":
+        if self.PayMethod is "AC":
             return "Access Code: {0}".format(self.AccessCodeUsed)
-        if self.PayMethod is "Free":
+        if self.PayMethod is "FREE":
             return "FREE"
+        else:
+            return self.PayMethod
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__,
