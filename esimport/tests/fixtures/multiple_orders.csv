@@ -1,4 +1,4 @@
-ID,Name,ServiceArea,Price,PurchaseMacAddress,Activated,Created,ServicePlan,ServicePlanNumber,UpCap,DownCap,Currency,CreditCardNumber,CardType,LastName,RoomNumber,AccessCodeUsed,ZoneType, DiscountCode, ConsumableTime, ConsumableUnit, SpanTime, SpanUnit
+ID,Name,ServiceArea,Price,PurchaseMacAddress,Activated,Created,ServicePlan,ServicePlanNumber,UpCap,DownCap,Currency,CreditCardNumber,CardType,LastName,RoomNumber,AccessCodeUsed,ZoneType,DiscountCode,ConsumableTime,ConsumableUnit,SpanTime,SpanUnit
 46972298,cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11,FF-471-20,12.95,34-C0-59-D8-31-08,2014-01-04 07:38:24.370,2014-01-04 07:38:24.357,basic day,basic_day_01,4096,4096,USD,,,trava,4051,,Guest, DC03,,,1,Days
 46972306,cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11,FF-471-20,4.00,34-C0-59-D8-31-08,2014-01-04 07:38:26.620,2014-01-04 07:38:26.607,premium day,prem_day_01,12288,12288,USD,,,trava,4051,,Guest, DC03,,,1,Days
 47057820,cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11,FF-471-20,12.95,34-C0-59-D8-31-08,2014-01-05 07:43:03.940,2014-01-05 07:43:03.933,basic day,basic_day_01,4096,4096,USD,,,trava,4051,,Public, HALFOFF,31,Minutes,,
