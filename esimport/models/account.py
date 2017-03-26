@@ -109,9 +109,9 @@ class Account:
 
     def find_duration(self):
         if self.ConsumableTime is not None:
-            return self.ConsumableTime + self.ConsumableTime
+            return "{0} {1} {2}".format(self.ConsumableTime, self.ConsumableUnit, "consumable")
         if self.SpanTime is not None:
-            return self.SpanTime + self.SpanUnit
+            return "{0} {1}".format(self.SpanTime, self.SpanUnit)
         else:
             return None
 
