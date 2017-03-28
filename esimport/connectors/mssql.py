@@ -1,4 +1,3 @@
-import yaml
 import pyodbc
 
 from esimport import settings
