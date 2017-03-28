@@ -10,7 +10,7 @@ class Property:
 
 
     @staticmethod
-    def query_one(limit):
+    def query_one(start, limit):
         q = """Select TOP {0} Organization.ID as ID,
 Organization.Number as Number,
 Organization.Display_Name as Name,
@@ -19,12 +19,14 @@ Organization.Meeting_Room_Count as MeetingRooms,
 Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
 Org_Status.Name as Status,
-Time_Zone.Tzid as Time_Zone,
+Time_Zone.Tzid as Time_Zone
 From Organization
 Left Join Org_Status on Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone on Time_Zone.ID = Organization.Time_Zone_ID
-Where Organization.Org_Category_Type_ID = 3"""
-        q = q.format(limit)
+Where Organization.Org_Category_Type_ID = 3
+    AND Organization.ID >= {1}
+ORDER BY Organization.ID ASC"""
+        q = q.format(limit, start)
         return q
 
 
@@ -52,9 +54,9 @@ AS
     INNER JOIN Providers ON Providers.Parent_Org_ID = Organization.ID
     WHERE Providers.Org_Category_Type_ID = 1
 )
-SELECT Providers.Display_Name
+SELECT Providers.Display_Name as Provider_Display_Name
 FROM Providers
-WHERE Providers.Org_Category_Type_ID = 2"""
+WHERE Providers.Org_Category_Type_ID = 2;"""
         q = q.format(org_id)
         return q
 
@@ -73,10 +75,10 @@ AS
     WHERE Org_Relation.Parent_Org_ID = Organization.ID
         AND Organization.ID = Providers.Child_Org_ID
 )
-SELECT Providers.Display_Name, COUNT(*) as Total
+SELECT Providers.Display_Name as Service_Area_Display_Name, COUNT(*) as Service_Area_Number
 FROM Providers
 WHERE Providers.Org_ID = {0}
     AND Providers.Org_Category_Type_ID = 4
-GROUP BY Providers.Display_Name"""
+GROUP BY Providers.Display_Name;"""
         q = q.format(org_id)
         return q
