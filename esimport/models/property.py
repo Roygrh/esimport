@@ -1,6 +1,4 @@
 
-from esimport import settings
-
 
 class Property:
 
