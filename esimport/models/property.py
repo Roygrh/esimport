@@ -1,12 +1,56 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class Property:
+
+    cursor = None
+
+
+    def __init__(self, connection):
+        self.cursor = connection.cursor
 
 
     _type = "property"
     @staticmethod
     def get_type():
         return Property._type
+
+
+    def fetch(self, query, column_names):
+        for row in self.cursor.execute(query):
+            if column_names:
+                yield dict([(cn, getattr(row, cn, '')) for cn in column_names])
+            else:
+                yield row
+
+    def get_properties(self, start, limit):
+        logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
+                .format(start, limit))
+        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
+                'Lite', 'Pan', 'Status', 'Time_Zone']
+        q1 = self.query_one(start, limit)
+        for rec1 in list(self.fetch(q1, h1)):
+            rec = {}
+
+            logger.debug('Processing Organization {0}'.format(rec1['ID'])
+                )
+            q2 = self.query_two(rec1['ID'])
+            for rec2 in list(self.fetch(q2, None)):
+                rec[rec2.Name] = rec2.Value
+
+            q3 = self.query_three(rec1['ID'])
+            for rec3 in list(self.fetch(q3, None)):
+                rec['Provider_Display_Name'] = rec3.Provider_Display_Name
+
+            q4 = self.query_four(rec1['ID'])
+            for rec4 in list(self.fetch(q4, None)):
+                rec[rec4.Service_Area_Number] = rec4.Service_Area_Display_Name
+
+            rec.update(rec1)
+            yield rec
 
 
     @staticmethod
