@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-import testing.elasticsearch
 from elasticsearch import Elasticsearch
 from mock import Mock, MagicMock
 

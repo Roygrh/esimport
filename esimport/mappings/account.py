@@ -1,7 +1,6 @@
 import sys
 import six
 import time
-import yaml
 import pprint
 import logging
 import traceback
