@@ -8,7 +8,6 @@ class Property:
 
     cursor = None
 
-
     def __init__(self, connection):
         self.cursor = connection.cursor
 
@@ -26,17 +25,17 @@ class Property:
             else:
                 yield row
 
+
     def get_properties(self, start, limit):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
+
         h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
                 'Lite', 'Pan', 'Status', 'Time_Zone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
             rec = {}
 
-            logger.debug('Processing Organization {0}'.format(rec1['ID'])
-                )
             q2 = self.query_two(rec1['ID'])
             for rec2 in list(self.fetch(q2, None)):
                 rec[rec2.Name] = rec2.Value
