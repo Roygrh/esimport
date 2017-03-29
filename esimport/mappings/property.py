@@ -9,7 +9,7 @@ from elasticsearch import exceptions
 from elasticsearch import Elasticsearch
 
 from esimport import settings
-from esimport.models import Property
+from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
 
 
@@ -63,6 +63,8 @@ class PropertyMapping:
         return 0
 
 
+    # FIXME: apply extract pull up refactoring
+    # duplicate code from esimport/mappings/account.py
     def bulk_add(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
         attempts = 0
         while attempts < retries:

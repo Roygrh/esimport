@@ -10,7 +10,7 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport import settings
-from esimport.models import Account
+from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
 
 

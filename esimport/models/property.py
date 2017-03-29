@@ -1,5 +1,7 @@
 import logging
 
+from esimport.models import ESRecord
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,22 +36,20 @@ class Property:
                 'Lite', 'Pan', 'Status', 'Time_Zone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
-            rec = {}
 
             q2 = self.query_two(rec1['ID'])
             for rec2 in list(self.fetch(q2, None)):
-                rec[rec2.Name] = rec2.Value
+                rec1[rec2.Name] = rec2.Value
 
             q3 = self.query_three(rec1['ID'])
             for rec3 in list(self.fetch(q3, None)):
-                rec['Provider_Display_Name'] = rec3.Provider_Display_Name
+                rec1['Provider_Display_Name'] = rec3.Provider_Display_Name
 
             q4 = self.query_four(rec1['ID'])
             for rec4 in list(self.fetch(q4, None)):
-                rec[rec4.Service_Area_Number] = rec4.Service_Area_Display_Name
+                rec1[rec4.Service_Area_Number] = rec4.Service_Area_Display_Name
 
-            rec.update(rec1)
-            yield rec
+            yield ESRecord(rec1, self.get_type())
 
 
     @staticmethod
