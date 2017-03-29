@@ -85,18 +85,22 @@ class PropertyMapping:
     _items = []
     def add(self, item, limit):
         self._items.append(item)
-        if len(self._items) >= limit:
+        items_count = len(self._items)
+        if items_count >= limit:
+            logger.info("Adding {0} records".format(items_count))
             self.bulk_add(self.es, self._items)
             self._items = []
 
 
     def sync(self):
-        start = self.max_id()
         while True:
-            for properte in self.model.get_properties(start, self.step_size):
-                logger.debug("Record found: {0}".format(self.pp.pformat(properte)))
-                #self.add(properte, self.step_size)
-            start += self.step_size
+            try:
+                start = self.max_id()
+                for properte in self.model.get_properties(start, self.step_size):
+                    logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
+                    self.add(dict(properte.es()), self.step_size)
+            except KeyboardInterrupt:
+                pass
 
 
     def update(self):
