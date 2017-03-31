@@ -40,6 +40,7 @@ def sync(mapping_name, start_date):
             pass
     elif mapping_name == 'property':
         pm = PropertyMapping()
+        pm.setup()
         pm.sync()
 
 

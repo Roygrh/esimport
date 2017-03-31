@@ -29,6 +29,8 @@ class PropertyMapping:
         self.step_size = settings.ES_BULK_LIMIT
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
+
+    def setup(self):
         logger.debug("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Property(conn)
