@@ -77,7 +77,8 @@ ORDER BY Organization.ID ASC"""
     def query_two(org_id):
         q = """SELECT Name, Value
 FROM Org_Value
-WHERE Org_Value.Organization_ID = {0}"""
+WHERE Org_Value.Organization_ID = {0}
+    AND Name NOT IN ('EradApiKey')"""
         q = q.format(org_id)
         return q
 
