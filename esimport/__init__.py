@@ -47,7 +47,13 @@ def sync(mapping_name, start_date):
 @cli.command()
 @click.argument('mapping_name')
 def update(mapping_name):
-    am = AccountMapping()
-    am.setup_config()
-    am.setup_connection()
-    am.bulk_update(am.get_es_count())
+    mapping_name = mapping_name.lower()
+    if mapping_name == 'account':
+        am = AccountMapping()
+        am.setup_config()
+        am.setup_connection()
+        am.bulk_update(am.get_es_count())
+    elif mapping_name == 'property':
+        pm = PropertyMapping()
+        pm.setup()
+        pm.update()

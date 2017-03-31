@@ -110,5 +110,41 @@ class PropertyMapping:
                 pass
 
 
+    # FIXME: apply extract pull up refactoring
+    # duplicate code from esimport/mappings/account.py
+    def get_es_count(self):
+        logger.debug("Finding records count from index: %s, type: %s" % (
+                    settings.ES_INDEX, Property.get_type()))
+        filters = dict(index=settings.ES_INDEX, doc_type=Property.get_type())
+        response = self.es.count(**filters)
+        try:
+            return response['count']
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+        return 0
+
+
+    def get_existing_properties(self, start, limit):
+        logger.debug("Fetching {0} records from ES where ID >= {1}" \
+                .format(limit, start))
+        records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+                                 sort="ID:asc", size=limit,
+                                 q="ID:[{0} TO *]".format(start))
+        for record in records['hits']['hits']:
+            yield record.get('_source')
+
+
     def update(self):
-        pass
+        start = 0
+        while True:
+            try:
+                total = self.get_es_count()
+                for properte in self.get_existing_properties(start, self.step_size):
+                    pass
+
+                start += min(self.step_size, total-start)
+                if start >= total:
+                    start = 0
+            except KeyboardInterrupt:
+                pass
