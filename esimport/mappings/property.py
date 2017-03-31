@@ -86,11 +86,11 @@ class PropertyMapping:
         return attempts
 
 
-    _items = []
     def add(self, item, limit):
-        self._items.append(item)
+        if item:
+            self._items.append(item)
         items_count = len(self._items)
-        if items_count >= limit:
+        if items_count > 0 and items_count >= limit:
             logger.info("Adding {0} records".format(items_count))
             self.bulk_add(self.es, self._items)
             self._items = []
@@ -103,6 +103,9 @@ class PropertyMapping:
                 for properte in self.model.get_properties(start, self.step_size):
                     logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
                     self.add(dict(properte.es()), self.step_size)
+
+                # for cases when all/remaining items count were less than limit
+                self.add(None, min(len(self._items), self.step_size))
             except KeyboardInterrupt:
                 pass
 
