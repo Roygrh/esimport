@@ -21,10 +21,12 @@ class PropertyMapping:
     model = None
     es = None
 
+    _items = None
+
 
     def __init__(self):
+        self._items = list()
         self.step_size = settings.ES_BULK_LIMIT
-
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
         logger.debug("Setting up DB connection")
