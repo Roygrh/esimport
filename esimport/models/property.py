@@ -85,44 +85,22 @@ WHERE Org_Value.Organization_ID = {0}
 
     @staticmethod
     def query_three(org_id):
-        q = """WITH Providers (Parent_Org_ID, Child_Org_ID, Org_Category_Type_ID, Display_Name, DepthNumber)
-AS
-(
-    SELECT Org_Relation.Parent_Org_ID, Org_Relation.Child_Org_ID, Organization.Org_Category_Type_ID, Organization.Display_Name, 0
-    FROM Org_Relation, Organization
-    WHERE Org_Relation.Child_Org_ID = Organization.ID
-        AND Organization.ID = {0}
-    UNION ALL
-    SELECT Providers.Parent_Org_ID, Providers.Child_Org_ID, Organization.Org_Category_Type_ID, Organization.Display_Name, DepthNumber+1
-    FROM Organization
-    INNER JOIN Providers ON Providers.Parent_Org_ID = Organization.ID
-    WHERE Providers.Org_Category_Type_ID = 1
-)
-SELECT Providers.Display_Name as Provider_Display_Name
-FROM Providers
-WHERE Providers.Org_Category_Type_ID = 2;"""
+        q = """SELECT Organization.Display_Name as Provider_Display_Name
+FROM Org_Relation_Cache
+JOIN Organization on Organization.ID = Parent_Org_ID
+WHERE Child_Org_ID = {0}
+    AND Organization.Org_Category_Type_ID = 2"""
         q = q.format(org_id)
         return q
 
 
     @staticmethod
     def query_four(org_id):
-        q = """WITH Providers (Org_ID, Parent_Org_ID, Child_Org_ID, Org_Category_Type_ID, Display_Name, DepthNumber)
-AS
-(
-    SELECT Organization.ID, Org_Relation.Parent_Org_ID, Org_Relation.Child_Org_ID, Organization.Org_Category_Type_ID, Organization.Display_Name, 0
-    FROM Org_Relation, Organization
-    WHERE Org_Relation.Parent_Org_ID = Organization.ID
-    UNION ALL
-    SELECT Providers.Org_ID, Org_Relation.Parent_Org_ID, Org_Relation.Child_Org_ID, Organization.Org_Category_Type_ID, Organization.Display_Name, DepthNumber + 1
-    FROM Org_Relation, Organization, Providers
-    WHERE Org_Relation.Parent_Org_ID = Organization.ID
-        AND Organization.ID = Providers.Child_Org_ID
-)
-SELECT Providers.Display_Name as Service_Area_Display_Name, COUNT(*) as Service_Area_Number
-FROM Providers
-WHERE Providers.Org_ID = {0}
-    AND Providers.Org_Category_Type_ID = 4
-GROUP BY Providers.Display_Name;"""
+        q = """SELECT Organization.Display_Name as Service_Area_Display_Name,
+        Organization.Number as Service_Area_Number
+FROM Org_Relation_Cache
+JOIN Organization on Organization.ID = Child_Org_ID
+WHERE Parent_Org_ID = {0}
+    AND Organization.Org_Category_Type_ID = 4"""
         q = q.format(org_id)
         return q
