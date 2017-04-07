@@ -35,3 +35,7 @@ class ESRecord:
 
     def get(self, name):
         return self.record.get(name)
+
+
+    def update(self, d):
+        return self.record.update(d)

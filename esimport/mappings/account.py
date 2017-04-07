@@ -9,6 +9,7 @@ from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.base import BaseMapping
+from esimport.mappings.property import PropertyMapping
 
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,11 @@ class AccountMapping(BaseMapping):
     model = None
     es = None
 
+    pm = None
+    property_fields_include = (
+        'PropertyName', 'PropertyNumber',
+        'Provider_Display_Name', 'Brand',
+        'MARSHA_Code',)
 
     def __init__(self):
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
@@ -30,6 +36,8 @@ class AccountMapping(BaseMapping):
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
 
+        self.pm = PropertyMapping()
+        self.pm.setup()
 
     # FIXME: move it to connectors module
     def setup(self): # pragma: no cover
@@ -49,6 +57,15 @@ class AccountMapping(BaseMapping):
         for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
             end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
+
+            # get some properties from PropertyMapping
+            _action = {}
+            for properte in self.pm.get_properties_by_service_area(account.ServiceArea):
+                for pfi in self.property_fields_include:
+                    _action[pfi] = properte.get(pfi, "")
+                break
+            account.update(_action)
+
             actions.append(account.es())
 
         if actions:
