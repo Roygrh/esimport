@@ -23,11 +23,11 @@ class Records(list):
         return self._keys
 
 
-def _mocked_sql():
+def _mocked_sql(filename='multiple_orders.csv'):
     dt_format = '%Y-%m-%d %H:%M:%S.%f'
 
     records = Records()
-    with open('{0}/multiple_orders.csv'.format(settings.TEST_FIXTURES_DIR)) as csvfile:
+    with open('{0}/{1}'.format(settings.TEST_FIXTURES_DIR, filename)) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             records.setKeys(row.keys())

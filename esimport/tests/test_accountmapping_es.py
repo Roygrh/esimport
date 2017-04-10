@@ -23,7 +23,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def setUp(self):
-        self.rows = self.multiple_orders = tests._mocked_sql()
+        self.rows = tests._mocked_sql('multiple_orders.csv')
 
         self.am = AccountMapping()
         self.start = 0
@@ -32,6 +32,14 @@ class TestAccountMappingElasticSearch(TestCase):
         conn = Mock()
         self.am.model = Account(conn)
         self.am.model.cursor.execute = MagicMock(return_value=self.rows)
+
+        self.properties = tests._mocked_sql('esimport_properties.csv')
+
+        conn = Mock()
+        conn.cursor = Mock()
+        conn.cursor.execute = MagicMock(return_value=self.properties)
+
+        self.pm = PropertyMapping(conn)
 
         # needs ES_HOME set to where elastic search is downloaded
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
@@ -185,6 +193,26 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am.model.cursor.execute = _rows
         self.am.es = _es
+
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
+
+    def test_property_mapping_fields(self):
+        es = self.es
+        es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
+
+        # add some account data
+        _es = self.am.es
+        self.am.es = es
+        self.am.pm = self.pm
+
+        # add accounts from mocked sql to ES
+        max_id = self.am.max_id()
+        self.am.add_accounts(max_id) # there is a delay
+
+        # verify if added accounts data has some property fields
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
