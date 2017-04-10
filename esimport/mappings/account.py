@@ -37,7 +37,7 @@ class AccountMapping(BaseMapping):
         self.esRetry = settings.ES_RETRIES
 
         self.pm = PropertyMapping()
-        self.pm.setup()
+
 
     # FIXME: move it to connectors module
     def setup(self): # pragma: no cover
