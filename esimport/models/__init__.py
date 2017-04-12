@@ -21,12 +21,16 @@ class ESRecord:
         self.doc_type = doc_type
 
 
-    def es(self):
+    def es(self, record_id=None):
         rec = self.meta_fields.copy()
         rec.update({
             "_type": self.doc_type,
-            "_id": self.record.get('ID'),
+            "_id": record_id or self.record.get('ID'),
             "doc_as_upsert": True,
             "doc": self.record
         })
         return rec
+
+
+    def get(self, name):
+        return self.record.get(name)

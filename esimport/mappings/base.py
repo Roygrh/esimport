@@ -7,7 +7,6 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport import settings
-from esimport.models.property import Property
 
 
 logger = logging.getLogger(__name__)
@@ -60,8 +59,8 @@ class BaseMapping:
 
     def get_es_count(self):
         logger.debug("Finding records count from index: %s, type: %s" % (
-                    settings.ES_INDEX, Property.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=Property.get_type())
+                    settings.ES_INDEX, self.model.get_type()))
+        filters = dict(index=settings.ES_INDEX, doc_type=self.model.get_type())
         response = self.es.count(**filters)
         try:
             return response['count']

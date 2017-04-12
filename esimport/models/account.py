@@ -1,8 +1,6 @@
 import six
-import json
 import logging
 
-from esimport import settings
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 
@@ -19,66 +17,35 @@ class Account(BaseModel):
         return Account._type
 
 
+    # test if output fields are exactly what are mentioned
+    # also check Created and Activated are date objects
+    # also check ID is int or long
     def get_accounts(self, start, limit, start_date='1900-01-01'):
         q = self.eleven_query(start_date, start, limit)
-        for row in self.fetch(q):
-            rec = {
-                "ID": long(row.ID) if six.PY2 else int(row.ID),
-                "Name": row.Name,
-                "Created": row.Created,
-                "Activated": row.Activated,
-                "ServiceArea": row.ServiceArea,
-                "Price": str(row.Price) + str(row.Currency),
-                "PurchaseMacAddress": row.PurchaseMacAddress,  # PII
-                "ServicePlan" : row.ServicePlan,
-                "ServicePlanNumber": row.ServicePlanNumber,
-                "UpCap": row.UpCap,
-                "DownCap": row.DownCap,
-                "CreditCardNumber": row.CreditCardNumber,
-                "CardType": row.CardType,
-                "LastName": row.LastName,
-                "RoomNumber": row.RoomNumber,
-                "AccessCodeUsed": row.AccessCodeUsed,
-                "PayMethod": row.PayMethod,
-                "ZoneType": row.ZoneType,
-                "DiscountCode": row.DiscountCode,
-                "ConsumableTime": row.ConsumableTime,
-                "ConsumableUnit": row.ConsumableUnit,
-                "SpanTime": row.SpanTime,
-                "SpanUnit": row.SpanUnit,
-                "Duration": self.find_duration(row)
-            }
-            yield ESRecord(rec, self.get_type())
+        columns = ['ID', 'Name', 'Created', 'Activated',
+                    'ServiceArea', 'Price', 'PurchaseMacAddress', 'ServicePlan',
+                    'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
+                    'LastName', 'RoomNumber', 'AccessCodeUsed', 'PayMethod', 'ZoneType',
+                    'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
+        for row in self.fetch_dict(q):
+            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            if 'Currency' in row:
+                row['Price'] = str(row.get('Price')) + str(row.get('Currency'))
+                row.pop('Currency')
+            row['Duration'] = self.find_duration(row)
+            yield ESRecord(row, self.get_type())
 
 
-    @property
-    def action(self):
-        action = {
-            "_op_type": "update",
-            "_index": settings.ES_INDEX,
-            "_type": self.get_type(),
-            "_id": self.ID,
-            "doc_as_upsert": True
-        }
-        return action
+    def get_records_by_zpa_id(self, ids):
+        q = self.query_records_by_zpa_id(ids)
+        return self.fetch_dict(q)
 
-    @staticmethod
-    def make_json(unique_id, doc):
-        _json_ = {
-            "_op_type": "update",
-            "_index": settings.ES_INDEX,
-            "_type": Account.get_type(),
-            "_id": unique_id,
-            "doc_as_upsert": True,
-            "doc": doc
-        }
-        return _json_
 
     def find_duration(self, row):
-        if row.ConsumableTime is not None:
-            return "{0} {1} {2}".format(row.ConsumableTime, row.ConsumableUnit, "consumable")
-        if row.SpanTime is not None:
-            return "{0} {1}".format(row.SpanTime, row.SpanUnit)
+        if row.get('ConsumableTime') is not None:
+            return "{0} {1} {2}".format(row.get('ConsumableTime'), row.get('ConsumableUnit'), "consumable")
+        if row.get('SpanTime') is not None:
+            return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
         else:
             return None
 
@@ -94,9 +61,6 @@ class Account(BaseModel):
         else:
             return self.PayMethod
 
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4, encoding='latin1')
 
     @staticmethod
     def eleven_query(start_date, start_zpa_id, limit):

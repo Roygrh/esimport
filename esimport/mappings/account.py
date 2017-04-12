@@ -5,9 +5,9 @@ import logging
 from elasticsearch import Elasticsearch
 
 from esimport import settings
+from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
-from esimport.mappings.property import PropertyMapping
 from esimport.mappings.base import BaseMapping
 
 
@@ -20,10 +20,8 @@ class AccountMapping(BaseMapping):
     esTimeout = None
     esRetry = None
 
-    cursor = None
     model = None
     es = None
-
 
 
     def __init__(self):
@@ -35,19 +33,13 @@ class AccountMapping(BaseMapping):
 
     # FIXME: move it to connectors module
     def setup(self): # pragma: no cover
-        if self.cursor is None:
-            logger.debug("Setting up DB connection")
-            conn = MsSQLConnector()
-            self.cursor = conn.cursor
-            self.model = Account(conn)
+        logger.debug("Setting up DB connection")
+        conn = MsSQLConnector()
+        self.model = Account(conn)
 
-        if self.es is None:
-            logger.debug("Setting up ES connection")
-            # defaults to localhost:9200
-            self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-
-        self.pm = PropertyMapping()
-        self.pm.setup()
+        logger.debug("Setting up ES connection")
+        # defaults to localhost:9200
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
     def add_accounts(self, max_id, start_date='1900-01-01'):
@@ -56,8 +48,8 @@ class AccountMapping(BaseMapping):
         actions = []
         for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
-            end = long(account.ID) if six.PY2 else int(account.ID)
-            actions.append(account.action)
+            end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
+            actions.append(account.es())
 
         if actions:
             if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
@@ -93,16 +85,13 @@ class AccountMapping(BaseMapping):
             accounts.append(account)
             ids.append(str(account.get('ID')))
 
-        q = Account.query_records_by_zpa_id(ids)
-        rows = self.cursor.execute(q)
-        columns = [column[0] for column in rows.description]
-        for row in rows:
+        for row in self.model.get_records_by_zpa_id(ids):
             logger.debug("Record found: {0}".format(row))
-            es_records = filter(lambda x: x if x.get('ID') == row.ID else [None], accounts)
+            es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
             if not isinstance(es_records, list):
                 es_records = list(es_records)
             if es_records:
-                account = (dict(zip(columns, row)), es_records[0])
+                account = (row, es_records[0])
                 yield account
 
 
@@ -116,8 +105,10 @@ class AccountMapping(BaseMapping):
             new_fields = set(new.keys()) - set(current.keys()) - set(ignore_fields)
             new_record = dict([(k, v) for k,v in new.items() if k in new_fields])
             if len(new_record) > 0:
-                new_account = Account.make_json(current.get('ID'), new_record)
+                new_account = ESRecord(new_record, Account.get_type()) \
+                                    .es(record_id=new.get('ID'))
                 yield new_account
+
 
     def bulk_update(self, total):
         start = 0
