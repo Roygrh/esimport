@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-import testing.elasticsearch
 from elasticsearch import Elasticsearch
 from mock import Mock, MagicMock
 
@@ -16,7 +15,7 @@ class TestAccountMapping(TestCase):
 
         self.am = AccountMapping()
         self.am.setup_config()
-        self.start = self.am.position
+        self.start = 0
         self.end = self.start + min(len(self.rows), self.am.step_size)
         self.am.cursor = Mock()
         self.am.cursor.execute = MagicMock(return_value=self.rows)
@@ -25,17 +24,13 @@ class TestAccountMapping(TestCase):
     def test_setup_config(self):
         am = AccountMapping()
 
-        assert am.cfg is None
         assert am.step_size is None
-        assert am.position is None
         assert am.esTimeout is None
         assert am.esRetry is None
 
         am.setup_config()
 
-        assert am.cfg is not None
         assert am.step_size is not None
-        assert am.position is not None
         assert am.esTimeout is not None
         assert am.esRetry is not None
 
@@ -50,7 +45,7 @@ class TestAccountMapping(TestCase):
         accounts = self.am.get_accounts(self.start, self.end)
         actions = [account.action for account in accounts]
 
-        attempts = self.am.bulk_add(es, actions, 1, self.am.esTimeout)
+        attempts = self.am.bulk_add_or_update(es, actions, 1, self.am.esTimeout)
         self.assertGreater(attempts, 0)
 
 
@@ -63,9 +58,3 @@ class TestAccountMapping(TestCase):
             account_count += 1
         self.assertEqual(account_count, len(self.rows))
 
-
-    def test_add_accounts(self):
-        self.assertNotEqual(self.am.position, self.end)
-        new_end = self.am.position + self.am.step_size
-        self.am.add_accounts(self.end)
-        self.assertEqual(self.am.position, new_end)
