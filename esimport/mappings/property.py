@@ -83,3 +83,18 @@ class PropertyMapping(BaseMapping):
                     start = 0
             except KeyboardInterrupt:
                 pass
+
+
+    def get_properties_by_service_area(self, service_area):
+        logger.debug("Fetching records from ES where field name {0} exists." \
+                .format(service_area))
+        records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+                                 body={
+                                    "query": {
+                                        "exists": {
+                                            "field" : service_area
+                                        }
+                                    }
+                                 })
+        for record in records['hits']['hits']:
+            yield record.get('_source')
