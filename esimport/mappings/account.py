@@ -1,113 +1,55 @@
-import sys
 import six
-import time
 import pprint
 import logging
-import traceback
 
 from elasticsearch import Elasticsearch
-from elasticsearch import helpers
-from elasticsearch import exceptions
 
 from esimport import settings
+from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
+from esimport.mappings.base import BaseMapping
 
 
 logger = logging.getLogger(__name__)
 
 
-class AccountMapping:
+class AccountMapping(BaseMapping):
 
     step_size = None
     esTimeout = None
     esRetry = None
 
-    cursor = None
+    model = None
     es = None
 
 
     def __init__(self):
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
-
-
-    # FIXME: drop this function
-    def setup_config(self):
         self.step_size = settings.ES_BULK_LIMIT
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
 
 
     # FIXME: move it to connectors module
-    def setup_connection(self): # pragma: no cover
-        if self.cursor is None:
-            logger.debug("Setting up DB connection")
-            self.cursor = MsSQLConnector().cursor
+    def setup(self): # pragma: no cover
+        logger.debug("Setting up DB connection")
+        conn = MsSQLConnector()
+        self.model = Account(conn)
 
-        if self.es is None:
-            logger.debug("Setting up ES connection")
-            # defaults to localhost:9200
-            self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        logger.debug("Setting up ES connection")
+        # defaults to localhost:9200
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-
-    # find max Zone_Plan_Account.ID from ElasticSearch
-    def max_id(self):
-        logger.debug("Finding max id from index: %s, type: %s" % (
-                    settings.ES_INDEX, Account.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=Account.get_type(),
-                        body={
-                            "aggs": {
-                                "max_id": {
-                                  "max": {
-                                    "field": "ID"
-                                  }
-                                }
-                              },
-                              "size": 0
-                            })
-        response = self.es.search(**filters)
-        try:
-            _id = response['aggregations']['max_id']['value']
-            if _id:
-                return int(_id)
-        except Exception as err:
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-        return 0
-
-
-    def bulk_add_or_update(self, es, actions, retries, timeout):
-        attempts = 0
-        while attempts < retries:
-            try:
-                attempts += 1
-                helpers.bulk(es, actions, request_timeout=timeout)
-                break
-            except exceptions.ConnectionTimeout as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-                time.sleep(attempts * 5) # pragma: no cover
-            except Exception as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-        return attempts
-
-    def get_accounts(self, start, limit, start_date='1900-01-01'):
-        logger.debug("Searching by Zone_Plan_Account.ID from {0} (limit: {1}) and Zone_Plan_Account.Date_Created_UTC >= {2}"
-                .format(start, limit, start_date))
-        q = Account.eleven_query(start_date, start, limit)
-        for row in self.cursor.execute(q):
-            logger.debug("Record found: {0}".format(row))
-            yield Account(row)
 
     def add_accounts(self, max_id, start_date='1900-01-01'):
         start = end = max_id + 1
         count = 0
         actions = []
-        for account in self.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
-            end = long(account.ID) if six.PY2 else int(account.ID)
-            actions.append(account.action)
+            end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
+            actions.append(account.es())
 
         if actions:
             if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
@@ -118,19 +60,6 @@ class AccountMapping:
             self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
             logger.info("Added {0} entries {1} through {2}" \
                     .format(count, start, end))
-
-
-    def get_es_count(self):
-        logger.debug("Finding records count from index: %s, type: %s" % (
-                    settings.ES_INDEX, Account.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=Account.get_type())
-        response = self.es.count(**filters)
-        try:
-            return response['count']
-        except Exception as err:
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-        return 0
 
 
     """
@@ -156,16 +85,13 @@ class AccountMapping:
             accounts.append(account)
             ids.append(str(account.get('ID')))
 
-        q = Account.query_records_by_zpa_id(ids)
-        rows = self.cursor.execute(q)
-        columns = [column[0] for column in rows.description]
-        for row in rows:
+        for row in self.model.get_records_by_zpa_id(ids):
             logger.debug("Record found: {0}".format(row))
-            es_records = filter(lambda x: x if x.get('ID') == row.ID else [None], accounts)
+            es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
             if not isinstance(es_records, list):
                 es_records = list(es_records)
             if es_records:
-                account = (dict(zip(columns, row)), es_records[0])
+                account = (row, es_records[0])
                 yield account
 
 
@@ -179,8 +105,10 @@ class AccountMapping:
             new_fields = set(new.keys()) - set(current.keys()) - set(ignore_fields)
             new_record = dict([(k, v) for k,v in new.items() if k in new_fields])
             if len(new_record) > 0:
-                new_account = Account.make_json(current.get('ID'), new_record)
+                new_account = ESRecord(new_record, Account.get_type()) \
+                                    .es(record_id=new.get('ID'))
                 yield new_account
+
 
     def bulk_update(self, total):
         start = 0

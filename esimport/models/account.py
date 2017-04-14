@@ -1,117 +1,58 @@
-# ######################################################################################################################
-#
-# Python2.7 Script: account.py
-#
-# Purpose: Account Index
-#
-# Author: Sean P. Parker
-# Created: October 2016
-# Updated: January 2017
-#
-# Copyright @ 2017 Eleven Wireless Inc.
-#
-# ######################################################################################################################
 import six
-import json
+import logging
 
-from esimport import settings
+from datetime import datetime
+
+from esimport.models import ESRecord
+from esimport.models.base import BaseModel
 
 
-class Account:
+logger = logging.getLogger(__name__)
 
-    def __init__(self, row):
-        self.ID = row.ID
-        self.Name = row.Name
-        self.Created = row.Created
-        self.Activated = row.Activated
-        self.ServiceArea = row.ServiceArea
-        self.Price = str(row.Price) + str(row.Currency)
-        self.PurchaseMacAddress = row.PurchaseMacAddress
-        self.ServicePlan = row.ServicePlan
-        self.ServicePlanNumber = row.ServicePlanNumber
-        self.UpCap = row.UpCap
-        self.DownCap = row.DownCap
-        self.CreditCardNumber = row.CreditCardNumber
-        self.CardType = row.CardType
-        self.LastName = row.LastName
-        self.RoomNumber = row.RoomNumber
-        self.AccessCodeUsed = row.AccessCodeUsed
-        self.PayMethod = row.PayMethod
-        self.ZoneType = row.ZoneType
-        self.DiscountCode = row.DiscountCode
-        self.ConsumableTime = row.ConsumableTime
-        self.ConsumableUnit = row.ConsumableUnit
-        self.SpanTime = row.SpanTime
-        self.SpanUnit = row.SpanUnit
 
-        if self.Created:
-            self.Created = self.Created.isoformat()
+class Account(BaseModel):
 
-        if self.Activated:
-            self.Activated = self.Activated.isoformat()
-
-    def __str__(self):
-        return "{0} at {1} created {2}. Purchased {3} via {4} for {5}. {6}up/{7}down" \
-                .format(self.Name, self.ServiceArea, self.Timestamp,
-                         self.ServicePlan, self.pay_details(), self.Price,
-                         self.UpCap, self.DownCap)
 
     _type = "account"
     @staticmethod
     def get_type():
         return Account._type
 
-    @property
-    def action(self):
-        action = {
-            "_op_type": "update",
-            "_index": settings.ES_INDEX,
-            "_type": self.get_type(),
-            "_id": self.ID,
-            "doc_as_upsert": True,
-            "doc":
-            {
-                "ID": long(self.ID) if six.PY2 else int(self.ID),
-                "Name": self.Name,
-                "Created": self.Created,
-                "Activated": self.Activated,
-                "ServiceArea": self.ServiceArea,
-                "Price": self.Price,
-                "PurchaseMacAddress": self.PurchaseMacAddress,  # PII
-                "ServicePlan" : self.ServicePlan,
-                "ServicePlanNumber": self.ServicePlanNumber,
-                "UpCap": self.UpCap,
-                "DownCap": self.DownCap,
-                "CreditCardNumber": self.CreditCardNumber,
-                "CardType": self.CardType,
-                "LastName": self.LastName,
-                "RoomNumber": self.RoomNumber,
-                "AccessCodeUsed": self.AccessCodeUsed,
-                "PayMethod": self.PayMethod,
-                "ZoneType": self.ZoneType,
-                "DiscountCode": self.DiscountCode,
-                "Duration": self.find_duration()
-            }
-        }
-        return action
 
-    @staticmethod
-    def make_json(unique_id, doc):
-        _json_ = {
-            "_op_type": "update",
-            "_index": settings.ES_INDEX,
-            "_type": Account.get_type(),
-            "_id": unique_id,
-            "doc_as_upsert": True,
-            "doc": doc
-        }
-        return _json_
+    # test if output fields are exactly what are mentioned
+    # also check Created and Activated are date objects
+    # also check ID is int or long
+    def get_accounts(self, start, limit, start_date='1900-01-01'):
+        q = self.eleven_query(start_date, start, limit)
+        columns = ['ID', 'Name', 'Created', 'Activated',
+                    'ServiceArea', 'Price', 'PurchaseMacAddress', 'ServicePlan',
+                    'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
+                    'LastName', 'RoomNumber', 'AccessCodeUsed', 'PayMethod', 'ZoneType',
+                    'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
+        dt_columns = ['Created', 'Activated']
+        for row in self.fetch_dict(q):
+            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            if 'Currency' in row:
+                row['Price'] = str(row.get('Price')) + str(row.get('Currency'))
+                row.pop('Currency')
+            row['Duration'] = self.find_duration(row)
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
+            yield ESRecord(row, self.get_type())
 
-    def find_duration(self):
-        if self.ConsumableTime is not None:
-            return "{0} {1} {2}".format(self.ConsumableTime, self.ConsumableUnit, "consumable")
-        if self.SpanTime is not None:
-            return "{0} {1}".format(self.SpanTime, self.SpanUnit)
+
+    def get_records_by_zpa_id(self, ids):
+        q = self.query_records_by_zpa_id(ids)
+        return self.fetch_dict(q)
+
+
+    def find_duration(self, row):
+        if row.get('ConsumableTime') is not None:
+            return "{0} {1} {2}".format(row.get('ConsumableTime'), row.get('ConsumableUnit'), "consumable")
+        if row.get('SpanTime') is not None:
+            return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
         else:
             return None
 
@@ -127,9 +68,6 @@ class Account:
         else:
             return self.PayMethod
 
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4, encoding='latin1')
 
     @staticmethod
     def eleven_query(start_date, start_zpa_id, limit):
