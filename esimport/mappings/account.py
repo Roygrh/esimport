@@ -28,7 +28,10 @@ class AccountMapping(BaseMapping):
     property_fields_include = (
         'PropertyName', 'PropertyNumber',
         'Provider_Display_Name', 'Brand',
-        'MARSHA_Code',)
+        'MARSHA_Code', 'Country', 'Region',
+        'SubRegion', 'OwnershipGroup',
+        'TaxRate', 'CorporateBrand',
+        'ExtPropId',)
 
 
     def __init__(self):
