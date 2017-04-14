@@ -9,7 +9,9 @@ from mock import Mock, MagicMock
 
 from esimport.models import ESRecord
 from esimport.models.account import Account
+from esimport.models.property import Property
 from esimport.mappings.account import AccountMapping
+from esimport.mappings.property import PropertyMapping
 from esimport import tests
 from esimport import settings
 
@@ -31,6 +33,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
         conn = Mock()
         self.am.model = Account(conn)
+        self.am.model.cursor = Mock()
         self.am.model.cursor.execute = MagicMock(return_value=self.rows)
 
         self.properties = tests._mocked_sql('esimport_properties.csv')
@@ -39,10 +42,14 @@ class TestAccountMappingElasticSearch(TestCase):
         conn.cursor = Mock()
         conn.cursor.execute = MagicMock(return_value=self.properties)
 
-        self.pm = PropertyMapping(conn)
+        self.pm = PropertyMapping()
+        self.pm.get_properties_by_service_area = MagicMock(return_value=self.properties)
+        self.am.pm = self.pm
 
         # needs ES_HOME set to where elastic search is downloaded
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.am.es = self.es
+        self.am.pm.es = self.es
 
 
     # also an integration test
@@ -51,7 +58,7 @@ class TestAccountMappingElasticSearch(TestCase):
         _type = Account.get_type()
 
         es = self.es
-        es.indices.create(index=_index)
+        es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
 
         # Note: start and end inputs are ignored because test data is hard coded
@@ -126,16 +133,28 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
 
-        _es = self.am.es
-        self.am.es = es
         if six.PY2:
             self.assertTrue(isinstance(self.am.get_es_count(), (int, long)))
         else:
             self.assertTrue(isinstance(self.am.get_es_count(), int))
-        self.am.es = _es
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
+
+
+    def _give_me_some_data(self, es):
+        # add accounts from mocked sql to ES
+        max_id = self.am.max_id()
+        self.am.add_accounts(max_id) # there is a delay
+
+        total = self.am.get_es_count()
+        retries = 0
+        while total <= 0 and retries < self.am.esRetry:
+            time.sleep(self.am.esTimeout)
+            total = self.am.get_es_count()
+            retries += 1
+
+        return total > 0
 
 
     def test_update_new_fields_only(self):
@@ -146,19 +165,7 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
 
-        _es = self.am.es
-        self.am.es = es
-
-        # add accounts from mocked sql to ES
-        max_id = self.am.max_id()
-        self.am.add_accounts(max_id) # there is a delay
-
-        limit = total = self.am.get_es_count()
-        retries = 0
-        while total <= 0 and retries < self.am.esRetry:
-            time.sleep(self.am.esTimeout)
-            limit = total = self.am.get_es_count()
-            retries += 1
+        self.assertTrue(self._give_me_some_data(es))
 
         # create mocked sql with new field(s) (Org=SkyNet)
         updated_records = tests.Records()
@@ -167,6 +174,8 @@ class TestAccountMappingElasticSearch(TestCase):
             updated_records.setKeys(row.keys())
             row['Org'] = 'SkyNet'
             updated_records.append(row)
+
+        limit = self.am.get_es_count()
 
         # get updated records from mocked sql and verify length
         _rows = self.am.model.cursor.execute
@@ -192,27 +201,24 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertNotIn('Org', doc_saved)
 
         self.am.model.cursor.execute = _rows
-        self.am.es = _es
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
 
     def test_property_mapping_fields(self):
+        _index = settings.ES_INDEX
+        _type = Account.get_type()
+
         es = self.es
         es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
 
-        # add some account data
-        _es = self.am.es
-        self.am.es = es
-        self.am.pm = self.pm
+        self.assertTrue(self._give_me_some_data(es))
+        self.assertNotEqual(self.am.get_es_count(), 0)
 
-        # add accounts from mocked sql to ES
-        max_id = self.am.max_id()
-        self.am.add_accounts(max_id) # there is a delay
-
-        # verify if added accounts data has some property fields
+        for rec in self.am.get_existing_accounts(self.start, self.end):
+            self.assertTrue(all([_ in rec for _ in self.am.property_fields_include]))
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))

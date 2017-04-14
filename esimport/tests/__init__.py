@@ -31,7 +31,5 @@ def _mocked_sql(filename='multiple_orders.csv'):
         reader = csv.DictReader(csvfile)
         for row in reader:
             records.setKeys(row.keys())
-            row['Created'] = datetime.strptime(row.get('Created'), dt_format)
-            row['Activated'] = datetime.strptime(row.get('Activated'), dt_format)
             records.append(row)
     return records
