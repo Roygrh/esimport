@@ -37,10 +37,6 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.properties = tests._mocked_sql('esimport_properties.csv')
 
-        conn = Mock()
-        conn.cursor = Mock()
-        conn.cursor.execute = MagicMock(return_value=self.properties)
-
         self.pm = PropertyMapping()
         self.pm.get_properties_by_service_area = MagicMock(return_value=self.properties)
         self.am.pm = self.pm
