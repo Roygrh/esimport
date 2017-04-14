@@ -209,7 +209,6 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertTrue(es.indices.exists(index=_index))
 
         self.assertTrue(self._give_me_some_data(es))
-        self.assertNotEqual(self.am.get_es_count(), 0)
 
         for rec in self.am.get_existing_accounts(self.start, self.end):
             self.assertTrue(all([_ in rec for _ in self.am.property_fields_include]))
