@@ -1,7 +1,7 @@
 import logging
 
 from esimport import settings
-
+from esimport import utils
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ class ESRecord:
             "doc_as_upsert": True,
             "doc": self.record
         })
+        rec = utils.convert_keys_to_string(rec)
         return rec
 
 

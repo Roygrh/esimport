@@ -1,6 +1,8 @@
 import six
 import logging
 
+from datetime import datetime
+
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 
@@ -27,12 +29,17 @@ class Account(BaseModel):
                     'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
                     'LastName', 'RoomNumber', 'AccessCodeUsed', 'PayMethod', 'ZoneType',
                     'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
+        dt_columns = ['Created', 'Activated']
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             if 'Currency' in row:
                 row['Price'] = str(row.get('Price')) + str(row.get('Currency'))
                 row.pop('Currency')
             row['Duration'] = self.find_duration(row)
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
             yield ESRecord(row, self.get_type())
 
 

@@ -4,7 +4,6 @@ import time
 from unittest import TestCase
 from datetime import datetime
 
-import testing.elasticsearch5
 from elasticsearch import Elasticsearch
 from mock import Mock, MagicMock
 
@@ -35,34 +34,40 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.model.cursor.execute = MagicMock(return_value=self.rows)
 
         # needs ES_HOME set to where elastic search is downloaded
-        self.elasticsearch = testing.elasticsearch5.Elasticsearch()
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
     # also an integration test
     def test_bulk_add_or_update(self):
-        es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=settings.ES_INDEX, ignore=400)
+        _index = settings.ES_INDEX
+        _type = Account.get_type()
+
+        es = self.es
+        es.indices.create(index=_index)
+        self.assertTrue(es.indices.exists(index=_index))
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.model.get_accounts(self.start, self.end)
         actions = [account.es() for account in accounts]
         self.am.bulk_add_or_update(es, actions, self.am.esRetry, self.am.esTimeout)
 
-        _index = settings.ES_INDEX
-        _type = Account.get_type()
         for action in actions:
             es_record = es.get(index=_index, doc_type=_type, id=action.get('_id'))
             input_doc = action.get('doc', {})
             saved_doc = es_record.get('_source', {})
             self.assertEqual(input_doc, saved_doc)
 
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
 
     def test_upsert(self):
-        es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=settings.ES_INDEX, ignore=400)
-
         _index = settings.ES_INDEX
         _type = Account.get_type()
+
+        es = self.es
+        es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
 
         doc1 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
                     Created=datetime.now().date(),
@@ -102,10 +107,16 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertGreater(doc2_saved.get('UpCap'), doc1_saved.get('UpCap'))
         self.assertGreater(doc2_saved.get('DownCap'), doc1_saved.get('DownCap'))
 
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
 
     def test_get_es_count(self):
-        es = Elasticsearch(**self.elasticsearch.dsn())
-        es.indices.create(index=settings.ES_INDEX, ignore=400)
+        _index = settings.ES_INDEX
+
+        es = self.es
+        es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
 
         _es = self.am.es
         self.am.es = es
@@ -115,13 +126,17 @@ class TestAccountMappingElasticSearch(TestCase):
             self.assertTrue(isinstance(self.am.get_es_count(), int))
         self.am.es = _es
 
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
 
     def test_update_new_fields_only(self):
         _index = settings.ES_INDEX
         _type = Account.get_type()
 
-        es = Elasticsearch(**self.elasticsearch.dsn())
+        es = self.es
         es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
 
         _es = self.am.es
         self.am.es = es
@@ -171,5 +186,11 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.model.cursor.execute = _rows
         self.am.es = _es
 
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
+
     def tearDown(self):
-        self.elasticsearch.stop()
+        es = self.es
+        if es.indices.exists(index=settings.ES_INDEX):
+            es.indices.delete(index=settings.ES_INDEX, ignore=400)

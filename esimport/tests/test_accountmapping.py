@@ -37,7 +37,7 @@ class TestAccountMapping(TestCase):
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.model.get_accounts(self.start, self.end)
-        actions = [dict(account.es()) for account in accounts]
+        actions = [account.es() for account in accounts]
 
         attempts = self.am.bulk_add_or_update(es, actions, 1, self.am.esTimeout)
         self.assertGreater(attempts, 0)
