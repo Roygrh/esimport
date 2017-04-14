@@ -30,13 +30,12 @@ class AccountMapping(BaseMapping):
         'Provider_Display_Name', 'Brand',
         'MARSHA_Code',)
 
+
     def __init__(self):
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
         self.step_size = settings.ES_BULK_LIMIT
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
-
-        self.pm = PropertyMapping()
 
 
     # FIXME: move it to connectors module
@@ -44,6 +43,10 @@ class AccountMapping(BaseMapping):
         logger.debug("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Account(conn)
+
+        # ARRET! possible cycle calls in future
+        self.pm = PropertyMapping()
+        self.pm.setup()
 
         logger.debug("Setting up ES connection")
         # defaults to localhost:9200
