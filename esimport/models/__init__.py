@@ -1,8 +1,8 @@
-import logging
-
 from esimport import settings
 from esimport import utils
 
+
+import logging
 logger = logging.getLogger(__name__)
 
 

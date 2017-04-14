@@ -1,5 +1,8 @@
 import six
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def convert_keys_to_string(dictionary):
     if not isinstance(dictionary, dict):
