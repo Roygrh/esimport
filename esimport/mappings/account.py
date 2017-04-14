@@ -63,7 +63,7 @@ class AccountMapping(BaseMapping):
 
             # get some properties from PropertyMapping
             _action = {}
-            for properte in self.pm.get_properties_by_service_area(account.ServiceArea):
+            for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
                 for pfi in self.property_fields_include:
                     _action[pfi] = properte.get(pfi, "")
                 break
