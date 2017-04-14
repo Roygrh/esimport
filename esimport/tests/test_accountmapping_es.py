@@ -9,7 +9,6 @@ from mock import Mock, MagicMock
 
 from esimport.models import ESRecord
 from esimport.models.account import Account
-from esimport.models.property import Property
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.property import PropertyMapping
 from esimport import tests
@@ -208,7 +207,6 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def test_property_mapping_fields(self):
         _index = settings.ES_INDEX
-        _type = Account.get_type()
 
         es = self.es
         es.indices.create(index=_index, ignore=400)
