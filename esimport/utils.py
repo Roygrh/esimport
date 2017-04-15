@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def _u(v):
+def six_u(v):
     if isinstance(v, six.string_types):
         if six.PY2 and isinstance(v, unicode):
             return v
@@ -15,6 +15,6 @@ def _u(v):
 
 def convert_keys_to_string(dictionary):
     if not isinstance(dictionary, dict):
-        return _u(dictionary)
-    return dict((_u(k), convert_keys_to_string(v))
+        return six_u(dictionary)
+    return dict((six_u(k), convert_keys_to_string(v))
         for k, v in dictionary.items())
