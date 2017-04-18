@@ -105,6 +105,17 @@ class AccountMapping(BaseMapping):
         ids = []
         accounts = []
         for account in self.get_existing_accounts(start, limit):
+            # only for account where there are 1 or more missing property fields
+            if any([pfi not in account for pfi in self.property_fields_include]):
+                new_property_fields_include = [pfi for pfi in self.property_fields_include if pfi not in account]
+                # get some properties from PropertyMapping
+                _action = {}
+                for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
+                    for pfi in new_property_fields_include:
+                        _action[pfi] = properte.get(pfi, "")
+                    break
+                account.update(_action)
+
             accounts.append(account)
             ids.append(str(account.get('ID')))
 
