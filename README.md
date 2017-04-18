@@ -48,8 +48,9 @@ $ esimport update account
 
 ## HOW TO RUN TESTS?
 
+Start an ElasticSearch server and then run following commands.
+
 ```bash
 $ export PYTHONPATH=/path/to/local_settings.py
-$ export ES_HOME=/path/to/elasticsearch-5.1.1/
 $ tox
 ```

@@ -1,31 +1,18 @@
 import logging
 
 from esimport.models import ESRecord
+from esimport.models.base import BaseModel
 
 
 logger = logging.getLogger(__name__)
 
 
-class Property:
-
-    cursor = None
-
-    def __init__(self, connection):
-        self.cursor = connection.cursor
-
+class Property(BaseModel):
 
     _type = "property"
     @staticmethod
     def get_type():
         return Property._type
-
-
-    def fetch(self, query, column_names):
-        for row in self.cursor.execute(query):
-            if column_names:
-                yield dict([(cn, getattr(row, cn, '')) for cn in column_names])
-            else:
-                yield row
 
 
     def get_properties(self, start, limit):

@@ -2,6 +2,9 @@ import pyodbc
 
 from esimport import settings
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class MsSQLConnector:
 

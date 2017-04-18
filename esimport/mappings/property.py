@@ -1,22 +1,18 @@
-import sys
-import time
 import pprint
 import logging
-import traceback
 
-from elasticsearch import helpers
-from elasticsearch import exceptions
 from elasticsearch import Elasticsearch
 
 from esimport import settings
 from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
+from esimport.mappings.base import BaseMapping
 
 
 logger = logging.getLogger(__name__)
 
 
-class PropertyMapping:
+class PropertyMapping(BaseMapping):
 
     model = None
     es = None
@@ -40,59 +36,13 @@ class PropertyMapping:
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
-    # FIXME: apply extract pull up refactoring
-    # duplicate code from esimport/mappings/account.py
-    def max_id(self):
-        logger.debug("Finding max id from index: %s, type: %s" % (
-                    settings.ES_INDEX, self.model.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=self.model.get_type(),
-                        body={
-                            "aggs": {
-                                "max_id": {
-                                  "max": {
-                                    "field": "ID"
-                                  }
-                                }
-                              },
-                              "size": 0
-                            })
-        response = self.es.search(**filters)
-        try:
-            _id = response['aggregations']['max_id']['value']
-            if _id:
-                return int(_id)
-        except Exception as err:
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-        return 0
-
-
-    # FIXME: apply extract pull up refactoring
-    # duplicate code from esimport/mappings/account.py
-    def bulk_add(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        attempts = 0
-        while attempts < retries:
-            try:
-                attempts += 1
-                helpers.bulk(es, actions, request_timeout=timeout)
-                break
-            except exceptions.ConnectionTimeout as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-                time.sleep(attempts * 5) # pragma: no cover
-            except Exception as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-        return attempts
-
-
     def add(self, item, limit):
         if item:
             self._items.append(item)
         items_count = len(self._items)
         if items_count > 0 and items_count >= limit:
             logger.info("Adding {0} records".format(items_count))
-            self.bulk_add(self.es, self._items)
+            self.bulk_add_or_update(self.es, self._items)
             self._items = []
 
 
@@ -108,21 +58,6 @@ class PropertyMapping:
                 self.add(None, min(len(self._items), self.step_size))
             except KeyboardInterrupt:
                 pass
-
-
-    # FIXME: apply extract pull up refactoring
-    # duplicate code from esimport/mappings/account.py
-    def get_es_count(self):
-        logger.debug("Finding records count from index: %s, type: %s" % (
-                    settings.ES_INDEX, Property.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=Property.get_type())
-        response = self.es.count(**filters)
-        try:
-            return response['count']
-        except Exception as err:
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-        return 0
 
 
     def get_existing_properties(self, start, limit):
@@ -148,3 +83,18 @@ class PropertyMapping:
                     start = 0
             except KeyboardInterrupt:
                 pass
+
+
+    def get_properties_by_service_area(self, service_area):
+        logger.debug("Fetching records from ES where field name {0} exists." \
+                .format(service_area))
+        records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+                                 body={
+                                    "query": {
+                                        "exists": {
+                                            "field" : service_area
+                                        }
+                                    }
+                                 })
+        for record in records['hits']['hits']:
+            yield record.get('_source')
