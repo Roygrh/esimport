@@ -35,6 +35,7 @@ class AccountMapping(BaseMapping):
 
 
     def __init__(self):
+        super(AccountMapping, self).__init__()
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
         self.step_size = settings.ES_BULK_LIMIT
         self.esTimeout = settings.ES_TIMEOUT
