@@ -160,3 +160,15 @@ class AccountMapping(BaseMapping):
 
             start = end + 1
             end = min(start + limit, total)
+
+
+    def backload(self, start_date):
+        start = 0
+        for account in self.model.get_accounts(start, self.step_size, start_date):
+            acc = account.es()
+            logger.debug("Record found: {0}".format(self.pp.pformat(acc)))
+            self.add(dict(acc), self.step_size)
+            start = account.get('ID') + 1
+
+        # for cases when all/remaining items count were less than limit
+        self.add(None, min(len(self._items), self.step_size))
