@@ -12,7 +12,7 @@ from esimport import settings
 logger = logging.getLogger(__name__)
 
 
-class BaseMapping:
+class BaseMapping(object):
 
 
     def max_id(self):
