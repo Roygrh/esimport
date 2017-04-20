@@ -45,6 +45,17 @@ def sync(mapping_name, start_date):
 
 @cli.command()
 @click.argument('mapping_name')
+@click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
+def backload(mapping_name, start_date):
+    mapping_name = mapping_name.lower()
+    if mapping_name == 'account':
+        am = AccountMapping()
+        am.setup()
+        am.backload(start_date)
+
+
+@cli.command()
+@click.argument('mapping_name')
 def update(mapping_name):
     mapping_name = mapping_name.lower()
     if mapping_name == 'account':

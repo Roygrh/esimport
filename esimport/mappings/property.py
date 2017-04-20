@@ -17,11 +17,9 @@ class PropertyMapping(BaseMapping):
     model = None
     es = None
 
-    _items = None
-
 
     def __init__(self):
-        self._items = list()
+        super(PropertyMapping, self).__init__()
         self.step_size = settings.ES_BULK_LIMIT
         self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
 
@@ -34,16 +32,6 @@ class PropertyMapping(BaseMapping):
         logger.debug("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-
-
-    def add(self, item, limit):
-        if item:
-            self._items.append(item)
-        items_count = len(self._items)
-        if items_count > 0 and items_count >= limit:
-            logger.info("Adding {0} records".format(items_count))
-            self.bulk_add_or_update(self.es, self._items)
-            self._items = []
 
 
     def sync(self):
