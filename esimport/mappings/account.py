@@ -57,14 +57,10 @@ class AccountMapping(BaseMapping):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
-    def add_accounts(self, max_id, start_date='1900-01-01'):
-        start = end = max_id + 1
-        count = 0
-        actions = []
+    # Need this for tests
+    def add_accounts(self, start_date='1900-01-01'):
+        start = self.max_id() + 1
         for account in self.model.get_accounts(start, self.step_size, start_date):
-            count += 1
-            end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
-
             # get some properties from PropertyMapping
             _action = {}
             for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
@@ -73,17 +69,20 @@ class AccountMapping(BaseMapping):
                 break
             account.update(_action)
 
-            actions.append(account.es())
+            rec = account.es()
+            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            self.add(rec, self.step_size)
 
-        if actions:
-            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                for action in actions:
-                    logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
+        # for cases when all/remaining items count were less than limit
+        self.add(None, min(len(self._items), self.step_size))
 
-            # add batch of accounts to ElasticSearch
-            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
-            logger.info("Added {0} entries {1} through {2}" \
-                    .format(count, start, end))
+
+    def sync(self, start_date):
+        while True:
+            try:
+                self.add_accounts(start_date)
+            except KeyboardInterrupt:
+                pass
 
 
     """
