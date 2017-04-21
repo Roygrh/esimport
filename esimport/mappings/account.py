@@ -61,7 +61,6 @@ class AccountMapping(BaseMapping):
         while True:
             try:
                 start = self.max_id() + 1
-                actions = []
                 for account in self.model.get_accounts(start, self.step_size, start_date):
                     # get some properties from PropertyMapping
                     _action = {}
@@ -71,15 +70,12 @@ class AccountMapping(BaseMapping):
                         break
                     account.update(_action)
 
-                    actions.append(account.es())
+                    rec = account.es()
+                    logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+                    self.add(rec, self.step_size)
 
-                if actions:
-                    if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                        for action in actions:
-                            logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
-
-                    # add batch of accounts to ElasticSearch
-                    self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+                # for cases when all/remaining items count were less than limit
+                self.add(None, min(len(self._items), self.step_size))
             except KeyboardInterrupt:
                 pass
 
