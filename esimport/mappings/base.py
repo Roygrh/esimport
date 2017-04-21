@@ -12,7 +12,13 @@ from esimport import settings
 logger = logging.getLogger(__name__)
 
 
-class BaseMapping:
+class BaseMapping(object):
+
+    _items = None
+
+
+    def __init__(self):
+        self._items = list()
 
 
     def max_id(self):
@@ -68,3 +74,13 @@ class BaseMapping:
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
         return 0
+
+
+    def add(self, item, limit):
+        if item:
+            self._items.append(item)
+        items_count = len(self._items)
+        if items_count > 0 and items_count >= limit:
+            logger.info("Adding {0} records".format(items_count))
+            self.bulk_add_or_update(self.es, self._items)
+            self._items = []

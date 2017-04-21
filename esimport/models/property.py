@@ -50,9 +50,9 @@ Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
 Org_Status.Name as Status,
 Time_Zone.Tzid as Time_Zone
-From Organization
-Left Join Org_Status on Org_Status.ID = Organization.Org_Status_ID
-Left Join Time_Zone on Time_Zone.ID = Organization.Time_Zone_ID
+From Organization WITH (NOLOCK)
+Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
+Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
 Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID >= {1}
 ORDER BY Organization.ID ASC"""
@@ -63,7 +63,7 @@ ORDER BY Organization.ID ASC"""
     @staticmethod
     def query_two(org_id):
         q = """SELECT Name, Value
-FROM Org_Value
+FROM Org_Value WITH (NOLOCK)
 WHERE Org_Value.Organization_ID = {0}
     AND Name NOT IN ('EradApiKey')"""
         q = q.format(org_id)
@@ -73,8 +73,8 @@ WHERE Org_Value.Organization_ID = {0}
     @staticmethod
     def query_three(org_id):
         q = """SELECT Organization.Display_Name as Provider_Display_Name
-FROM Org_Relation_Cache
-JOIN Organization on Organization.ID = Parent_Org_ID
+FROM Org_Relation_Cache WITH (NOLOCK)
+JOIN Organization ON Organization.ID = Parent_Org_ID
 WHERE Child_Org_ID = {0}
     AND Organization.Org_Category_Type_ID = 2"""
         q = q.format(org_id)
@@ -85,8 +85,8 @@ WHERE Child_Org_ID = {0}
     def query_four(org_id):
         q = """SELECT Organization.Display_Name as Service_Area_Display_Name,
         Organization.Number as Service_Area_Number
-FROM Org_Relation_Cache
-JOIN Organization on Organization.ID = Child_Org_ID
+FROM Org_Relation_Cache WITH (NOLOCK)
+JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
 WHERE Parent_Org_ID = {0}
     AND Organization.Org_Category_Type_ID = 4"""
         q = q.format(org_id)

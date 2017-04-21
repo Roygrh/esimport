@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseModel:
+class BaseModel(object):
 
     cursor = None
 
