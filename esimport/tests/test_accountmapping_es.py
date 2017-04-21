@@ -1,5 +1,6 @@
 import six
 import time
+import threading
 
 from unittest import TestCase
 from datetime import datetime
@@ -263,6 +264,67 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am.model.get_accounts = _get_accounts
 
+        es.indices.delete(index=_index, ignore=400)
+        self.assertFalse(es.indices.exists(index=_index))
+
+
+    def test_sync_is_continuous(self):
+        # need some mocked data
+        # can't let thread modify global am
+        rows = tests._mocked_sql('multiple_orders.csv')
+        am = AccountMapping()
+        am.model = Account(Mock())
+        am.model.cursor = Mock()
+        am.model.cursor.execute = MagicMock(return_value=rows)
+
+        properties = tests._mocked_sql('esimport_properties.csv')
+        pm = PropertyMapping()
+        pm.get_properties_by_service_area = MagicMock(return_value=properties)
+        am.pm = pm
+
+        # setup ES
+        _index = settings.ES_INDEX
+        _type = Account.get_type()
+
+        es = self.es
+        es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
+        am.es = es
+        am.pm.es = es
+
+        # run sync in different thread
+        sync = lambda _am: _am.sync('1900-01-01')
+        t = threading.Thread(target=sync, args=(am,), daemon=True)
+        t.start()
+
+        # verify data was sync
+        total = am.get_es_count()
+        retries = 0
+        while total <= 0 and retries < am.esRetry:
+            time.sleep(am.esTimeout)
+            total = am.get_es_count()
+            retries += 1
+        self.assertEqual(total, len(self.rows))
+
+        # verify if sync thread is still running
+        self.assertTrue(t.is_alive())
+
+        # load a fixture from higher number ids
+        data = tests._mocked_sql('esimport_accounts_new_data.csv')
+
+        # change get_accounts again
+        am.model.cursor.execute = MagicMock(return_value=data)
+
+        # verify new data was sync
+        total = am.get_es_count()
+        retries = 0
+        while (total <= 0 or total <= len(self.rows)) and retries < am.esRetry:
+            time.sleep(am.esTimeout)
+            total = am.get_es_count()
+            retries += 1
+        self.assertEqual(total, len(self.rows) + len(data))
+
+        # delete _index
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
