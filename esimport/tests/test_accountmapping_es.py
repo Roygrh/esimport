@@ -294,7 +294,12 @@ class TestAccountMappingElasticSearch(TestCase):
 
         # run sync in different thread
         sync = lambda _am: _am.sync('1900-01-01')
-        t = threading.Thread(target=sync, args=(am,), daemon=True)
+        kwargs = dict()
+        if not six.PY2:
+            kwargs = dict(daemon=True)
+        t = threading.Thread(target=sync, args=(am,), **kwargs)
+        if six.PY2:
+            t.daemon = True
         t.start()
 
         # verify data was sync
