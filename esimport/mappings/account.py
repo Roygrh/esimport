@@ -60,13 +60,9 @@ class AccountMapping(BaseMapping):
     def sync(self, start_date='1900-01-01'):
         while True:
             try:
-                start = end = self.max_id() + 1
-                count = 0
+                start = self.max_id() + 1
                 actions = []
                 for account in self.model.get_accounts(start, self.step_size, start_date):
-                    count += 1
-                    end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
-
                     # get some properties from PropertyMapping
                     _action = {}
                     for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
@@ -84,8 +80,6 @@ class AccountMapping(BaseMapping):
 
                     # add batch of accounts to ElasticSearch
                     self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
-                    logger.info("Added {0} entries {1} through {2}" \
-                            .format(count, start, end))
             except KeyboardInterrupt:
                 pass
 
