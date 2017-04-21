@@ -57,7 +57,7 @@ class AccountMapping(BaseMapping):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
-    def add_accounts(self, max_id, start_date='1900-01-01'):
+    def sync(self, max_id, start_date='1900-01-01'):
         while True:
             try:
                 start = end = max_id + 1
