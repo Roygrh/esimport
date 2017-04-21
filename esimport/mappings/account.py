@@ -57,25 +57,30 @@ class AccountMapping(BaseMapping):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 
-    def sync(self, start_date='1900-01-01'):
+    # Need this for tests
+    def add_accounts(self, start_date='1900-01-01'):
+        start = self.max_id() + 1
+        for account in self.model.get_accounts(start, self.step_size, start_date):
+            # get some properties from PropertyMapping
+            _action = {}
+            for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
+                for pfi in self.property_fields_include:
+                    _action[pfi] = properte.get(pfi, "")
+                break
+            account.update(_action)
+
+            rec = account.es()
+            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            self.add(rec, self.step_size)
+
+        # for cases when all/remaining items count were less than limit
+        self.add(None, min(len(self._items), self.step_size))
+
+
+    def sync(self, start_date):
         while True:
             try:
-                start = self.max_id() + 1
-                for account in self.model.get_accounts(start, self.step_size, start_date):
-                    # get some properties from PropertyMapping
-                    _action = {}
-                    for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
-                        for pfi in self.property_fields_include:
-                            _action[pfi] = properte.get(pfi, "")
-                        break
-                    account.update(_action)
-
-                    rec = account.es()
-                    logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
-                    self.add(rec, self.step_size)
-
-                # for cases when all/remaining items count were less than limit
-                self.add(None, min(len(self._items), self.step_size))
+                self.add_accounts(start_date)
             except KeyboardInterrupt:
                 pass
 

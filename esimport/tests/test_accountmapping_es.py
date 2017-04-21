@@ -139,8 +139,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def _give_me_some_data(self, es):
         # add accounts from mocked sql to ES
-        max_id = self.am.max_id()
-        self.am.add_accounts(max_id) # there is a delay
+        self.am.add_accounts() # there is a delay
 
         total = self.am.get_es_count()
         retries = 0
