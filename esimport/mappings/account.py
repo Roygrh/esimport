@@ -58,32 +58,36 @@ class AccountMapping(BaseMapping):
 
 
     def add_accounts(self, max_id, start_date='1900-01-01'):
-        start = end = max_id + 1
-        count = 0
-        actions = []
-        for account in self.model.get_accounts(start, self.step_size, start_date):
-            count += 1
-            end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
+        while True:
+            try:
+                start = end = max_id + 1
+                count = 0
+                actions = []
+                for account in self.model.get_accounts(start, self.step_size, start_date):
+                    count += 1
+                    end = long(account.get('ID')) if six.PY2 else int(account.get('ID'))
 
-            # get some properties from PropertyMapping
-            _action = {}
-            for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
-                for pfi in self.property_fields_include:
-                    _action[pfi] = properte.get(pfi, "")
-                break
-            account.update(_action)
+                    # get some properties from PropertyMapping
+                    _action = {}
+                    for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
+                        for pfi in self.property_fields_include:
+                            _action[pfi] = properte.get(pfi, "")
+                        break
+                    account.update(_action)
 
-            actions.append(account.es())
+                    actions.append(account.es())
 
-        if actions:
-            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                for action in actions:
-                    logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
+                if actions:
+                    if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                        for action in actions:
+                            logger.debug("Adding Account: {0}".format(self.pp.pformat(action)))
 
-            # add batch of accounts to ElasticSearch
-            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
-            logger.info("Added {0} entries {1} through {2}" \
-                    .format(count, start, end))
+                    # add batch of accounts to ElasticSearch
+                    self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+                    logger.info("Added {0} entries {1} through {2}" \
+                            .format(count, start, end))
+            except KeyboardInterrupt:
+                pass
 
 
     """
