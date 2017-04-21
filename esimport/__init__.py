@@ -32,7 +32,7 @@ def sync(mapping_name, start_date):
     if mapping_name == 'account':
         am = AccountMapping()
         am.setup()
-        am.sync(am.max_id(), start_date)
+        am.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
