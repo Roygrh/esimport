@@ -95,23 +95,23 @@ CTU.Name AS ConsumableUnit,
 Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Org_Value.Value AS ZoneType
-FROM Zone_Plan_Account
-JOIN Member ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Organization ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
-JOIN Zone_Plan ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
-JOIN Network_Access_Limits ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
-JOIN Payment_Method ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
-JOIN Currency ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
-JOIN Prepaid_Zone_Plan ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
-LEFT JOIN Credit_Card ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
-LEFT JOIN Credit_Card_Type ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
-LEFT JOIN PMS_Charge ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
-LEFT JOIN Access_Code ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
-LEFT JOIN Zone_Plan_Account_Promotional_Code ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
-LEFT JOIN Promotional_Code ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
-LEFT JOIN Time_Unit AS CTU ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
-LEFT JOIN Time_Unit AS STU ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
-LEFT JOIN Org_Value ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
+FROM Zone_Plan_Account WITH (NOLOCK)
+JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
+JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
+JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
+JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
+JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
+JOIN Currency WITH (NOLOCK) ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
+JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
+LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
+LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
+LEFT JOIN Access_Code WITH (NOLOCK) ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
+LEFT JOIN Zone_Plan_Account_Promotional_Code WITH (NOLOCK) ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
+LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
+LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
+LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
+LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Zone_Plan_Account.ID >= {0} AND Zone_Plan_Account.Date_Created_UTC >= '{2}'
 ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(start_zpa_id, limit, start_date)
@@ -144,23 +144,23 @@ CTU.Name AS ConsumableUnit,
 Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Org_Value.Value AS ZoneType
-FROM Zone_Plan_Account
-JOIN Member ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Organization ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
-JOIN Zone_Plan ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
-JOIN Network_Access_Limits ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
-JOIN Payment_Method ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
-JOIN Currency ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
-JOIN Prepaid_Zone_Plan ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
-LEFT JOIN Credit_Card ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
-LEFT JOIN Credit_Card_Type ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
-LEFT JOIN PMS_Charge ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
-LEFT JOIN Access_Code ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
-LEFT JOIN Zone_Plan_Account_Promotional_Code ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
-LEFT JOIN Promotional_Code ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
-LEFT JOIN Time_Unit AS CTU ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
-LEFT JOIN Time_Unit AS STU ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
-LEFT JOIN Org_Value ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
+FROM Zone_Plan_Account WITH (NOLOCK)
+JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
+JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
+JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
+JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
+JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
+JOIN Currency WITH (NOLOCK) ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
+JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
+LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
+LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
+LEFT JOIN Access_Code WITH (NOLOCK) ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
+LEFT JOIN Zone_Plan_Account_Promotional_Code WITH (NOLOCK) ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
+LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
+LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
+LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
+LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})
 ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(','.join(ids))
