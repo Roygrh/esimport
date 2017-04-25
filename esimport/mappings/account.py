@@ -1,4 +1,5 @@
 import six
+import time
 import pprint
 import logging
 
@@ -40,6 +41,7 @@ class AccountMapping(BaseMapping):
         self.step_size = settings.ES_BULK_LIMIT
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
+        self.db_wait = settings.DATABASE_CALLS_WAIT
 
 
     # FIXME: move it to connectors module
@@ -59,8 +61,11 @@ class AccountMapping(BaseMapping):
 
     # Need this for tests
     def add_accounts(self, start_date='1900-01-01'):
+        count = 0
         start = self.max_id() + 1
         for account in self.model.get_accounts(start, self.step_size, start_date):
+            count += 1
+
             # get some properties from PropertyMapping
             _action = {}
             for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
@@ -75,6 +80,11 @@ class AccountMapping(BaseMapping):
 
         # for cases when all/remaining items count were less than limit
         self.add(None, min(len(self._items), self.step_size))
+
+        # only wait between DB calls when there is no delay from ES (HTTP requests)
+        if count <= 0:
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            time.sleep(self.db_wait)
 
 
     def sync(self, start_date):

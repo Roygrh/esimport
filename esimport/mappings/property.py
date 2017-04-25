@@ -1,3 +1,4 @@
+import time
 import pprint
 import logging
 
@@ -36,13 +37,20 @@ class PropertyMapping(BaseMapping):
 
     def sync(self):
         while True:
+            count = 0
             start = self.max_id()
             for properte in self.model.get_properties(start, self.step_size):
+                count += 1
                 logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
                 self.add(dict(properte.es()), self.step_size)
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
+
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
 
     def get_existing_properties(self, start, limit):
