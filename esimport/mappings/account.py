@@ -167,6 +167,12 @@ class AccountMapping(BaseMapping):
             start = end + 1
             end = min(start + limit, total)
 
+            count = len(actions)
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
+
 
     def backload(self, start_date):
         start = 0

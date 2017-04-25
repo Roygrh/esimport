@@ -66,13 +66,19 @@ class PropertyMapping(BaseMapping):
     def update(self):
         start = 0
         while True:
+            count = 0
             total = self.get_es_count()
             for properte in self.get_existing_properties(start, self.step_size):
-                pass
+                count += 1
 
             start += min(self.step_size, total-start)
             if start >= total:
                 start = 0
+
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
 
     def get_properties_by_service_area(self, service_area):
