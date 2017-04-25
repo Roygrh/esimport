@@ -32,11 +32,7 @@ def sync(mapping_name, start_date):
     if mapping_name == 'account':
         am = AccountMapping()
         am.setup()
-        try:
-            while True:
-                am.add_accounts(am.max_id(), start_date)
-        except KeyboardInterrupt:
-            pass
+        am.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
