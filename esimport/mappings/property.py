@@ -36,16 +36,13 @@ class PropertyMapping(BaseMapping):
 
     def sync(self):
         while True:
-            try:
-                start = self.max_id()
-                for properte in self.model.get_properties(start, self.step_size):
-                    logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
-                    self.add(dict(properte.es()), self.step_size)
+            start = self.max_id()
+            for properte in self.model.get_properties(start, self.step_size):
+                logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
+                self.add(dict(properte.es()), self.step_size)
 
-                # for cases when all/remaining items count were less than limit
-                self.add(None, min(len(self._items), self.step_size))
-            except KeyboardInterrupt:
-                pass
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
 
 
     def get_existing_properties(self, start, limit):
@@ -61,16 +58,13 @@ class PropertyMapping(BaseMapping):
     def update(self):
         start = 0
         while True:
-            try:
-                total = self.get_es_count()
-                for properte in self.get_existing_properties(start, self.step_size):
-                    pass
-
-                start += min(self.step_size, total-start)
-                if start >= total:
-                    start = 0
-            except KeyboardInterrupt:
+            total = self.get_es_count()
+            for properte in self.get_existing_properties(start, self.step_size):
                 pass
+
+            start += min(self.step_size, total-start)
+            if start >= total:
+                start = 0
 
 
     def get_properties_by_service_area(self, service_area):

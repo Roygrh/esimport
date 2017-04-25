@@ -79,10 +79,7 @@ class AccountMapping(BaseMapping):
 
     def sync(self, start_date):
         while True:
-            try:
-                self.add_accounts(start_date)
-            except KeyboardInterrupt:
-                pass
+            self.add_accounts(start_date)
 
 
     """
