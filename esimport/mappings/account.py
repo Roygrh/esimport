@@ -151,7 +151,7 @@ class AccountMapping(BaseMapping):
                 yield new_account
 
 
-    def bulk_update(self, total):
+    def update(self, total):
         start = 0
         limit = min(self.step_size, total)
         end = start + limit
