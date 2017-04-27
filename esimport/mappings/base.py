@@ -81,6 +81,6 @@ class BaseMapping(object):
             self._items.append(item)
         items_count = len(self._items)
         if items_count > 0 and items_count >= limit:
-            logger.info("Adding {0} records".format(items_count))
+            logger.info("Adding/Updating {0} records".format(items_count))
             self.bulk_add_or_update(self.es, self._items)
             self._items = []
