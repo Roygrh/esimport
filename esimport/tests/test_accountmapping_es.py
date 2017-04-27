@@ -184,7 +184,7 @@ class TestAccountMappingElasticSearch(TestCase):
             self.assertIsNotNone('_id', action)
 
         # update ES records with new fields only
-        self.am.bulk_update(limit)
+        self.am.update()
 
         # verify only records with new fields were updated
         for r in self.rows:

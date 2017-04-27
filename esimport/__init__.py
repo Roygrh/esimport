@@ -56,9 +56,8 @@ def update(mapping_name):
     mapping_name = mapping_name.lower()
     if mapping_name == 'account':
         am = AccountMapping()
-        am.setup_config()
-        am.setup_connection()
-        am.bulk_update(am.get_es_count())
+        am.setup()
+        am.update()
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
