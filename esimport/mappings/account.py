@@ -151,8 +151,9 @@ class AccountMapping(BaseMapping):
                 yield new_account
 
 
-    def update(self, total):
+    def update(self):
         start = 0
+        total = self.get_es_count()
         limit = min(self.step_size, total)
         end = start + limit
 
