@@ -154,21 +154,20 @@ class AccountMapping(BaseMapping):
     def update(self):
         start = 0
         total = self.get_es_count()
-        limit = min(self.step_size, total)
-        end = start + limit
-
         while start < total:
-            actions = list(self.get_updated_records(start, limit))
-            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                if actions:
-                    for action in actions:
-                        logger.debug("Updating Account: {0}".format(self.pp.pformat(action)))
-            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+            count = 0
+            for account in self.get_updated_records(start, self.step_size):
+                count += 1
+                start = account.get('_id') # because account is dict() not ESRecord
+                self.add(account, self.step_size)
+                if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                    logger.debug("Updating Account: {0}".format(self.pp.pformat(account)))
+            start += 1
+            total = self.get_es_count()
 
-            start = end + 1
-            end = min(start + limit, total)
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
 
-            count = len(actions)
             # only wait between DB calls when there is no delay from ES (HTTP requests)
             if count <= 0:
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
