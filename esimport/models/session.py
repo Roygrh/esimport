@@ -1,0 +1,61 @@
+import six
+import logging
+
+from datetime import datetime
+
+from esimport.models import ESRecord
+from esimport.models.base import BaseModel
+
+
+logger = logging.getLogger(__name__)
+
+
+class Session(BaseModel):
+
+
+    _type = "session"
+    @staticmethod
+    def get_type():
+        return Session._type
+
+
+    def get_sessions(self, start, limit, start_date='1900-01-01'):
+        dt_columns = ['LogoutTime']
+        q = self.query_one(start_date, start, limit)
+        for row in self.fetch_dict(q):
+            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
+            yield ESRecord(row, self.get_type())
+
+
+    @staticmethod
+    def query_one(start_date, start_zpa_id, limit):
+        q = """SELECT TOP ({1}) stop.ID AS ID,
+org.Number AS ServiceArea,
+val.Value AS ZoneType,
+hist.User_Name AS UserName,
+mem.Display_Name AS Name,
+hist.NAS_Identifier AS NasIdentifier,
+hist.Called_Station_Id AS CalledStation,
+hist.VLAN AS VLAN,
+hist.Calling_Station_Id AS MacAddress,
+hist.Date_UTC AS LogoutTime,
+acct.Session_ID AS SessionID,
+stop.Acct_Session_Time AS SessionLength,
+stop.Acct_Output_Octets AS BytesOut,
+stop.Acct_Input_Octets AS BytesIn,
+term.Name AS TerminationReason
+FROM Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
+JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
+JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
+JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
+JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
+LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
+LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
+WHERE stop.ID >= {0} AND hist.Date_UTC > '{2}'
+ORDER BY stop.ID ASC"""
+        q = q.format(start_zpa_id, limit, start_date)
+        return q
