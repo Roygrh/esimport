@@ -4,7 +4,7 @@ import logging
 
 from esimport import settings
 from esimport.mappings.account import AccountMapping
-from esimport.mappings.account import SessionMapping
+from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
 
 
