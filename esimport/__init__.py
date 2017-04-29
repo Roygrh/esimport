@@ -4,6 +4,7 @@ import logging
 
 from esimport import settings
 from esimport.mappings.account import AccountMapping
+from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
 
 
@@ -33,6 +34,10 @@ def sync(mapping_name, start_date):
         am = AccountMapping()
         am.setup()
         am.sync(start_date)
+    elif mapping_name == 'session':
+        pm = SessionMapping()
+        pm.setup()
+        pm.sync()
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
@@ -48,6 +53,10 @@ def backload(mapping_name, start_date):
         am = AccountMapping()
         am.setup()
         am.backload(start_date)
+    elif mapping_name == 'session':
+        pm = SessionMapping()
+        pm.setup()
+        pm.backload(start_date)
 
 
 @cli.command()
@@ -56,9 +65,8 @@ def update(mapping_name):
     mapping_name = mapping_name.lower()
     if mapping_name == 'account':
         am = AccountMapping()
-        am.setup_config()
-        am.setup_connection()
-        am.bulk_update(am.get_es_count())
+        am.setup()
+        am.update()
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()

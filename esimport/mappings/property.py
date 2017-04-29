@@ -1,3 +1,4 @@
+import time
 import pprint
 import logging
 
@@ -36,16 +37,20 @@ class PropertyMapping(BaseMapping):
 
     def sync(self):
         while True:
-            try:
-                start = self.max_id()
-                for properte in self.model.get_properties(start, self.step_size):
-                    logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
-                    self.add(dict(properte.es()), self.step_size)
+            count = 0
+            start = self.max_id()
+            for properte in self.model.get_properties(start, self.step_size):
+                count += 1
+                logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
+                self.add(dict(properte.es()), self.step_size)
 
-                # for cases when all/remaining items count were less than limit
-                self.add(None, min(len(self._items), self.step_size))
-            except KeyboardInterrupt:
-                pass
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
+
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
 
     def get_existing_properties(self, start, limit):
@@ -61,16 +66,19 @@ class PropertyMapping(BaseMapping):
     def update(self):
         start = 0
         while True:
-            try:
-                total = self.get_es_count()
-                for properte in self.get_existing_properties(start, self.step_size):
-                    pass
+            count = 0
+            total = self.get_es_count()
+            for properte in self.get_existing_properties(start, self.step_size):
+                count += 1
 
-                start += min(self.step_size, total-start)
-                if start >= total:
-                    start = 0
-            except KeyboardInterrupt:
-                pass
+            start += min(self.step_size, total-start)
+            if start >= total:
+                start = 0
+
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
 
     def get_properties_by_service_area(self, service_area):

@@ -1,4 +1,5 @@
 import six
+import time
 import pprint
 import logging
 
@@ -40,6 +41,7 @@ class AccountMapping(BaseMapping):
         self.step_size = settings.ES_BULK_LIMIT
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
+        self.db_wait = settings.DATABASE_CALLS_WAIT
 
 
     # FIXME: move it to connectors module
@@ -59,8 +61,11 @@ class AccountMapping(BaseMapping):
 
     # Need this for tests
     def add_accounts(self, start_date='1900-01-01'):
+        count = 0
         start = self.max_id() + 1
         for account in self.model.get_accounts(start, self.step_size, start_date):
+            count += 1
+
             # get some properties from PropertyMapping
             _action = {}
             for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
@@ -76,13 +81,15 @@ class AccountMapping(BaseMapping):
         # for cases when all/remaining items count were less than limit
         self.add(None, min(len(self._items), self.step_size))
 
+        # only wait between DB calls when there is no delay from ES (HTTP requests)
+        if count <= 0:
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            time.sleep(self.db_wait)
+
 
     def sync(self, start_date):
         while True:
-            try:
-                self.add_accounts(start_date)
-            except KeyboardInterrupt:
-                pass
+            self.add_accounts(start_date)
 
 
     """
@@ -144,21 +151,27 @@ class AccountMapping(BaseMapping):
                 yield new_account
 
 
-    def bulk_update(self, total):
+    def update(self):
         start = 0
-        limit = min(self.step_size, total)
-        end = start + limit
-
+        total = self.get_es_count()
         while start < total:
-            actions = list(self.get_updated_records(start, limit))
-            if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
-                if actions:
-                    for action in actions:
-                        logger.debug("Updating Account: {0}".format(self.pp.pformat(action)))
-            self.bulk_add_or_update(self.es, actions, self.esRetry, self.esTimeout)
+            count = 0
+            for account in self.get_updated_records(start, self.step_size):
+                count += 1
+                start = account.get('_id') # because account is dict() not ESRecord
+                self.add(account, self.step_size)
+                if settings.LOG_LEVEL == logging.DEBUG: # pragma: no cover
+                    logger.debug("Updating Account: {0}".format(self.pp.pformat(account)))
+            start += 1
+            total = self.get_es_count()
 
-            start = end + 1
-            end = min(start + limit, total)
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
+
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count <= 0:
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
 
     def backload(self, start_date):

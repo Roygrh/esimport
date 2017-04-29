@@ -15,6 +15,9 @@ ES_PORT = '9200'
 ES_TIMEOUT = 30
 ES_RETRIES = 5
 
+# Wait between database queries execution (seconds)
+DATABASE_CALLS_WAIT = 1
+
 DATABASES = {
     'default': {
         'DSN': None, # either DSN or HOST
