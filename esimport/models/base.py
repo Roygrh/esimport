@@ -32,6 +32,8 @@ class BaseModel(object):
                 if settings.DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL:
                     retry_wait += settings.DATABASE_CALLS_RETRIES_WAIT
                 result = self.execute(query, retry=retry, retry_wait=retry_wait)
+            else:
+                raise err
         return result
 
 
