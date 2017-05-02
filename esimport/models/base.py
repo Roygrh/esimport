@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 class BaseModel(object):
 
-    cursor = None
+    conn = None
 
     def __init__(self, connection):
-        self.cursor = connection.cursor
+        self.conn = connection
 
 
     def execute(self, query,
@@ -21,7 +21,7 @@ class BaseModel(object):
                 retry_wait=settings.DATABASE_CALLS_RETRIES_WAIT):
         result = None
         try:
-            result = self.cursor.execute(query)
+            result = self.conn.cursor.execute(query)
         except pyodbc.Error as err:
             logger.error(err)
             if retry > 0:
