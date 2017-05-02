@@ -11,8 +11,6 @@ class MsSQLConnector:
     cfg = None
     conn = None
 
-    _cursor = None
-
 
     def __init__(self):
         db = settings.DATABASES.get('default', {})
@@ -21,6 +19,4 @@ class MsSQLConnector:
 
     @property
     def cursor(self):
-        if self._cursor is None:
-            self._cursor = self.conn.cursor()
-        return self._cursor
+        return self.conn.cursor()

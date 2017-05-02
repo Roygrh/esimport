@@ -63,6 +63,8 @@ class AccountMapping(BaseMapping):
     def add_accounts(self, start_date='1900-01-01'):
         count = 0
         start = self.max_id() + 1
+        logger.debug("Get Accounts from {0} to {1} since {2}"
+              .format(start, self.step_size, start_date))
         for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
 

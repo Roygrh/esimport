@@ -33,8 +33,8 @@ class TestAccountMappingElasticSearch(TestCase):
 
         conn = Mock()
         self.am.model = Account(conn)
-        self.am.model.cursor = Mock()
-        self.am.model.cursor.execute = MagicMock(return_value=self.rows)
+        self.am.model.conn.cursor = Mock()
+        self.am.model.conn.cursor.execute = MagicMock(return_value=self.rows)
 
         self.properties = tests._mocked_sql('esimport_properties.csv')
 
@@ -173,8 +173,8 @@ class TestAccountMappingElasticSearch(TestCase):
         limit = self.am.get_es_count()
 
         # get updated records from mocked sql and verify length
-        _rows = self.am.model.cursor.execute
-        self.am.model.cursor.execute = MagicMock(return_value=updated_records)
+        _rows = self.am.model.conn.cursor.execute
+        self.am.model.conn.cursor.execute = MagicMock(return_value=updated_records)
         actions = list(self.am.get_updated_records(self.start, limit))
         self.assertEqual(len(actions), len(updated_records))
 
@@ -195,7 +195,7 @@ class TestAccountMappingElasticSearch(TestCase):
             else:
                 self.assertNotIn('Org', doc_saved)
 
-        self.am.model.cursor.execute = _rows
+        self.am.model.conn.cursor.execute = _rows
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
@@ -228,8 +228,8 @@ class TestAccountMappingElasticSearch(TestCase):
         # load a fixture with data from 2012 - 2016
         data = tests._mocked_sql('esimport_accounts_2012_2016.csv')
 
-        _rows = self.am.model.cursor.execute
-        self.am.model.cursor.execute = MagicMock(return_value=data)
+        _rows = self.am.model.conn.cursor.execute
+        self.am.model.conn.cursor.execute = MagicMock(return_value=data)
 
         start = 0
         limit = len(data)
@@ -274,8 +274,8 @@ class TestAccountMappingElasticSearch(TestCase):
         rows = tests._mocked_sql('multiple_orders.csv')
         am = AccountMapping()
         am.model = Account(Mock())
-        am.model.cursor = Mock()
-        am.model.cursor.execute = MagicMock(return_value=rows)
+        am.model.conn.cursor = Mock()
+        am.model.conn.cursor.execute = MagicMock(return_value=rows)
 
         properties = tests._mocked_sql('esimport_properties.csv')
         pm = PropertyMapping()
@@ -318,7 +318,7 @@ class TestAccountMappingElasticSearch(TestCase):
         data = tests._mocked_sql('esimport_accounts_new_data.csv')
 
         # change get_accounts again
-        am.model.cursor.execute = MagicMock(return_value=data)
+        am.model.conn.cursor.execute = MagicMock(return_value=data)
 
         # verify new data was sync
         total = am.get_es_count()
