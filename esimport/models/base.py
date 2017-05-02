@@ -19,6 +19,7 @@ class BaseModel(object):
     def execute(self, query,
                 retry=settings.DATABASE_CALLS_RETRIES,
                 retry_wait=settings.DATABASE_CALLS_RETRIES_WAIT):
+        result = None
         try:
             result = self.cursor.execute(query)
         except pyodbc.Error as err:
