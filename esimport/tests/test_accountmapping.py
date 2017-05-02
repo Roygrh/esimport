@@ -21,7 +21,8 @@ class TestAccountMapping(TestCase):
 
         conn = Mock()
         self.am.model = Account(conn)
-        self.am.model.cursor.execute = MagicMock(return_value=self.rows)
+        self.am.model.conn.cursor = Mock()
+        self.am.model.conn.cursor.execute = MagicMock(return_value=self.rows)
 
 
     def test_setup_config(self):
