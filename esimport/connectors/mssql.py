@@ -11,11 +11,15 @@ class MsSQLConnector:
     cfg = None
     conn = None
 
-
     def __init__(self):
         db = settings.DATABASES.get('default', {})
         self.conn = pyodbc.connect(settings.MSSQL_DSN % db)
 
+    def reset(self):
+        self.conn.close()
+        del self.conn
+        db = settings.DATABASES.get('default', {})
+        self.conn = pyodbc.connect(settings.MSSQL_DSN % db)
 
     @property
     def cursor(self):
