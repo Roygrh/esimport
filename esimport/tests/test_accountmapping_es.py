@@ -140,7 +140,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def _give_me_some_data(self, es):
         # add accounts from mocked sql to ES
-        self.am.add_accounts() # there is a delay
+        self.am.add_accounts('1990-01-01') # there is a delay
 
         total = self.am.get_es_count()
         retries = 0

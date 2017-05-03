@@ -66,7 +66,7 @@ class AccountMapping(BaseMapping):
 
 
     # Need this for tests
-    def add_accounts(self, start_date='1900-01-01'):
+    def add_accounts(self, start_date):
         count = 0
         start = self.max_id() + 1
         logger.debug("Get Accounts from {0} to {1} since {2}"
