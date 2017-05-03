@@ -85,6 +85,7 @@ class AccountMapping(BaseMapping):
 
         # only wait between DB calls when there is no delay from ES (HTTP requests)
         if count <= 0:
+            self.model.conn.reset()
             logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
