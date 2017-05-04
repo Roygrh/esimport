@@ -27,7 +27,7 @@ def cli():
 
 @cli.command()
 @click.argument('mapping_name')
-@click.option('--start-date', help='Since when to import data (YYYY-MM-DD)')
+@click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
 def sync(mapping_name, start_date):
     mapping_name = mapping_name.lower()
     if mapping_name == 'account':
