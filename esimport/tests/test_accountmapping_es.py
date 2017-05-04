@@ -211,6 +211,9 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertTrue(self._give_me_some_data(es))
 
         for rec in self.am.get_existing_accounts(self.start, self.end):
+            records_with_properties = [_ in rec for _ in self.am.property_fields_include]
+            self.assertEqual(len(records_with_properties), len(self.am.property_fields_include))
+            # some redundant code is to test iterator exhaustion
             self.assertTrue(all([_ in rec for _ in self.am.property_fields_include]))
 
         es.indices.delete(index=_index, ignore=400)
