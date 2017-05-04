@@ -27,12 +27,18 @@ class AccountMapping(BaseMapping):
 
     pm = None
     property_fields_include = (
-        'PropertyName', 'PropertyNumber',
-        'Provider_Display_Name', 'Brand',
-        'MARSHA_Code', 'Country', 'Region',
-        'SubRegion', 'OwnershipGroup',
-        'TaxRate', 'CorporateBrand',
-        'ExtPropId',)
+        ('PropertyName', 'Name'),
+        ('PropertyNumber', 'Number'),
+        ('Provider_Display_Name', None),
+        ('Brand', None),
+        ('MARSHA_Code', None),
+        ('Country', None),
+        ('Region', None),
+        ('SubRegion', None),
+        ('OwnershipGroup', None),
+        ('TaxRate', None),
+        ('CorporateBrand', None),
+        ('ExtPropId', None))
 
 
     def __init__(self):
@@ -71,8 +77,8 @@ class AccountMapping(BaseMapping):
             # get some properties from PropertyMapping
             _action = {}
             for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
-                for pfi in self.property_fields_include:
-                    _action[pfi] = properte.get(pfi, "")
+                for pfik, pfiv in self.property_fields_include:
+                    _action[pfik] = properte.get(pfiv or pfik, "")
                 break
             account.update(_action)
 
@@ -115,22 +121,22 @@ class AccountMapping(BaseMapping):
         ids = []
         accounts = []
         for account in self.get_existing_accounts(start, limit):
-            # only for account where there are 1 or more missing property fields
-            if any([pfi not in account for pfi in self.property_fields_include]):
-                new_property_fields_include = [pfi for pfi in self.property_fields_include if pfi not in account]
-                # get some properties from PropertyMapping
-                _action = {}
-                for properte in self.pm.get_properties_by_service_area(account.get('ServiceArea')):
-                    for pfi in new_property_fields_include:
-                        _action[pfi] = properte.get(pfi, "")
-                    break
-                account.update(_action)
-
             accounts.append(account)
             ids.append(str(account.get('ID')))
 
         for row in self.model.get_records_by_zpa_id(ids):
             logger.debug("Record found: {0}".format(row))
+            # only for account where there are 1 or more missing property fields
+            if any([pfik not in row for pfik, pfiv in self.property_fields_include]):
+                new_property_fields_include = [(pfik, pfiv) for pfik, pfiv in self.property_fields_include
+                                                if pfik not in row]
+                # get some properties from PropertyMapping
+                _action = {}
+                for properte in self.pm.get_properties_by_service_area(row.get('ServiceArea')):
+                    for pfik, pfiv in new_property_fields_include:
+                        _action[pfik] = properte.get(pfiv or pfik, "")
+                    break
+                row.update(_action)
             es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
             if not isinstance(es_records, list):
                 es_records = list(es_records)
