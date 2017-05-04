@@ -47,8 +47,8 @@ class SessionMapping(AccountMapping):
                 # get some properties from PropertyMapping
                 _action = {}
                 for properte in self.pm.get_properties_by_service_area(session.get('ServiceArea')):
-                    for pfi in self.property_fields_include:
-                        _action[pfi] = properte.get(pfi, "")
+                    for pfik, pfiv in self.property_fields_include:
+                        _action[pfik] = properte.get(pfiv or pfik, "")
                     break
                 session.update(_action)
 

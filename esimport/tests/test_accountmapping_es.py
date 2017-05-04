@@ -140,7 +140,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def _give_me_some_data(self, es):
         # add accounts from mocked sql to ES
-        self.am.add_accounts() # there is a delay
+        self.am.add_accounts('1990-01-01') # there is a delay
 
         total = self.am.get_es_count()
         retries = 0
@@ -211,7 +211,10 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertTrue(self._give_me_some_data(es))
 
         for rec in self.am.get_existing_accounts(self.start, self.end):
-            self.assertTrue(all([_ in rec for _ in self.am.property_fields_include]))
+            records_with_properties = [pfik in rec for pfik, pfiv in self.am.property_fields_include]
+            self.assertEqual(len(records_with_properties), len(self.am.property_fields_include))
+            # some redundant code is to test iterator exhaustion
+            self.assertTrue(all([pfik in rec for pfik, pfiv in self.am.property_fields_include]))
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
