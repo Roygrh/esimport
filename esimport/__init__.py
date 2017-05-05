@@ -37,7 +37,7 @@ def sync(mapping_name, start_date):
     elif mapping_name == 'session':
         pm = SessionMapping()
         pm.setup()
-        pm.sync()
+        pm.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
