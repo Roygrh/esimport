@@ -38,7 +38,6 @@ def retry(retry, retry_wait, retry_incremental=True):
                         time.sleep(retries_wait)
                         if retry_incremental:
                             retries_wait += retry_wait
-                        return func(*args, **kwargs)
                     else:
                         raise err
         return f
