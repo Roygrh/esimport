@@ -32,18 +32,6 @@ class TestAccountMapping(TestCase):
         assert am.esRetry is not None
 
 
-    def test_bulk_add_retry(self):
-        wrong_dsn = {'hosts': ['127.0.0.1:57288']}
-        es = Elasticsearch(**wrong_dsn)
-
-        # Note: start and end inputs are ignored because test data is hard coded
-        accounts = self.am.model.get_accounts(self.start, self.end)
-        actions = [account.es() for account in accounts]
-
-        attempts = self.am.bulk_add_or_update(es, actions, 1, self.am.esTimeout)
-        self.assertGreater(attempts, 0)
-
-
     # whether returned result count is equal to request count
     def test_get_accounts(self):
         accounts = self.am.model.get_accounts(self.start, self.end)

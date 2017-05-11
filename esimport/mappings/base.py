@@ -7,6 +7,7 @@ from elasticsearch import helpers
 from elasticsearch import exceptions
 
 from esimport import settings
+from esimport.utils import retry
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class BaseMapping(object):
     def __init__(self):
         self._items = list()
 
-
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
         logger.debug("Finding max id from index: %s, type: %s" % (
                     settings.ES_INDEX, self.model.get_type()))
@@ -46,23 +47,13 @@ class BaseMapping(object):
         return 0
 
 
+    # FIXME: remove this method and put retry in what's calling it
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        attempts = 0
-        while attempts < retries:
-            try:
-                attempts += 1
-                helpers.bulk(es, actions, request_timeout=timeout)
-                break
-            except exceptions.ConnectionTimeout as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-                time.sleep(attempts * 5) # pragma: no cover
-            except Exception as err:
-                logger.error(err)
-                traceback.print_exc(file=sys.stdout)
-        return attempts
+        helpers.bulk(es, actions, request_timeout=timeout)
 
 
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
         logger.debug("Finding records count from index: %s, type: %s" % (
                     settings.ES_INDEX, self.model.get_type()))
