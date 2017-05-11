@@ -21,7 +21,7 @@ def convert_keys_to_string(dictionary):
         for k, v in dictionary.items())
 
 
-def retry(retry, retry_wait, retry_incremental=True):
+def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
     def tryIt(func):
         def f(*args, **kwargs):
             retries = retry
@@ -29,7 +29,7 @@ def retry(retry, retry_wait, retry_incremental=True):
             while True:
                 try:
                     return func(*args, **kwargs)
-                except Exception as err:
+                except retry_exception as err:
                     logger.error(err)
                     if retries > 0:
                         retries -= 1
