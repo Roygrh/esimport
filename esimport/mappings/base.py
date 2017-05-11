@@ -21,7 +21,7 @@ class BaseMapping(object):
     def __init__(self):
         self._items = list()
 
-    @retry(settings.ES_RETRIES, settings.ES_TIMEOUT, retry_exception=exceptions.ConnectionError)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
         logger.debug("Finding max id from index: %s, type: %s" % (
                     settings.ES_INDEX, self.model.get_type()))
@@ -48,12 +48,12 @@ class BaseMapping(object):
 
 
     # FIXME: remove this method and put retry in what's calling it
-    @retry(settings.ES_RETRIES, settings.ES_TIMEOUT, retry_exception=exceptions.ConnectionError)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
         helpers.bulk(es, actions, request_timeout=timeout)
 
 
-    @retry(settings.ES_RETRIES, settings.ES_TIMEOUT, retry_exception=exceptions.ConnectionError)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
         logger.debug("Finding records count from index: %s, type: %s" % (
                     settings.ES_INDEX, self.model.get_type()))

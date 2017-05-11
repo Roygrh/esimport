@@ -106,7 +106,7 @@ class AccountMapping(BaseMapping):
     """
     Need this for @retry
     """
-    @retry(settings.ES_RETRIES, settings.ES_TIMEOUT, retry_exception=exceptions.ConnectionError)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def search_existing_accounts(self, start_zpa_id, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                 .format(limit, start_zpa_id))

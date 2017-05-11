@@ -14,6 +14,7 @@ ES_HOST = 'localhost'
 ES_PORT = '9200'
 ES_TIMEOUT = 30
 ES_RETRIES = 5
+ES_RETRIES_WAIT = 5
 
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
