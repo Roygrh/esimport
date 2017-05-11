@@ -88,7 +88,6 @@ Credit_Card.Masked_Number AS CreditCardNumber,
 Credit_Card_Type.Name AS CardType,
 PMS_Charge.Last_Name AS LastName,
 PMS_Charge.Room_Number AS RoomNumber,
-Access_Code.Access_Code_String AS AccessCodeUsed,
 Promotional_Code.Code AS DiscountCode,
 Prepaid_Zone_Plan.Consumable_Time AS ConsumableTime,
 CTU.Name AS ConsumableUnit,
@@ -107,7 +106,6 @@ JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Pl
 LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
-LEFT JOIN Access_Code WITH (NOLOCK) ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
 LEFT JOIN Zone_Plan_Account_Promotional_Code WITH (NOLOCK) ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
 LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
 LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
@@ -139,7 +137,6 @@ Credit_Card.Masked_Number AS CreditCardNumber,
 Credit_Card_Type.Name AS CardType,
 PMS_Charge.Last_Name AS LastName,
 PMS_Charge.Room_Number AS RoomNumber,
-Access_Code.Access_Code_String AS AccessCodeUsed,
 Promotional_Code.Code AS DiscountCode,
 Prepaid_Zone_Plan.Consumable_Time AS ConsumableTime,
 CTU.Name AS ConsumableUnit,
@@ -158,7 +155,6 @@ JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Pl
 LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
-LEFT JOIN Access_Code WITH (NOLOCK) ON Access_Code.ID = Zone_Plan_Account.Access_Code_ID
 LEFT JOIN Zone_Plan_Account_Promotional_Code WITH (NOLOCK) ON Zone_Plan_Account_Promotional_Code.Zone_Plan_Account_ID = Zone_Plan_Account.ID
 LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Account_Promotional_Code.Promotional_Code_ID
 LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
