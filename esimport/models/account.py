@@ -27,7 +27,7 @@ class Account(BaseModel):
         columns = ['ID', 'Name', 'Created', 'Activated',
                     'ServiceArea', 'Price', 'PurchaseMacAddress', 'ServicePlan',
                     'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
-                    'LastName', 'RoomNumber', 'AccessCodeUsed', 'PayMethod', 'ZoneType',
+                    'LastName', 'RoomNumber', 'PayMethod', 'ZoneType',
                     'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
         dt_columns = ['Created', 'Activated']
         for row in self.fetch_dict(q):
@@ -61,8 +61,6 @@ class Account(BaseModel):
             return "{0}{1}".format(self.CardType, self.CreditCardNumber)
         if self.PayMethod is "PMS":
             return "PMS {0}/{1}".format(self.LastName, self.RoomNumber)
-        if self.PayMethod is "AC":
-            return "Access Code: {0}".format(self.AccessCodeUsed)
         if self.PayMethod is "FREE":
             return "FREE"
         else:
