@@ -1,7 +1,7 @@
 import six
 import logging
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
@@ -20,10 +20,12 @@ class Session(BaseModel):
 
 
     def get_sessions(self, start, limit, start_date='1900-01-01'):
-        dt_columns = ['LogoutTime']
+        dt_columns = ['LogoutTime', 'LoginTime']
         q = self.query_one(start_date, start, limit)
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            if 'LogoutTime' in row and 'SessionLength' in row:
+                row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
             # convert datetime to string
             for dt_column in dt_columns:
                 if dt_column in row and isinstance(row[dt_column], datetime):

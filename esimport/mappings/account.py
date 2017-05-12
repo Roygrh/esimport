@@ -4,8 +4,10 @@ import pprint
 import logging
 
 from elasticsearch import Elasticsearch
+from elasticsearch import exceptions
 
 from esimport import settings
+from esimport.utils import retry
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
@@ -104,6 +106,7 @@ class AccountMapping(BaseMapping):
     """
     Get existing accounts from ElasticSearch
     """
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_existing_accounts(self, start_zpa_id, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                 .format(limit, start_zpa_id))
