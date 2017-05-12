@@ -9,6 +9,8 @@ from elasticsearch import exceptions
 from esimport import settings
 from esimport.utils import retry
 
+from extensions import sentry_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ class BaseMapping(object):
         except Exception as err:
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
         return 0
 
 
@@ -64,6 +67,7 @@ class BaseMapping(object):
         except Exception as err:
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
         return 0
 
 
