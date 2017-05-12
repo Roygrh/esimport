@@ -19,7 +19,6 @@ def setup_logging():
     logger.setLevel(settings.LOG_LEVEL)
     logger.addHandler(ch)
 
-
 @click.group()
 def cli():
     setup_logging()
