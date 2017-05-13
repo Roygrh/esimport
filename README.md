@@ -24,7 +24,15 @@ ES_PORT = '9200'
 ES_INDEX = ''
 ES_TIMEOUT = 30
 ES_RETRIES = 5
+ES_RETRIES_WAIT=2
 ES_BULK_LIMIT = 500
+DATABASE_CALLS_WAIT = 5
+
+# Sentry
+SENTRY_DSN = ''
+
+# General
+ENVIRONMENT = 'dev'
 ' > local_settings.py
 ```
 

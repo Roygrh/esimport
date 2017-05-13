@@ -1,6 +1,8 @@
 import six
 import time
 
+from extensions import sentry_client
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
                     return func(*args, **kwargs)
                 except retry_exception as err:
                     logger.error(err)
+                    sentry_client.captureException()
                     if retries > 0:
                         retries -= 1
                         logger.info('Retry {0} of {1} in {2} seconds'
@@ -39,6 +42,7 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
                         if retry_incremental:
                             retries_wait += retry_wait
                     else:
+                        sentry_client.captureException()
                         raise err
         return f
     return tryIt
