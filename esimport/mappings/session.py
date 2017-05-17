@@ -4,26 +4,24 @@ import logging
 from elasticsearch import Elasticsearch
 
 from esimport import settings
+from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.property import PropertyMapping
 
-
 logger = logging.getLogger(__name__)
-
 
 '''
 Session mapping is very much like Account mapping
 '''
+
+
 class SessionMapping(AccountMapping):
-
-
     def __init__(self):
         super(SessionMapping, self).__init__()
 
-
-    def setup(self): # pragma: no cover
+    def setup(self):  # pragma: no cover
         logger.debug("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Session(conn)
@@ -35,7 +33,6 @@ class SessionMapping(AccountMapping):
         logger.debug("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-
 
     def sync(self, start_date='1900-01-01'):
         while True:
@@ -50,6 +47,12 @@ class SessionMapping(AccountMapping):
                     for pfik, pfiv in self.property_fields_include:
                         _action[pfik] = properte.get(pfiv or pfik, "")
                     break
+
+                if 'Time_Zone' in _action:
+                    _action['LoginTimeLocal'] = convert_utc_to_local_time(session.record['LoginTime'],
+                                                                          _action['Time_Zone'])
+                    _action['LogoutTimeLocal'] = convert_utc_to_local_time(session.record['LogoutTime'],
+                                                                           _action['Time_Zone'])
                 session.update(_action)
 
                 rec = session.es()
@@ -63,7 +66,6 @@ class SessionMapping(AccountMapping):
             if count <= 0:
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
-
 
     def backload(self, start_date):
         start = 0

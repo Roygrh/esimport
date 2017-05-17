@@ -8,6 +8,7 @@ from elasticsearch import exceptions
 
 from esimport import settings
 from esimport.utils import retry
+from esimport.utils import convert_utc_to_local_time
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
@@ -40,7 +41,8 @@ class AccountMapping(BaseMapping):
         ('OwnershipGroup', None),
         ('TaxRate', None),
         ('CorporateBrand', None),
-        ('ExtPropId', None))
+        ('ExtPropId', None),
+        ('Time_Zone', None))
 
 
     def __init__(self):
@@ -82,6 +84,10 @@ class AccountMapping(BaseMapping):
                 for pfik, pfiv in self.property_fields_include:
                     _action[pfik] = properte.get(pfiv or pfik, "")
                 break
+
+            if 'Time_Zone' in _action:
+                _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['Time_Zone'])
+                _action['ActivatedLocal'] = convert_utc_to_local_time(account.record['Activated'], _action['Time_Zone'])
             account.update(_action)
 
             rec = account.es()
