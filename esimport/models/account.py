@@ -71,6 +71,7 @@ class Account(BaseModel):
     def eleven_query(start_date, start_zpa_id, limit):
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
+Member_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -95,6 +96,7 @@ Code.Code AS ConnectCode,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
+JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
@@ -120,6 +122,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
+Member_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -144,6 +147,7 @@ Code.Code AS ConnectCode,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
+JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
