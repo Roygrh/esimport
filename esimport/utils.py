@@ -3,6 +3,9 @@ import time
 
 from extensions import sentry_client
 
+from datetime import datetime
+from dateutil import tz
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -46,3 +49,15 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
                         raise err
         return f
     return tryIt
+
+
+def convert_utc_to_local_time(time, timezone):
+    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+        try:
+            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('UTC'))
+            return time_dt.astimezone(tz.gettz(timezone)).isoformat()
+        except ValueError:
+            pass
+        except TypeError:
+            return
+    return
