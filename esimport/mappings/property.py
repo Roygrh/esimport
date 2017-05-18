@@ -3,7 +3,9 @@ import pprint
 import logging
 
 from elasticsearch import Elasticsearch
+from elasticsearch import exceptions
 
+from esimport.utils import retry
 from esimport import settings
 from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
@@ -81,6 +83,8 @@ class PropertyMapping(BaseMapping):
                 time.sleep(self.db_wait)
 
 
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
     def get_properties_by_service_area(self, service_area):
         logger.debug("Fetching records from ES where field name {0} exists." \
                 .format(service_area))
