@@ -33,8 +33,11 @@ class Property(BaseModel):
                 rec1['Provider_Display_Name'] = rec3.Provider_Display_Name
 
             q4 = self.query_four(rec1['ID'])
+            sa_list = []
             for rec4 in list(self.fetch(q4, None)):
-                rec1[rec4.Service_Area_Number] = rec4.Service_Area_Display_Name
+                sa_list.append(rec4.Service_Area_Number)
+
+            rec1['Service_Areas'] = sa_list
 
             yield ESRecord(rec1, self.get_type())
 
@@ -83,8 +86,7 @@ WHERE Child_Org_ID = {0}
 
     @staticmethod
     def query_four(org_id):
-        q = """SELECT Organization.Display_Name as Service_Area_Display_Name,
-        Organization.Number as Service_Area_Number
+        q = """SELECT Organization.Number as Service_Area_Number
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
 WHERE Parent_Org_ID = {0}
