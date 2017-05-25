@@ -20,7 +20,7 @@ class Property(BaseModel):
                 .format(start, limit))
 
         h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
-                'Lite', 'Pan', 'Status', 'Time_Zone']
+                'Lite', 'Pan', 'Status', 'TimeZone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
@@ -30,14 +30,14 @@ class Property(BaseModel):
 
             q3 = self.query_three(rec1['ID'])
             for rec3 in list(self.fetch(q3, None)):
-                rec1['Provider_Display_Name'] = rec3.Provider_Display_Name
+                rec1['Provider'] = rec3.Provider
 
             q4 = self.query_four(rec1['ID'])
             sa_list = []
             for rec4 in list(self.fetch(q4, None)):
                 sa_list.append(rec4.Service_Area_Number)
 
-            rec1['Service_Areas'] = sa_list
+            rec1['ServiceAreas'] = sa_list
 
             yield ESRecord(rec1, self.get_type())
 
@@ -52,7 +52,7 @@ Organization.Meeting_Room_Count as MeetingRooms,
 Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
 Org_Status.Name as Status,
-Time_Zone.Tzid as Time_Zone
+Time_Zone.Tzid as TimeZone
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
@@ -75,7 +75,7 @@ WHERE Org_Value.Organization_ID = {0}
 
     @staticmethod
     def query_three(org_id):
-        q = """SELECT Organization.Display_Name as Provider_Display_Name
+        q = """SELECT Organization.Display_Name as Provider
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization ON Organization.ID = Parent_Org_ID
 WHERE Child_Org_ID = {0}
