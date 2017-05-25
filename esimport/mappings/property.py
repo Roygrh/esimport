@@ -11,21 +11,17 @@ from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.base import BaseMapping
 
-
 logger = logging.getLogger(__name__)
 
 
 class PropertyMapping(BaseMapping):
-
     model = None
     es = None
-
 
     def __init__(self):
         super(PropertyMapping, self).__init__()
         self.step_size = settings.ES_BULK_LIMIT
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10) # pragma: no cover
-
+        self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
 
     def setup(self):
         logger.debug("Setting up DB connection")
@@ -35,7 +31,6 @@ class PropertyMapping(BaseMapping):
         logger.debug("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-
 
     def sync(self):
         while True:
@@ -54,16 +49,14 @@ class PropertyMapping(BaseMapping):
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
 
-
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
-                .format(limit, start))
+                     .format(limit, start))
         records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                  sort="ID:asc", size=limit,
                                  q="ID:[{0} TO *]".format(start))
         for record in records['hits']['hits']:
             yield record.get('_source')
-
 
     def update(self):
         start = 0
@@ -73,7 +66,7 @@ class PropertyMapping(BaseMapping):
             for properte in self.get_existing_properties(start, self.step_size):
                 count += 1
 
-            start += min(self.step_size, total-start)
+            start += min(self.step_size, total - start)
             if start >= total:
                 start = 0
 
@@ -82,19 +75,21 @@ class PropertyMapping(BaseMapping):
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
 
-
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
     def get_properties_by_service_area(self, service_area):
         logger.debug("Fetching records from ES where field name {0} exists." \
-                .format(service_area))
+                     .format(service_area))
         records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                  body={
-                                    "query": {
-                                        "exists": {
-                                            "field" : service_area
-                                        }
-                                    }
+                                     "query": {
+                                         "match": {
+                                             "ServiceAreas": service_area
+                                         }
+                                     }
                                  })
         for record in records['hits']['hits']:
-            yield record.get('_source')
+                yield record.get('_source')
+
+        logger.warning("Property Service Area match not found for {0}".format(
+                    service_area))
