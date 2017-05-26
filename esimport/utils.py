@@ -55,7 +55,8 @@ def convert_utc_to_local_time(time, timezone):
     for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
         try:
             time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('UTC'))
-            return time_dt.astimezone(tz.gettz(timezone)).isoformat()
+            local = time_dt.astimezone(tz.gettz(timezone)).isoformat()
+            return datetime.strptime(local, fmt).replace(tzinfo=None)
         except ValueError:
             pass
         except TypeError:
