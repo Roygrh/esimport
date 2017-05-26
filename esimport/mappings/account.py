@@ -85,7 +85,7 @@ class AccountMapping(BaseMapping):
                     _action[pfik] = properte.get(pfiv or pfik, "")
                 break
 
-            if 'Time_Zone' in _action:
+            if 'TimeZone' in _action:
                 _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['TimeZone'])
                 _action['ActivatedLocal'] = convert_utc_to_local_time(account.record['Activated'], _action['TimeZone'])
             account.update(_action)
