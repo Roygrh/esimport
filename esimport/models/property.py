@@ -28,7 +28,8 @@ class Property(BaseModel):
             for rec2 in list(self.fetch(q2, None)):
                 if rec2.Name == "TaxRate":
                     rec1[rec2.Name] = float(rec2.Value)
-                rec1[rec2.Name] = rec2.Value
+                else:
+                    rec1[rec2.Name] = rec2.Value
 
             q3 = self.query_three(rec1['ID'])
             for rec3 in list(self.fetch(q3, None)):
