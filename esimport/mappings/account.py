@@ -32,7 +32,7 @@ class AccountMapping(BaseMapping):
     property_fields_include = (
         ('PropertyName', 'Name'),
         ('PropertyNumber', 'Number'),
-        ('Provider_Display_Name', None),
+        ('Provider', None),
         ('Brand', None),
         ('MARSHA_Code', None),
         ('Country', None),
