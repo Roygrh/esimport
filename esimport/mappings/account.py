@@ -32,7 +32,7 @@ class AccountMapping(BaseMapping):
     property_fields_include = (
         ('PropertyName', 'Name'),
         ('PropertyNumber', 'Number'),
-        ('Provider_Display_Name', None),
+        ('Provider', None),
         ('Brand', None),
         ('MARSHA_Code', None),
         ('Country', None),
@@ -42,7 +42,7 @@ class AccountMapping(BaseMapping):
         ('TaxRate', None),
         ('CorporateBrand', None),
         ('ExtPropId', None),
-        ('Time_Zone', None))
+        ('TimeZone', None))
 
 
     def __init__(self):
@@ -74,7 +74,7 @@ class AccountMapping(BaseMapping):
         count = 0
         start = self.max_id() + 1
         logger.debug("Get Accounts from {0} to {1} since {2}"
-              .format(start, self.step_size, start_date))
+              .format(start, start+self.step_size, start_date))
         for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
 
@@ -85,9 +85,9 @@ class AccountMapping(BaseMapping):
                     _action[pfik] = properte.get(pfiv or pfik, "")
                 break
 
-            if 'Time_Zone' in _action:
-                _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['Time_Zone'])
-                _action['ActivatedLocal'] = convert_utc_to_local_time(account.record['Activated'], _action['Time_Zone'])
+            if 'TimeZone' in _action:
+                _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['TimeZone'])
+                _action['ActivatedLocal'] = convert_utc_to_local_time(account.record['Activated'], _action['TimeZone'])
             account.update(_action)
 
             rec = account.es()

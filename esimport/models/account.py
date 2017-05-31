@@ -32,9 +32,6 @@ class Account(BaseModel):
         dt_columns = ['Created', 'Activated']
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
-            if 'Currency' in row:
-                row['Price'] = str(row.get('Price')) + str(row.get('Currency'))
-                row.pop('Currency')
             row['Duration'] = self.find_duration(row)
             # convert datetime to string
             for dt_column in dt_columns:
