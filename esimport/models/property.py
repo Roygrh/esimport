@@ -60,7 +60,7 @@ From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
 Where Organization.Org_Category_Type_ID = 3
-    AND Organization.ID >= {1}
+    AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
         q = q.format(limit, start)
         return q

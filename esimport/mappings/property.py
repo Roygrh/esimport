@@ -22,6 +22,7 @@ class PropertyMapping(BaseMapping):
         super(PropertyMapping, self).__init__()
         self.step_size = settings.ES_BULK_LIMIT
         self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
+        self.db_wait = settings.DATABASE_CALLS_WAIT
 
     def setup(self):
         logger.debug("Setting up DB connection")
@@ -36,10 +37,10 @@ class PropertyMapping(BaseMapping):
         while True:
             count = 0
             start = self.max_id()
-            for properte in self.model.get_properties(start, self.step_size):
+            for prop in self.model.get_properties(start, self.step_size):
                 count += 1
-                logger.debug("Record found: {0}".format(self.pp.pformat(properte.es())))
-                self.add(dict(properte.es()), self.step_size)
+                logger.debug("Record found: {0}".format(self.pp.pformat(prop.es())))
+                self.add(dict(prop.es()), self.step_size)
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
@@ -62,18 +63,21 @@ class PropertyMapping(BaseMapping):
         start = 0
         while True:
             count = 0
-            total = self.get_es_count()
-            for properte in self.get_existing_properties(start, self.step_size):
+            for prop in self.model.get_properties(start, self.step_size):
                 count += 1
+                logger.debug("Record found: {0}".format(self.pp.pformat(prop.es())))
+                self.add(dict(prop.es()), self.step_size)
 
-            start += min(self.step_size, total - start)
-            if start >= total:
-                start = 0
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
+            start += count
 
-            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            # always wait between DB calls
+            time.sleep(self.db_wait)
+
             if count <= 0:
-                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
+                start = 0
+                time.sleep(self.db_wait * 4)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
@@ -89,7 +93,7 @@ class PropertyMapping(BaseMapping):
                                      }
                                  })
         for record in records['hits']['hits']:
-                yield record.get('_source')
+            yield record.get('_source')
 
         logger.warning("Property Service Area match not found for {0}".format(
-                    service_area))
+            service_area))
