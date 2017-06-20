@@ -15,6 +15,7 @@ ES_PORT = '9200'
 ES_TIMEOUT = 30
 ES_RETRIES = 5
 ES_RETRIES_WAIT = 5
+ES_BULK_LIMIT = 10
 
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
@@ -48,6 +49,11 @@ MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
 ES_CALLS_RETRIES = 10
 ES_CALLS_RETRIES_WAIT = 5
 ES_CALLS_RETRIES_WAIT_INCREMENTAL = True
+
+# Sentry
+SENTRY_DSN = ''
+ES_CLUSTER = ''
+SQL_SERVER = ''
 
 try:
     from local_settings import *
