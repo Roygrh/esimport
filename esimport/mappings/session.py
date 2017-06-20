@@ -34,7 +34,9 @@ class SessionMapping(AccountMapping):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-
+    """
+    Find Sessions in SQL and add them to ElasticSearch
+    """
     def add_sessions(self, start_date):
         count = 0
         start = self.max_id() + 1
@@ -70,10 +72,17 @@ class SessionMapping(AccountMapping):
             logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
+    """
+    Loop to continuously find new Sessions and add them
+    """
     def sync(self, start_date):
         while True:
             self.add_sessions(start_date)
 
+
+    """
+    NON FUNCTIONAL. Needs to be implemented.
+    """
     def backload(self, start_date):
         start = 0
         for session in self.model.get_sessions(start, self.step_size, start_date):

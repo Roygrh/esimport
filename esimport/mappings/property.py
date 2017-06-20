@@ -33,6 +33,10 @@ class PropertyMapping(BaseMapping):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
+
+    """
+    Add Properties from SQL into ElasticSearch
+    """
     def sync(self):
         while True:
             count = 0
@@ -50,6 +54,9 @@ class PropertyMapping(BaseMapping):
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
 
+    """
+    Find existing property records in ElasticSearch
+    """
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start))
@@ -59,6 +66,9 @@ class PropertyMapping(BaseMapping):
         for record in records['hits']['hits']:
             yield record.get('_source')
 
+    """
+    Continuously update ElasticSearch to have the latest Property data
+    """
     def update(self):
         start = 0
         while True:
@@ -79,6 +89,9 @@ class PropertyMapping(BaseMapping):
                 start = 0
                 time.sleep(self.db_wait * 4)
 
+    """
+    Use ElasticSearch Property data to find the site associated with a service area
+    """
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
     def get_properties_by_service_area(self, service_area):
