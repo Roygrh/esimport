@@ -46,7 +46,7 @@ def sync(mapping_name, start_date):
     elif mapping_name == 'device':
         dm = DeviceMapping()
         dm.setup()
-        dm.sync()
+        dm.sync(start_date)
 
 
 @cli.command()
