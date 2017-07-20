@@ -53,6 +53,7 @@ class DeviceMapping(AccountMapping):
                 break
 
             _action['DateUTC'] = convert_pacific_to_utc(device.record['Date'])
+            del device.record['Date']
 
             if 'TimeZone' in _action:
                 _action['DateLocal'] = convert_utc_to_local_time(_action['DateUTC'],
