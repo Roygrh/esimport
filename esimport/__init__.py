@@ -6,6 +6,7 @@ from esimport import settings
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
+from esimport.mappings.device import DeviceMapping
 
 
 def setup_logging():
@@ -35,13 +36,17 @@ def sync(mapping_name, start_date):
         am.setup()
         am.sync(start_date)
     elif mapping_name == 'session':
-        pm = SessionMapping()
-        pm.setup()
-        pm.sync(start_date)
+        sm = SessionMapping()
+        sm.setup()
+        sm.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
         pm.sync()
+    elif mapping_name == 'device':
+        dm = DeviceMapping()
+        dm.setup()
+        dm.sync()
 
 
 @cli.command()
