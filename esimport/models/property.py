@@ -20,7 +20,7 @@ class Property(BaseModel):
                 .format(start, limit))
 
         h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
-                'Lite', 'Pan', 'Status', 'TimeZone']
+                'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
@@ -54,11 +54,14 @@ Organization.Guest_Room_Count as GuestRooms,
 Organization.Meeting_Room_Count as MeetingRooms,
 Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
+Organization.Date_Added_UTC as CreatedUTC,
+Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
 Time_Zone.Tzid as TimeZone
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
+Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
 Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
