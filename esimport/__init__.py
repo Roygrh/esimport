@@ -7,6 +7,7 @@ from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
 from esimport.mappings.device import DeviceMapping
+from esimport.mappings.conference import ConferenceMapping
 
 
 def setup_logging():
@@ -47,6 +48,10 @@ def sync(mapping_name, start_date):
         dm = DeviceMapping()
         dm.setup()
         dm.sync(start_date)
+    elif mapping_name == 'conference':
+        cm = ConferenceMapping()
+        cm.setup()
+        cm.sync(start_date)
 
 
 @cli.command()
