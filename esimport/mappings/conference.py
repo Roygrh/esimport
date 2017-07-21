@@ -47,13 +47,13 @@ class ConferenceMapping(AccountMapping):
 
             # get some properties from PropertyMapping
             _action = {}
-            for properte in self.pm.get_properties_by_service_area(device.get('ServiceArea')):
+            for properte in self.pm.get_properties_by_service_area(conference.get('ServiceArea')):
                 for pfik, pfiv in self.property_fields_include:
                     _action[pfik] = properte.get(pfiv or pfik, "")
                 break
 
             if 'TimeZone' in _action:
-                _action['DateCreatedLocal'] = convert_utc_to_local_time(_action['DateCreatedUTC'],
+                _action['DateCreatedLocal'] = convert_utc_to_local_time(conference.record['DateCreatedUTC'],
                                                                        _action['TimeZone'])
             conference.update(_action)
 
