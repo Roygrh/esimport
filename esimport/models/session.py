@@ -34,7 +34,7 @@ class Session(BaseModel):
 
 
     @staticmethod
-    def query_one(start_date, start_zpa_id, limit):
+    def query_one(start_date, start_rad_id, limit):
         q = """SELECT TOP ({1}) stop.ID AS ID,
 org.Number AS ServiceArea,
 val.Value AS ZoneType,
@@ -59,5 +59,5 @@ LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Na
 LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
 WHERE stop.ID >= {0} AND hist.Date_UTC > '{2}'
 ORDER BY stop.ID ASC"""
-        q = q.format(start_zpa_id, limit, start_date)
+        q = q.format(start_rad_id, limit, start_date)
         return q

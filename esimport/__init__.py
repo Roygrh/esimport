@@ -6,6 +6,8 @@ from esimport import settings
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
+from esimport.mappings.device import DeviceMapping
+from esimport.mappings.conference import ConferenceMapping
 
 
 def setup_logging():
@@ -35,13 +37,21 @@ def sync(mapping_name, start_date):
         am.setup()
         am.sync(start_date)
     elif mapping_name == 'session':
-        pm = SessionMapping()
-        pm.setup()
-        pm.sync(start_date)
+        sm = SessionMapping()
+        sm.setup()
+        sm.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
         pm.sync()
+    elif mapping_name == 'device':
+        dm = DeviceMapping()
+        dm.setup()
+        dm.sync(start_date)
+    elif mapping_name == 'conference':
+        cm = ConferenceMapping()
+        cm.setup()
+        cm.sync(start_date)
 
 
 @cli.command()
@@ -63,11 +73,7 @@ def backload(mapping_name, start_date):
 @click.argument('mapping_name')
 def update(mapping_name):
     mapping_name = mapping_name.lower()
-    if mapping_name == 'account':
-        am = AccountMapping()
-        am.setup()
-        am.update()
-    elif mapping_name == 'property':
+    if mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
         pm.update()
