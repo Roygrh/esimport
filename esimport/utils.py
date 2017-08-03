@@ -62,3 +62,16 @@ def convert_utc_to_local_time(time, timezone):
         except TypeError:
             return
     return
+
+def convert_pacific_to_utc(time):
+    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+        try:
+            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('PST8PDT'))
+            utc = time_dt.astimezone(tz.gettz('UTC'))
+            return utc.replace(tzinfo=None).isoformat()
+        except ValueError:
+            pass
+        except TypeError:
+            return
+    return
+

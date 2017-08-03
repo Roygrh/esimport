@@ -1,6 +1,6 @@
 # ElasticSearch Import Project
 
-The overall task is to move data from our T-SQL database into ElasticSearch for reporting and dashboard use.
+The overall task is to move data from our T-SQL database into ElasticSearch.
 
 ## Create settings file
 

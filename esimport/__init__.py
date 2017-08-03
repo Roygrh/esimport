@@ -7,6 +7,8 @@ from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
 from esimport.mappings.init_index import new_index
+from esimport.mappings.device import DeviceMapping
+from esimport.mappings.conference import ConferenceMapping
 
 
 
@@ -37,13 +39,21 @@ def sync(mapping_name, start_date):
         am.setup()
         am.sync(start_date)
     elif mapping_name == 'session':
-        pm = SessionMapping()
-        pm.setup()
-        pm.sync(start_date)
+        sm = SessionMapping()
+        sm.setup()
+        sm.sync(start_date)
     elif mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
         pm.sync()
+    elif mapping_name == 'device':
+        dm = DeviceMapping()
+        dm.setup()
+        dm.sync(start_date)
+    elif mapping_name == 'conference':
+        cm = ConferenceMapping()
+        cm.setup()
+        cm.sync(start_date)
 
 
 @cli.command()
