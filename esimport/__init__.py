@@ -6,11 +6,8 @@ from esimport import settings
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
-# from esimport.mappings.init_account import
-# from esimport.mappings.init_device import
 from esimport.mappings.init_index import new_index
-# from esimport.mappings.init_property import
-# from esimport.mappings.init_session import
+
 
 
 def setup_logging():
