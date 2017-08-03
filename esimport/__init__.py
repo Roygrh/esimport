@@ -6,8 +6,10 @@ from esimport import settings
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
+from esimport.mappings.init_index import new_index
 from esimport.mappings.device import DeviceMapping
 from esimport.mappings.conference import ConferenceMapping
+
 
 
 def setup_logging():
@@ -77,3 +79,9 @@ def update(mapping_name):
         pm = PropertyMapping()
         pm.setup()
         pm.update()
+
+@cli.command()
+def esimport_init():
+        ni = new_index()
+        ni.setup()
+        ni.setupindex()
