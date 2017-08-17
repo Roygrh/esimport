@@ -76,3 +76,26 @@ class ConferenceMapping(AccountMapping):
     def sync(self, start_date):
         while True:
             self.add_conferences(start_date)
+
+    """
+    Continuously update ElasticSearch to have the latest Conference data
+    """
+    def update(self, start_date):
+        start = 0
+        while True:
+            count = 0
+            for conf in self.model.get_conferences(start, self.step_size, start_date):
+                count += 1
+                logger.debug("Record found: {0}".format(self.pp.pformat(conf.es())))
+                self.add(dict(conf.es()), self.step_size)
+
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
+            start += count
+
+            # always wait between DB calls
+            time.sleep(self.db_wait)
+
+            if count <= 0:
+                start = 0
+                time.sleep(self.db_wait * 4)

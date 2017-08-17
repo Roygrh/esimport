@@ -1,6 +1,6 @@
 import logging
-import datetime
 
+from datetime import datetime
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 
@@ -42,7 +42,7 @@ class Property(BaseModel):
                 sa_list.append(rec4.Service_Area_Number)
 
             rec1['ServiceAreas'] = sa_list
-            rec1['UpdateTime'] = datetime.datetime.utcnow().isoformat()
+            rec1['UpdateTime'] = datetime.utcnow().isoformat()
 
             yield ESRecord(rec1, self.get_type())
 

@@ -1,7 +1,7 @@
 import six
 import logging
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
@@ -28,7 +28,7 @@ class Conference(BaseModel):
             for dt_column in dt_columns:
                 if dt_column in row and isinstance(row[dt_column], datetime):
                     row[dt_column] = row[dt_column].isoformat()
-            row['UpdateTime'] = datetime.datetime.utcnow().isoformat()
+            row['UpdateTime'] = datetime.utcnow().isoformat()
             yield ESRecord(row, self.get_type())
 
 
