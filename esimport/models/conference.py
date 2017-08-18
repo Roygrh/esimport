@@ -29,6 +29,17 @@ class Conference(BaseModel):
                 if dt_column in row and isinstance(row[dt_column], datetime):
                     row[dt_column] = row[dt_column].isoformat()
             row['UpdateTime'] = datetime.utcnow().isoformat()
+
+            q2 = self.query_two(row['ID'])
+            code_list = []
+            member_number_list = []
+            for rec2 in list(self.fetch(q2, None)):
+                code_list.append(rec2.Name)
+                member_number_list.append(rec2.Number)
+
+            row['CodeList'] = code_list
+            row['MemberNumberList'] = member_number_list
+
             yield ESRecord(row, self.get_type())
 
 
