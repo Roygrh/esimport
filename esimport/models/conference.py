@@ -53,3 +53,15 @@ ORDER BY Scheduled_Access.ID ASC
 """
         q = q.format(start_sa_id, limit, start_date)
         return q
+
+
+    @staticmethod
+    def query_two(sa_id):
+        q = """SELECT Display_Name AS Name,
+Number AS MemberNumber
+FROM Member WITH (NOLOCK)
+JOIN Scheduled_Access_Member ON Scheduled_Access_Member.Member_ID = Member.ID
+WHERE Scheduled_Access_Member.Scheduled_Access_ID = {0}
+"""
+        q = q.format(sa_id)
+        return q
