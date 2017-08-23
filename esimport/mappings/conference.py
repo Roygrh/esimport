@@ -55,6 +55,9 @@ class ConferenceMapping(AccountMapping):
             if 'TimeZone' in _action:
                 _action['DateCreatedLocal'] = convert_utc_to_local_time(conference.record['DateCreatedUTC'],
                                                                        _action['TimeZone'])
+                _action['StartDateLocal'] = convert_utc_to_local_time(conference.record['StartDateUTC'], _action['TimeZone'])
+                _action['EndDateLocal'] = convert_utc_to_local_time(conference.record['EndDateUTC'],
+                                                                      _action['TimeZone'])
             conference.update(_action)
 
             rec = conference.es()
