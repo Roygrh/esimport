@@ -52,6 +52,9 @@ Scheduled_Access.Date_Created_UTC AS DateCreatedUTC,
 Organization.Number AS ServiceArea,
 Member.Display_Name AS Code,
 Member.ID AS MemberID,
+Network_Configuration.SsidName AS SSID,
+Network_Access_Limits.Start_Date_UTC AS StartDateUTC,
+Network_Access_Limits.End_Date_UTC AS EndDateUTC,
 Scheduled_Access.Actual_User_Count AS UserCount,
 Scheduled_Access.Total_Input_Bytes AS TotalInputBytes,
 Scheduled_Access.Total_Output_Bytes AS TotalOutputBytes,
@@ -59,6 +62,7 @@ Scheduled_Access.Total_Session_Time AS TotalSessionTime
 FROM Scheduled_Access
 LEFT JOIN Member WITH (NOLOCK) ON Member.ID = Scheduled_Access.Member_ID
 LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Scheduled_Access.Organization_ID
+LEFT JOIN Network_Configuration WITH (NOLOCK) ON Network_Configuration.Scheduled_Access_ID = Scheduled_Access.ID
 WHERE Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > '{2}'
 ORDER BY Scheduled_Access.ID ASC
 """
