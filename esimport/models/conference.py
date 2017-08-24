@@ -63,6 +63,8 @@ FROM Scheduled_Access
 LEFT JOIN Member WITH (NOLOCK) ON Member.ID = Scheduled_Access.Member_ID
 LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Scheduled_Access.Organization_ID
 LEFT JOIN Network_Configuration WITH (NOLOCK) ON Network_Configuration.Scheduled_Access_ID = Scheduled_Access.ID
+LEFT JOIN Network_Access WITH (NOLOCK) ON Network_Access.ID = Scheduled_Access.Network_Access_ID
+LEFT JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Network_Access.Network_Access_Limits_ID
 WHERE Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > '{2}'
 ORDER BY Scheduled_Access.ID ASC
 """
