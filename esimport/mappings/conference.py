@@ -90,6 +90,23 @@ class ConferenceMapping(AccountMapping):
             for conf in self.model.get_conferences(start, self.step_size, start_date):
                 count += 1
                 logger.debug("Record found: {0}".format(self.pp.pformat(conf.es())))
+
+                # get some properties from PropertyMapping
+                _action = {}
+                for properte in self.pm.get_properties_by_service_area(conf.get('ServiceArea')):
+                    for pfik, pfiv in self.property_fields_include:
+                        _action[pfik] = properte.get(pfiv or pfik, "")
+                    break
+
+                if 'TimeZone' in _action:
+                    _action['DateCreatedLocal'] = convert_utc_to_local_time(conf.record['DateCreatedUTC'],
+                                                                            _action['TimeZone'])
+                    _action['StartDateLocal'] = convert_utc_to_local_time(conf.record['StartDateUTC'],
+                                                                          _action['TimeZone'])
+                    _action['EndDateLocal'] = convert_utc_to_local_time(conf.record['EndDateUTC'],
+                                                                        _action['TimeZone'])
+
+                conf.update(_action)
                 self.add(dict(conf.es()), self.step_size)
                 start = conf.record.get('ID')
 
