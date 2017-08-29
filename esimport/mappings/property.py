@@ -84,11 +84,11 @@ class PropertyMapping(BaseMapping):
             #start += count
 
             # always wait between DB calls
-            time.sleep(self.db_wait * 4)
+            time.sleep(self.db_wait)
 
             if count <= 0:
                 start = 0
-                time.sleep(self.db_wait * 8)
+                time.sleep(self.db_wait * 4)
 
     """
     Use ElasticSearch Property data to find the site associated with a service area
