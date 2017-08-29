@@ -115,8 +115,8 @@ class ConferenceMapping(AccountMapping):
             #start += count
 
             # always wait between DB calls
-            time.sleep(self.db_wait)
+            time.sleep(self.db_wait * 4)
 
             if count <= 0:
                 start = 0
-                time.sleep(self.db_wait * 4)
+                time.sleep(self.db_wait * 8)
