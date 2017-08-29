@@ -91,10 +91,11 @@ class ConferenceMapping(AccountMapping):
                 count += 1
                 logger.debug("Record found: {0}".format(self.pp.pformat(conf.es())))
                 self.add(dict(conf.es()), self.step_size)
+                start = conf.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-            start += count
+            #start += count
 
             # always wait between DB calls
             time.sleep(self.db_wait)

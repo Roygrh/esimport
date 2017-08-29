@@ -77,10 +77,11 @@ class PropertyMapping(BaseMapping):
                 count += 1
                 logger.debug("Record found: {0}".format(self.pp.pformat(prop.es())))
                 self.add(dict(prop.es()), self.step_size)
+                start = prop.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-            start += count
+            #start += count
 
             # always wait between DB calls
             time.sleep(self.db_wait)

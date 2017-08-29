@@ -6,42 +6,47 @@ from datetime import datetime
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 
-
 logger = logging.getLogger(__name__)
 
 
 class Conference(BaseModel):
-
-
     _type = "conference"
+
     @staticmethod
     def get_type():
         return Conference._type
 
-
     def get_conferences(self, start, limit, start_date='1900-01-01'):
-        dt_columns = ['DateCreatedUTC']
-        q = self.query_one(start_date, start, limit)
-        for row in self.fetch_dict(q):
-            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+        logger.debug("Fetching conferences from Organization.ID >= {0} (limit: {1})"
+                     .format(start, limit))
+
+        dt_columns = ['DateCreatedUTC', 'StartDateUTC', 'EndDateUTC']
+        q1 = self.query_one(start_date, start, limit)
+
+        h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
+              'Code', 'MemberID', 'SSID', 'StartDateUTC', 'EndDateUTC', 'UserCount',
+              'TotalInputBytes', 'TotalOutputBytes', 'TotalSessionTime']
+        for rec1 in list(self.fetch(q1, h1)):
+
+            rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
             # convert datetime to string
             for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
-            row['UpdateTime'] = datetime.utcnow().isoformat()
+                if dt_column in rec1 and isinstance(rec1[dt_column], datetime):
+                    rec1[dt_column] = rec1[dt_column].isoformat()
 
-            q2 = self.query_two(row['ID'])
+            rec1['UpdateTime'] = datetime.utcnow().isoformat()
+
+            q2 = self.query_two(rec1['ID'])
             code_list = []
             member_number_list = []
             for rec2 in list(self.fetch(q2, None)):
                 code_list.append(rec2.Name)
                 member_number_list.append(rec2.Number)
 
-            row['CodeList'] = code_list
-            row['MemberNumberList'] = member_number_list
+            rec1['CodeList'] = code_list
+            rec1['MemberNumberList'] = member_number_list
 
-            yield ESRecord(row, self.get_type())
-
+            yield ESRecord(rec1, self.get_type())
 
     @staticmethod
     def query_one(start_date, start_sa_id, limit):
@@ -70,7 +75,6 @@ ORDER BY Scheduled_Access.ID ASC
 """
         q = q.format(start_sa_id, limit, start_date)
         return q
-
 
     @staticmethod
     def query_two(sa_id):
