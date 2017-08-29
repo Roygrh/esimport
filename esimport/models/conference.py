@@ -41,7 +41,7 @@ class Conference(BaseModel):
             member_number_list = []
             for rec2 in list(self.fetch(q2, None)):
                 code_list.append(rec2.Name)
-                member_number_list.append(rec2.Number)
+                member_number_list.append(rec2.MemberNumber)
 
             rec1['CodeList'] = code_list
             rec1['MemberNumberList'] = member_number_list
