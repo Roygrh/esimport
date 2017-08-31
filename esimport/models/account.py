@@ -68,6 +68,7 @@ class Account(BaseModel):
     def eleven_query(start_date, start_zpa_id, limit):
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
+Member.Number AS MemberNumber,
 Member_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
@@ -119,6 +120,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
+Member.Number AS MemberNumber,
 Member_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,

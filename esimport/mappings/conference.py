@@ -55,6 +55,9 @@ class ConferenceMapping(AccountMapping):
             if 'TimeZone' in _action:
                 _action['DateCreatedLocal'] = convert_utc_to_local_time(conference.record['DateCreatedUTC'],
                                                                        _action['TimeZone'])
+                _action['StartDateLocal'] = convert_utc_to_local_time(conference.record['StartDateUTC'], _action['TimeZone'])
+                _action['EndDateLocal'] = convert_utc_to_local_time(conference.record['EndDateUTC'],
+                                                                      _action['TimeZone'])
             conference.update(_action)
 
             rec = conference.es()
@@ -76,3 +79,44 @@ class ConferenceMapping(AccountMapping):
     def sync(self, start_date):
         while True:
             self.add_conferences(start_date)
+
+    """
+    Continuously update ElasticSearch to have the latest Conference data
+    """
+    def update(self, start_date):
+        start = 0
+        while True:
+            count = 0
+            for conf in self.model.get_conferences(start, self.step_size, start_date):
+                count += 1
+                logger.debug("Record found: {0}".format(self.pp.pformat(conf.es())))
+
+                # get some properties from PropertyMapping
+                _action = {}
+                for properte in self.pm.get_properties_by_service_area(conf.get('ServiceArea')):
+                    for pfik, pfiv in self.property_fields_include:
+                        _action[pfik] = properte.get(pfiv or pfik, "")
+                    break
+
+                if 'TimeZone' in _action:
+                    _action['DateCreatedLocal'] = convert_utc_to_local_time(conf.record['DateCreatedUTC'],
+                                                                            _action['TimeZone'])
+                    _action['StartDateLocal'] = convert_utc_to_local_time(conf.record['StartDateUTC'],
+                                                                          _action['TimeZone'])
+                    _action['EndDateLocal'] = convert_utc_to_local_time(conf.record['EndDateUTC'],
+                                                                        _action['TimeZone'])
+
+                conf.update(_action)
+                self.add(dict(conf.es()), self.step_size)
+                start = conf.record.get('ID')
+
+            # for cases when all/remaining items count were less than limit
+            self.add(None, min(len(self._items), self.step_size))
+            #start += count
+
+            # always wait between DB calls
+            time.sleep(self.db_wait)
+
+            if count <= 0:
+                start = 0
+                time.sleep(self.db_wait * 4)

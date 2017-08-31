@@ -73,12 +73,17 @@ def backload(mapping_name, start_date):
 
 @cli.command()
 @click.argument('mapping_name')
-def update(mapping_name):
+@click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
+def update(mapping_name, start_date):
     mapping_name = mapping_name.lower()
     if mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
         pm.update()
+    if mapping_name == 'conference':
+        cm = ConferenceMapping()
+        cm.setup()
+        cm.update(start_date)
 
 @cli.command()
 def esimport_init():
