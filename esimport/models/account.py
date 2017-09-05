@@ -91,6 +91,7 @@ CTU.Name AS ConsumableUnit,
 Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Code.Code AS ConnectCode,
+Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
@@ -109,6 +110,7 @@ LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Acco
 LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
 LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
+LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Zone_Plan_Account.ID >= {0} AND Zone_Plan_Account.Date_Created_UTC >= '{2}'
 ORDER BY Zone_Plan_Account.ID ASC"""
@@ -143,6 +145,7 @@ CTU.Name AS ConsumableUnit,
 Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Code.Code AS ConnectCode,
+Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
@@ -161,6 +164,7 @@ LEFT JOIN Promotional_Code WITH (NOLOCK) ON Promotional_Code.ID = Zone_Plan_Acco
 LEFT JOIN Time_Unit AS CTU WITH (NOLOCK) ON CTU.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
 LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
+LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Zone_Plan_Account.ID IS NOT NULL and Zone_Plan_Account.ID IN ({0})
 ORDER BY Zone_Plan_Account.ID ASC"""
