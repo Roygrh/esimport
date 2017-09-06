@@ -86,7 +86,7 @@ def update(mapping_name, start_date):
         cm.update(start_date)
 
 @cli.command()
-def esimport_init():
+def create():
         ni = new_index()
         ni.setup()
         ni.setupindex()
