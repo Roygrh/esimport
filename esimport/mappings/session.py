@@ -6,8 +6,7 @@ from elasticsearch import Elasticsearch
 from esimport import settings
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
-from esimport.connectors.mssql import MsSQLConnector
-from esimport.mappings.account import AccountMapping
+from esimport.mappings.document import DocumentMapping
 from esimport.mappings.property import PropertyMapping
 
 logger = logging.getLogger(__name__)
@@ -17,22 +16,13 @@ Session mapping is very much like Account mapping
 '''
 
 
-class SessionMapping(AccountMapping):
+class SessionMapping(DocumentMapping):
     def __init__(self):
         super(SessionMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
-        conn = MsSQLConnector()
-        self.model = Session(conn)
-
-        # ARRET! possible cycle calls in future
-        self.pm = PropertyMapping()
-        self.pm.setup()
-
-        logger.debug("Setting up ES connection")
-        # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        DocumentMapping.setup(self)
+        self.model = Session(self.conn)
 
     """
     Find Sessions in SQL and add them to ElasticSearch
