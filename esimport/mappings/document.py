@@ -1,16 +1,9 @@
-import six
-import time
 import pprint
 import logging
 
 from elasticsearch import Elasticsearch
-from elasticsearch import exceptions
 
 from esimport import settings
-from esimport.utils import retry
-from esimport.utils import convert_utc_to_local_time
-from esimport.models import ESRecord
-from esimport.models.account import Account
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.base import BaseMapping
 from esimport.mappings.property import PropertyMapping
@@ -25,6 +18,8 @@ class DocumentMapping(BaseMapping):
 
     model = None
     es = None
+
+    conn = None
 
     pm = None
     property_fields_include = (
@@ -52,7 +47,7 @@ class DocumentMapping(BaseMapping):
 
     def setup(self):  # pragma: no cover
         logger.debug("Setting up DB connection")
-        conn = MsSQLConnector()
+        self.conn = MsSQLConnector()
 
         # ARRET! possible cycle calls in future
         self.pm = PropertyMapping()

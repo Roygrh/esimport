@@ -1,38 +1,20 @@
 import time
 import logging
 
-from elasticsearch import Elasticsearch
-
-from esimport import settings
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.conference import Conference
-from esimport.connectors.mssql import MsSQLConnector
-from esimport.mappings.account import AccountMapping
-from esimport.mappings.property import PropertyMapping
+from esimport.mappings.document import DocumentMapping
 
 logger = logging.getLogger(__name__)
 
-'''
-Conference mapping is very much like Account mapping
-'''
 
-
-class ConferenceMapping(AccountMapping):
+class ConferenceMapping(DocumentMapping):
     def __init__(self):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
-        conn = MsSQLConnector()
-        self.model = Conference(conn)
-
-        # ARRET! possible cycle calls in future
-        self.pm = PropertyMapping()
-        self.pm.setup()
-
-        logger.debug("Setting up ES connection")
-        # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        DocumentMapping.setup(self)
+        self.model = Conference(self.conn)
 
     """
     Find Conference in SQL and add them to ElasticSearch

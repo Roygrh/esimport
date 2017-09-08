@@ -81,7 +81,6 @@ class PropertyMapping(BaseMapping):
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-            #start += count
 
             # always wait between DB calls
             time.sleep(self.db_wait)

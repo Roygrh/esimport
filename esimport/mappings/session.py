@@ -1,19 +1,11 @@
 import time
 import logging
 
-from elasticsearch import Elasticsearch
-
-from esimport import settings
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
 from esimport.mappings.document import DocumentMapping
-from esimport.mappings.property import PropertyMapping
 
 logger = logging.getLogger(__name__)
-
-'''
-Session mapping is very much like Account mapping
-'''
 
 
 class SessionMapping(DocumentMapping):
