@@ -1,10 +1,7 @@
-import pprint
 import logging
 
-from elasticsearch import Elasticsearch
 
-from esimport import settings
-from esimport.connectors.mssql import MsSQLConnector
+
 from esimport.mappings.base import BaseMapping
 from esimport.mappings.property import PropertyMapping
 
@@ -12,14 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentMapping(BaseMapping):
-    step_size = None
-    esTimeout = None
-    esRetry = None
 
-    model = None
-    es = None
-
-    conn = None
 
     pm = None
     property_fields_include = (
@@ -39,20 +29,9 @@ class DocumentMapping(BaseMapping):
 
     def __init__(self):
         super(DocumentMapping, self).__init__()
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
-        self.step_size = settings.ES_BULK_LIMIT
-        self.esTimeout = settings.ES_TIMEOUT
-        self.esRetry = settings.ES_RETRIES
-        self.db_wait = settings.DATABASE_CALLS_WAIT
 
     def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
-        self.conn = MsSQLConnector()
-
+        BaseMapping.setup(self)
         # ARRET! possible cycle calls in future
         self.pm = PropertyMapping()
         self.pm.setup()
-
-        logger.debug("Setting up ES connection")
-        # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)

@@ -20,9 +20,6 @@ class PropertyMapping(BaseMapping):
 
     def __init__(self):
         super(PropertyMapping, self).__init__()
-        self.step_size = settings.ES_BULK_LIMIT
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
-        self.db_wait = settings.DATABASE_CALLS_WAIT
 
     def setup(self):
         logger.debug("Setting up DB connection")
