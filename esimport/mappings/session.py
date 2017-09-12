@@ -1,19 +1,27 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
 import time
 import logging
 
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
-from esimport.mappings.document import DocumentMapping
+from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 logger = logging.getLogger(__name__)
 
 
-class SessionMapping(DocumentMapping):
+class SessionMapping(PropertyAppendedDocumentMapping):
     def __init__(self):
         super(SessionMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        DocumentMapping.setup(self)
+        PropertyAppendedDocumentMapping.setup(self)
         self.model = Session(self.conn)
 
     """

@@ -1,16 +1,20 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
 import logging
 
-
-
-from esimport.mappings.base import BaseMapping
+from esimport.mappings.doc import DocumentMapping
 from esimport.mappings.property import PropertyMapping
 
 logger = logging.getLogger(__name__)
 
 
-class DocumentMapping(BaseMapping):
-
-
+class PropertyAppendedDocumentMapping(DocumentMapping):
     pm = None
     property_fields_include = (
         ('PropertyName', 'Name'),
@@ -28,10 +32,10 @@ class DocumentMapping(BaseMapping):
         ('TimeZone', None))
 
     def __init__(self):
-        super(DocumentMapping, self).__init__()
+        super(PropertyAppendedDocumentMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        BaseMapping.setup(self)
+        DocumentMapping.setup(self)
         # ARRET! possible cycle calls in future
         self.pm = PropertyMapping()
         self.pm.setup()

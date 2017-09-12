@@ -1,3 +1,11 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
 import sys
 import time
 import pprint
@@ -18,7 +26,7 @@ from extensions import sentry_client
 logger = logging.getLogger(__name__)
 
 
-class BaseMapping(object):
+class DocumentMapping(object):
     step_size = None
     esTimeout = None
     esRetry = None
