@@ -21,7 +21,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         super(DeviceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        PropertyAppendedDocumentMapping.setup(self)
+        super(DeviceMapping, self).setup()
         self.model = Device(self.conn)
 
     """

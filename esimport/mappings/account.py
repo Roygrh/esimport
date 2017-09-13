@@ -22,12 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class AccountMapping(PropertyAppendedDocumentMapping):
-
     def __init__(self):
         super(AccountMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        PropertyAppendedDocumentMapping.setup(self)
+        super(AccountMapping, self).setup()
         self.model = Account(self.conn)
 
     # Need this for tests
@@ -39,7 +38,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         for account in self.model.get_accounts(start, self.step_size, start_date):
             count += 1
 
-            _action = self.base.get_site_values(account.get('ServiceArea'))
+            _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
 
             if 'TimeZone' in _action:
                 _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['TimeZone'])

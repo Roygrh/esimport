@@ -21,7 +21,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        PropertyAppendedDocumentMapping.setup(self)
+        super(ConferenceMapping, self).setup()
         self.model = Conference(self.conn)
 
     """
@@ -35,7 +35,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         for conference in self.model.get_conferences(start, self.step_size, start_date):
             count += 1
 
-            _action = self.base.get_site_values(conference.get('ServiceArea'))
+            _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
             if 'TimeZone' in _action:
                 _action['DateCreatedLocal'] = convert_utc_to_local_time(conference.record['DateCreatedUTC'],
