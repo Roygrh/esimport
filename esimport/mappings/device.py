@@ -35,12 +35,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         for device in self.model.get_devices(start, self.step_size, start_date):
             count += 1
 
-            # get some properties from PropertyMapping
-            _action = {}
-            for properte in self.pm.get_properties_by_service_area(device.get('ServiceArea')):
-                for pfik, pfiv in self.property_fields_include:
-                    _action[pfik] = properte.get(pfiv or pfik, "")
-                break
+            _action = self.base.get_site_values(device.get('ServiceArea'))
 
             _action['DateUTC'] = convert_pacific_to_utc(device.record['Date'])
             del device.record['Date']
