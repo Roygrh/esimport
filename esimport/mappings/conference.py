@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class ConferenceMapping(PropertyAppendedDocumentMapping):
+    dates_to_localize = (
+        ('DateCreatedUTC', 'DateCreatedLocal'),
+        ('StartDateUTC', 'StartDateLocal'),
+        ('EndDateUTC', 'EndDateLocal'))
+
     def __init__(self):
         super(ConferenceMapping, self).__init__()
 
@@ -38,13 +43,10 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
             if 'TimeZone' in _action:
-                _action['DateCreatedLocal'] = convert_utc_to_local_time(conference.record['DateCreatedUTC'],
-                                                                       _action['TimeZone'])
-                _action['StartDateLocal'] = convert_utc_to_local_time(conference.record['StartDateUTC'], _action['TimeZone'])
-                _action['EndDateLocal'] = convert_utc_to_local_time(conference.record['EndDateUTC'],
-                                                                      _action['TimeZone'])
-            conference.update(_action)
+                for pfik, pfiv in self.dates_to_localize:
+                    _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
 
+            conference.update(self.amend_data(conference))
             rec = conference.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
             self.add(rec, self.step_size)
@@ -72,28 +74,21 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         start = 0
         while True:
             count = 0
-            for conf in self.model.get_conferences(start, self.step_size, start_date):
+            for conference in self.model.get_conferences(start, self.step_size, start_date):
                 count += 1
-                logger.debug("Record found: {0}".format(self.pp.pformat(conf.es())))
+                logger.debug("Record found: {0}".format(self.pp.pformat(conference.es())))
 
                 # get some properties from PropertyMapping
                 _action = {}
-                for properte in self.pm.get_properties_by_service_area(conf.get('ServiceArea')):
-                    for pfik, pfiv in self.property_fields_include:
-                        _action[pfik] = properte.get(pfiv or pfik, "")
-                    break
+                _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
                 if 'TimeZone' in _action:
-                    _action['DateCreatedLocal'] = convert_utc_to_local_time(conf.record['DateCreatedUTC'],
-                                                                            _action['TimeZone'])
-                    _action['StartDateLocal'] = convert_utc_to_local_time(conf.record['StartDateUTC'],
-                                                                          _action['TimeZone'])
-                    _action['EndDateLocal'] = convert_utc_to_local_time(conf.record['EndDateUTC'],
-                                                                        _action['TimeZone'])
+                    for pfik, pfiv in self.dates_to_localize:
+                        _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
 
-                conf.update(_action)
-                self.add(dict(conf.es()), self.step_size)
-                start = conf.record.get('ID')
+                conference.update(_action)
+                self.add(dict(conference.es()), self.step_size)
+                start = conference.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))

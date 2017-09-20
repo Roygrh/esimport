@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceMapping(PropertyAppendedDocumentMapping):
+    dates_from_pacific = (('Date', 'DateUTC'),)
+
+    dates_to_localize = (
+        ('DateUTC', 'DateLocal'),)
+
     def __init__(self):
         super(DeviceMapping, self).__init__()
 
@@ -27,6 +32,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
     """
     Find Devices in SQL and add them to ElasticSearch
     """
+
     def add_devices(self, start_date):
         count = 0
         start = self.max_id() + 1
@@ -35,14 +41,16 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         for device in self.model.get_devices(start, self.step_size, start_date):
             count += 1
 
-            _action = self.base.get_site_values(device.get('ServiceArea'))
+            _action = super(DeviceMapping, self).get_site_values(device.get('ServiceArea'))
 
-            _action['DateUTC'] = convert_pacific_to_utc(device.record['Date'])
-            del device.record['Date']
+            for pfik, pfiv in self.dates_from_pacific:
+                _action[pfiv] = convert_pacific_to_utc(device.record[pfik])
+                del device.record[pfik]
 
             if 'TimeZone' in _action:
-                _action['DateLocal'] = convert_utc_to_local_time(_action['DateUTC'],
-                                                                       _action['TimeZone'])
+                for pfik, pfiv in self.dates_to_localize:
+                    _action[pfiv] = convert_utc_to_local_time(_action[pfik], _action['TimeZone'])
+
             device.update(_action)
 
             rec = device.es()

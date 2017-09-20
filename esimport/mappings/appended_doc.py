@@ -13,7 +13,10 @@ from esimport.mappings.property import PropertyMapping
 
 logger = logging.getLogger(__name__)
 
-
+"""
+This class is the base class for any mapping that will append property
+data into the documents. 
+"""
 class PropertyAppendedDocumentMapping(DocumentMapping):
     pm = None
     property_fields_include = (
@@ -30,6 +33,9 @@ class PropertyAppendedDocumentMapping(DocumentMapping):
         ('CorporateBrand', None),
         ('ExtPropId', None),
         ('TimeZone', None))
+
+    dates_from_pacific = ()
+    dates_to_localize = ()
 
     def __init__(self):
         super(PropertyAppendedDocumentMapping, self).__init__()

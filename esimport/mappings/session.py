@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class SessionMapping(PropertyAppendedDocumentMapping):
+    dates_to_localize = (
+        ('LoginTime', 'LoginTimeLocal'),
+        ('LogoutTime', 'LogoutTimeLocal'))
+
     def __init__(self):
         super(SessionMapping, self).__init__()
 
@@ -38,10 +42,9 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
 
             if 'TimeZone' in _action:
-                _action['LoginTimeLocal'] = convert_utc_to_local_time(session.record['LoginTime'],
-                                                                      _action['TimeZone'])
-                _action['LogoutTimeLocal'] = convert_utc_to_local_time(session.record['LogoutTime'],
-                                                                       _action['TimeZone'])
+                for pfik, pfiv in self.dates_to_localize:
+                    _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
+
             session.update(_action)
 
             rec = session.es()

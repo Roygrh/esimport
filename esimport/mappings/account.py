@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 class AccountMapping(PropertyAppendedDocumentMapping):
+    dates_to_localize = (
+        ('Created', 'CreatedLocal'),
+        ('Activated', 'ActivatedLocal'))
+
     def __init__(self):
         super(AccountMapping, self).__init__()
 
@@ -41,10 +45,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
 
             if 'TimeZone' in _action:
-                _action['CreatedLocal'] = convert_utc_to_local_time(account.record['Created'], _action['TimeZone'])
-                _action['ActivatedLocal'] = convert_utc_to_local_time(account.record['Activated'], _action['TimeZone'])
-            account.update(_action)
+                for pfik, pfiv in self.dates_to_localize:
+                    _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
 
+            account.update(_action)
             rec = account.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
             self.add(rec, self.step_size)
