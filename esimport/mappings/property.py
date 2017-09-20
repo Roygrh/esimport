@@ -1,3 +1,11 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
 import time
 import pprint
 import logging
@@ -9,20 +17,17 @@ from esimport.utils import retry
 from esimport import settings
 from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
-from esimport.mappings.base import BaseMapping
+from esimport.mappings.doc import DocumentMapping
 
 logger = logging.getLogger(__name__)
 
 
-class PropertyMapping(BaseMapping):
+class PropertyMapping(DocumentMapping):
     model = None
     es = None
 
     def __init__(self):
         super(PropertyMapping, self).__init__()
-        self.step_size = settings.ES_BULK_LIMIT
-        self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
-        self.db_wait = settings.DATABASE_CALLS_WAIT
 
     def setup(self):
         logger.debug("Setting up DB connection")
@@ -33,10 +38,10 @@ class PropertyMapping(BaseMapping):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-
     """
     Add Properties from SQL into ElasticSearch
     """
+
     def sync(self):
         while True:
             count = 0
@@ -57,6 +62,7 @@ class PropertyMapping(BaseMapping):
     """
     Find existing property records in ElasticSearch
     """
+
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start))
@@ -69,6 +75,7 @@ class PropertyMapping(BaseMapping):
     """
     Continuously update ElasticSearch to have the latest Property data
     """
+
     def update(self):
         start = 0
         while True:
@@ -81,7 +88,6 @@ class PropertyMapping(BaseMapping):
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-            #start += count
 
             # always wait between DB calls
             time.sleep(self.db_wait)
@@ -93,6 +99,7 @@ class PropertyMapping(BaseMapping):
     """
     Use ElasticSearch Property data to find the site associated with a service area
     """
+
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
     def get_properties_by_service_area(self, service_area):

@@ -1,38 +1,32 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
 import time
 import logging
 
-from elasticsearch import Elasticsearch
-
-from esimport import settings
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
-from esimport.connectors.mssql import MsSQLConnector
-from esimport.mappings.account import AccountMapping
-from esimport.mappings.property import PropertyMapping
+from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 logger = logging.getLogger(__name__)
 
-'''
-Session mapping is very much like Account mapping
-'''
 
+class SessionMapping(PropertyAppendedDocumentMapping):
+    dates_to_localize = (
+        ('LoginTime', 'LoginTimeLocal'),
+        ('LogoutTime', 'LogoutTimeLocal'))
 
-class SessionMapping(AccountMapping):
     def __init__(self):
         super(SessionMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
-        conn = MsSQLConnector()
-        self.model = Session(conn)
-
-        # ARRET! possible cycle calls in future
-        self.pm = PropertyMapping()
-        self.pm.setup()
-
-        logger.debug("Setting up ES connection")
-        # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        super(SessionMapping, self).setup()
+        self.model = Session(self.conn)
 
     """
     Find Sessions in SQL and add them to ElasticSearch
@@ -45,18 +39,12 @@ class SessionMapping(AccountMapping):
         for session in self.model.get_sessions(start, self.step_size, start_date):
             count += 1
 
-            # get some properties from PropertyMapping
-            _action = {}
-            for properte in self.pm.get_properties_by_service_area(session.get('ServiceArea')):
-                for pfik, pfiv in self.property_fields_include:
-                    _action[pfik] = properte.get(pfiv or pfik, "")
-                break
+            _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
 
             if 'TimeZone' in _action:
-                _action['LoginTimeLocal'] = convert_utc_to_local_time(session.record['LoginTime'],
-                                                                      _action['TimeZone'])
-                _action['LogoutTimeLocal'] = convert_utc_to_local_time(session.record['LogoutTime'],
-                                                                       _action['TimeZone'])
+                for pfik, pfiv in self.dates_to_localize:
+                    _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
+
             session.update(_action)
 
             rec = session.es()
