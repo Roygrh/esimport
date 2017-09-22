@@ -280,6 +280,7 @@ class new_index():
                          }}},
                 "MemberNumberList": {"type": "keyword"},
                 "MemberID": {"type": "long"},
+                "MemberNumber": {"type": "keyword"},
                 "SSID":
                     {"type": "text",
                      "fields": {
