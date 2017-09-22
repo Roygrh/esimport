@@ -1,3 +1,10 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
 import sys
 import click
 import logging
@@ -86,7 +93,7 @@ def update(mapping_name, start_date):
         cm.update(start_date)
 
 @cli.command()
-def esimport_init():
+def create():
         ni = new_index()
         ni.setup()
         ni.setupindex()
