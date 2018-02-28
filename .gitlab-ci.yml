@@ -1,0 +1,41 @@
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - build
+  - staging_deploy
+  - production_deploy
+
+# When using dind, it's wise to use the overlayfs driver for improved performance.
+variables:
+  DOCKER_DRIVER: overlay
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+before_script:
+  - docker info
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+
+build:
+  stage: build
+  script:
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+
+staging_deploy:
+  stage: staging_deploy
+  script:
+    - echo "TODO"
+  only:
+    - develop
+  when: manual
+
+production_deploy:
+  stage: production_deploy
+  script:
+    - echo "TODO"
+
+  only:
+    - master
+  when: manual
