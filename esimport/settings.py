@@ -66,4 +66,4 @@ SQL_SERVER = ''
 try:
     from local_settings import *
 except:
-    pass
+    raise
