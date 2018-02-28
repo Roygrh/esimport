@@ -22,6 +22,9 @@ setup(
         'PyYAML==3.12',
         'pyodbc==4.0.6',
         'elasticsearch==5.2.0',
+        'six==1.11.0',
+        'raven==6.5.0',
+        'python-dateutil==2.6.1',
         'click==6.7'
     ],
     entry_points={
