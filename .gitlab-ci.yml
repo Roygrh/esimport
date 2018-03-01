@@ -26,7 +26,14 @@ build:
 staging_deploy:
   stage: staging_deploy
   script:
-    - echo "TODO"
+    - mkdir .elasticbeanstalk && echo "$EB_STAGING_CONFIG" > .elasticbeanstalk/config.yml
+    - apk add --update --no-cache python py-pip git
+    - pip --no-cache-dir install awsebcli
+    - mkdir ~/.aws/
+    - touch ~/.aws/credentials && touch ~/.aws/config
+    - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[profile eb-cli]\nregion=us-west-2\n" > ~/.aws/config
+    - eb deploy $EB_STAGING_ENV_NAME --verbose
   only:
     - develop
   when: manual

@@ -95,3 +95,8 @@ ENV/
 
 config.yml
 odbc.ini
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
