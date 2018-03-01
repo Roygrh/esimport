@@ -31,7 +31,7 @@ staging_deploy:
     - pip --no-cache-dir install awsebcli
     - mkdir ~/.aws/
     - touch ~/.aws/credentials && touch ~/.aws/config
-    - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[profile eb-cli]\nregion=us-west-2\n" > ~/.aws/config
     - echo "$STAGING_local_settings_py" > local_settings.py
     - eb deploy $EB_STAGING_ENV_NAME --verbose
