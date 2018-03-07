@@ -32,7 +32,7 @@ staging_deploy:
     - mkdir ~/.aws/
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
-    - aws --debug --region us-east-1 s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
+    - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
     - aws s3 cp s3://dataservices.esimport/odbcinst.ini.stag odbcinst.ini
     - aws s3 cp s3://dataservices.esimport/odbc.ini.stag odbc.ini
     - aws s3 cp s3://dataservices.esimport/freetds.conf.stag freetds.conf
