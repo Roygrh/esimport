@@ -20,7 +20,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'PyYAML==3.12',
-        'pyodbc==4.0.6',
+        'pyodbc==4.0.22',
         'elasticsearch==5.2.0',
         'six==1.11.0',
         'raven==6.5.0',
