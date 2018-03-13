@@ -61,7 +61,7 @@ term.Name AS TerminationReason
 FROM Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
 JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
 JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
-JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
+LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
 JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
 LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
