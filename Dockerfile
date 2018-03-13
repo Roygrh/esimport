@@ -1,24 +1,26 @@
-FROM amazon/aws-eb-python:3.4.2-onbuild-3.5.1
+# Project's Dockerfile, uses the official Docker Python 3 image based on 
+# Alpine Linux. See: https://hub.docker.com/_/python/
+# All system and Python dependencies required by the project app should go here.
+FROM python:3.6-alpine
+LABEL authors="Walid ZIOUCHE <wziouche@gmail.com>"
 
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 
-RUN apt update
-RUN apt install -y curl apt-transport-https git
-RUN apt install -y python3 python3-dev python3-pip
-RUN apt install -y unixodbc-dev freetds-bin tdsodbc
+# Install 'build-base' meta-package for gcc and other packages needed
+# to compile dependencies listed in requirements.txt
+RUN apk add --update --no-cache build-base libffi-dev openssl-dev git \
+            libxml2-dev libxslt-dev unixodbc-dev freetds freetds-dev g++
 
-# Setup database client unixODBC and freetds
-ADD docker/setup_db.bash /tmp
-RUN /tmp/setup_db.bash
+# Create and set /gpnsreports as the working directory for this container
+WORKDIR /esimport
 
-ADD docker/auto.key /etc/ssh/docker.auto.key
-ADD docker/auto.key.pub /etc/ssh/docker.auto.key.pub
-ADD docker/ssh_config /tmp
-RUN cat /tmp/ssh_config >> /etc/ssh/ssh_config
-RUN ssh -o StrictHostKeyChecking=no bitbucket.org
-# Needs ssh access key
-RUN pip3 install git+ssh://git@bitbucket.org/distrodev/esimport.git@develop
+# Install Python dependencies but first Make sure we have the latest pip version
+COPY . /esimport
+# upgrade pip, install cython (required by mssql)
+RUN pip install --upgrade pip && pip install -e .
+
+# Some clean-ups
+RUN apk del build-base git && rm -rf /var/cache/apk/*
 
 ENTRYPOINT ["esimport"]
 CMD ["sync"]
