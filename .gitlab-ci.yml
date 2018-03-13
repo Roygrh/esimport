@@ -5,7 +5,8 @@ services:
 stages:
   - build
   - staging_deploy
-  - production_deploy
+  - production_west_deploy
+  - production_east_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -15,7 +16,6 @@ variables:
 before_script:
   - docker info
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
 
 build:
   stage: build
@@ -41,18 +41,38 @@ staging_deploy:
     - develop
   when: manual
 
-production_deploy:
-  stage: production_deploy
+production_west_deploy:
+  stage: production_west_deploy
   script:
-    - mkdir .elasticbeanstalk && echo "$EB_PROD_CONFIG" > .elasticbeanstalk/config.yml
+    - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - apk add --update --no-cache python py-pip git
     - pip --no-cache-dir install awsebcli awscli
     - mkdir ~/.aws/
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-    - aws s3 cp s3://$PROD_CONFIG_BUCKET/local_settings.py local_settings.py
+    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.ENT04 local_settings.py
+    - aws s3 cp s3://dataservices.esimport.production/odbcinst.ini.prod odbcinst.ini
+    - aws s3 cp s3://dataservices.esimport.production/odbc.ini.prod odbc.ini
+    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.ENT04 freetds.conf
     - eb deploy $EB_PROD_ENV_NAME --verbose
+  only:
+    - master
+  when: manual
 
+production_east_deploy:
+  stage: production_east_deploy
+  script:
+    - mkdir .elasticbeanstalk && echo "$EB_PROD_EAST_CONFIG" > .elasticbeanstalk/config.yml
+    - apk add --update --no-cache python py-pip git
+    - pip --no-cache-dir install awsebcli awscli
+    - mkdir ~/.aws/
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
+    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.ENT05 local_settings.py
+    - aws s3 cp s3://dataservices.esimport.production/odbcinst.ini.prod odbcinst.ini
+    - aws s3 cp s3://dataservices.esimport.production/odbc.ini.prod odbc.ini
+    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.ENT05 freetds.conf
+    - eb deploy $EB_PROD_ENV_NAME --verbose
   only:
     - master
   when: manual
