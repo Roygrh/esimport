@@ -15,3 +15,20 @@ CREATE TABLE [dbo].[Org_Value](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(1, 'Guest', 'Guest')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(2, 'Guest', 'Guest')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(3, 'Public', 'Public')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(4, 'Public', 'Public')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(5, 'Guest', 'Guest')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(6, 'Guest', 'Guest')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(7, 'Meeting', 'Meeting')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(8, 'Meeting', 'Meeting')
+GO
