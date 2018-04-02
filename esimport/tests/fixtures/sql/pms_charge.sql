@@ -15,3 +15,20 @@ GO
 
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('trava', '4051')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('trava', '4051')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('trava', '4051')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('trava', '4051')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('Hansen', '1635')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('Hansen', '1635')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('andrews', '320')
+INSERT INTO [dbo].[PMS_Charge](Last_Name, Room_Number)
+	VALUES('andrews', '320')
+GO
