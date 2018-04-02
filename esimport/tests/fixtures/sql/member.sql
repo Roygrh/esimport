@@ -1,0 +1,18 @@
+DROP TABLE [dbo].[Member]
+GO
+
+CREATE TABLE [dbo].[Member](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Number] [varchar](64) NOT NULL,
+	[Display_Name] [varchar](256) NOT NULL,
+	[Member_Status_ID] [int] NOT NULL,
+	[Organization_ID] [int] NULL,
+ CONSTRAINT [PK_Member] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+-- PUT DATA INSERT SCRIPTS BELOW
