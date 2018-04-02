@@ -8,6 +8,7 @@
 import six
 import time
 import threading
+import random
 
 from unittest import TestCase
 from datetime import datetime
@@ -33,6 +34,9 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def setUp(self):
         self.rows = tests._mocked_sql('multiple_orders.csv')
+
+        for row in self.rows:
+            row['Date_Modified_UTC'] = str(datetime.now())
 
         self.am = AccountMapping()
         self.start = 0
@@ -66,6 +70,8 @@ class TestAccountMappingElasticSearch(TestCase):
 
         # Note: start and end inputs are ignored because test data is hard coded
         accounts = self.am.model.get_accounts(self.start, self.end)
+        for a in accounts:
+            print(a)
         actions = [account.es() for account in accounts]
         self.am.bulk_add_or_update(es, actions, self.am.esRetry, self.am.esTimeout)
 
@@ -343,6 +349,22 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
+
+    def test_date_modified_update(self):
+        # t = threading.Thread(target=)
+
+        _rows = self.rows.copy()
+        for row in _rows:
+            print(row['Date_Modified_UTC'])
+        index = random.randint(0,8)
+        _rows[index]['Date_Modified_UTC'] = str(datetime.now())
+
+        
+        print("Index: {}".format(index))
+        # print(_rows[index]['Date_Modified_UTC'])
+        print(_rows[index])
+        
+        self.assertTrue(True)
 
     def tearDown(self):
         es = self.es

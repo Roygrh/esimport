@@ -13,3 +13,20 @@ CREATE TABLE [dbo].[Organization](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('FF-471-20')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('DN-150-86')
+INSERT INTO [dbo].[Organization](Number)
+	VALUES('DN-150-86')
+GO

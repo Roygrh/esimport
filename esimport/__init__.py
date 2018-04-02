@@ -31,6 +31,12 @@ def setup_logging():
     logger.addHandler(ch)
 
 
+def check_for_change(data):
+    while True:
+        break
+        
+
+
 @click.group()
 def cli():
     setup_logging()
