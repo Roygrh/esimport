@@ -14,3 +14,20 @@ CREATE TABLE [dbo].[Network_Access_Limits](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(4096, 4096)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(12288, 12288)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(4096, 4096)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(12288, 12288)		
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(4096, 4096)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(12288, 12288)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(2304, 2304)
+INSERT INTO [dbo].[Network_Access_Limits](Up_kbs, Down_kbs)
+	VALUES(6096, 6096)
+GO
