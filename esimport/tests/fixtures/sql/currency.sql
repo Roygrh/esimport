@@ -13,3 +13,6 @@ CREATE TABLE [dbo].[Currency](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT [dbo].[Currency](Code)
+	VALUES ('USD')
+GO
