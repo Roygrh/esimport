@@ -14,3 +14,16 @@ CREATE TABLE [dbo].[Zone_Plan_Account_Promotional_Code](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(1, 1)
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(2, 1)
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(3, 2)
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(4, 2)
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(7, 3)
+INSERT INTO [dbo].[Zone_Plan_Account_Promotional_Code](Zone_Plan_Account_ID, Promotional_Code_ID)
+	VALUES(8, 3)
+GO
