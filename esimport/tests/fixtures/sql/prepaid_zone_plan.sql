@@ -17,3 +17,20 @@ CREATE TABLE [dbo].[Prepaid_Zone_Plan](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Lifespan_Time, Lifespan_Time_Unit_ID)
+	VALUES(1, 1, 1)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Lifespan_Time, Lifespan_Time_Unit_ID)
+	VALUES(2, 1, 1)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Consumable_Time, Consumable_Time_Unit_ID)
+	VALUES(1, 31, 2)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Consumable_Time, Consumable_Time_Unit_ID)
+	VALUES(2, 31, 2)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Lifespan_Time, Lifespan_Time_Unit_ID)
+	VALUES(1, 1, 4)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Lifespan_Time, Lifespan_Time_Unit_ID)
+	VALUES(2, 1, 4)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Consumable_Time, Consumable_Time_Unit_ID)
+	VALUES(1, 2, 3)
+INSERT INTO [dbo].[Prepaid_Zone_Plan](Zone_Plan_ID, Consumable_Time, Consumable_Time_Unit_ID)
+	VALUES(2, 2, 3)
+GO
