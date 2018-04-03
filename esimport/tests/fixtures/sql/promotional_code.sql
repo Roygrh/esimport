@@ -13,3 +13,16 @@ CREATE TABLE [dbo].[Promotional_Code](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('DC03')
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('DC03')
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('HALFOFF')
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('HALFOFF')
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('INTEL')
+INSERT INTO [dbo].[Promotional_Code](Code)
+	VALUES('INTEL')
+GO
