@@ -14,3 +14,12 @@ GO
 
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Time_Unit](Name)
+	VALUES('Days')
+INSERT INTO [dbo].[Time_Unit](Name)
+	VALUES('Minutes')
+INSERT INTO [dbo].[Time_Unit](Name)
+	VALUES('Hours')
+INSERT INTO [dbo].[Time_Unit](Name)
+	VALUES('Weeks')
+GO
