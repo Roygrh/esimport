@@ -16,13 +16,7 @@ GO
 INSERT INTO [dbo].[Promotional_Code](Code)
 	VALUES('DC03')
 INSERT INTO [dbo].[Promotional_Code](Code)
-	VALUES('DC03')
-INSERT INTO [dbo].[Promotional_Code](Code)
 	VALUES('HALFOFF')
-INSERT INTO [dbo].[Promotional_Code](Code)
-	VALUES('HALFOFF')
-INSERT INTO [dbo].[Promotional_Code](Code)
-	VALUES('INTEL')
 INSERT INTO [dbo].[Promotional_Code](Code)
 	VALUES('INTEL')
 GO
