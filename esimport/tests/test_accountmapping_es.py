@@ -9,6 +9,9 @@ import six
 import time
 import threading
 import random
+import pyodbc
+import os
+import subprocess
 
 from unittest import TestCase
 from datetime import datetime
@@ -33,24 +36,42 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def setUp(self):
+        # sqlcmd -S localhost -i esimport/tests/fixtures/sql/zone_plan_account.sql -U SA -P <password> -d Eleven_OS
+
+        test_dir = os.getcwd()
+        host=settings.DATABASES['default']['HOST']
+        uid=settings.DATABASES['default']['USER']
+        pwd=settings.DATABASES['default']['PASSWORD']
+        db=settings.DATABASES['default']['NAME']
+        for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
+            script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+            subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
         self.rows = tests._mocked_sql('multiple_orders.csv')
 
-        for row in self.rows:
-            row['Date_Modified_UTC'] = str(datetime.now())
+        # for row in self.rows:
+        #     row['Date_Modified_UTC'] = str(datetime.now())
 
         self.am = AccountMapping()
         self.start = 0
         self.end = self.start + min(len(self.rows), self.am.step_size)
 
-        conn = Mock()
+        conn = pyodbc.connect("DSN={dsn};UID={uid};PWD={pwd}".format(dsn=settings.DATABASES['default']['DSN'],
+                                                                     uid=settings.DATABASES['default']['USER'],
+                                                                     pwd=settings.DATABASES['default']['PASSWORD']))
         self.am.model = Account(conn)
-        self.am.model.conn.cursor = Mock()
-        self.am.model.conn.cursor.execute = MagicMock(return_value=self.rows)
+
+
+        # conn = Mock()
+        # self.am.model = Account(conn)
+        # self.am.model.conn.cursor = Mock()
+        # self.am.model.conn.cursor.execute = MagicMock(return_value=self.rows)
 
         self.properties = tests._mocked_sql('esimport_properties.csv')
 
         self.pm = PropertyMapping()
-        self.pm.get_properties_by_service_area = MagicMock(return_value=self.properties)
+        # self.pm.get_properties_by_service_area = MagicMock(return_value=self.properties)
         self.am.pm = self.pm
 
         # needs ES_HOME set to where elastic search is downloaded

@@ -14,8 +14,8 @@ CREATE TABLE [dbo].[Zone_Plan](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
-INSERT INTO [dbo].[Zone_Plan](Name, Plan_Number)
-	VALUES('basic day', 'basic_day_01')
-INSERT INTO [dbo].[Zone_Plan](Name, Plan_Number)
-	VALUES('premium day', 'prem_day_01')
+INSERT INTO [dbo].[Zone_Plan](Plan_Number, Name)
+	VALUES('basic_day_01', 'basic day')
+INSERT INTO [dbo].[Zone_Plan](Plan_Number, Name)
+	VALUES('prem_day_01', 'premium day')
 GO
