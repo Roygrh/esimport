@@ -23,6 +23,7 @@ from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.property import PropertyMapping
+from esimport.connectors.mssql import MsSQLConnector
 from esimport import tests
 from esimport import settings
 
@@ -57,10 +58,11 @@ class TestAccountMappingElasticSearch(TestCase):
         self.start = 0
         self.end = self.start + min(len(self.rows), self.am.step_size)
 
-        conn = pyodbc.connect("DSN={dsn};UID={uid};PWD={pwd}".format(dsn=settings.DATABASES['default']['DSN'],
-                                                                     uid=settings.DATABASES['default']['USER'],
-                                                                     pwd=settings.DATABASES['default']['PASSWORD']))
-        self.am.model = Account(conn)
+        # conn = pyodbc.connect("DSN={dsn};UID={uid};PWD={pwd}".format(dsn=settings.DATABASES['default']['DSN'],
+        #                                                              uid=settings.DATABASES['default']['USER'],
+        #                                                              pwd=settings.DATABASES['default']['PASSWORD']))
+        conn = MsSQLConnector()
+        self.am.model = Account(conn.conn)
 
 
         # conn = Mock()
