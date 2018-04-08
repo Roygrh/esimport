@@ -13,3 +13,6 @@ CREATE TABLE [dbo].[Member_Status](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Member_Status](Name)
+	VALUES('Active')
+GO
