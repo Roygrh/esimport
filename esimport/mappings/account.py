@@ -14,6 +14,7 @@ from operator import itemgetter
 
 from elasticsearch import exceptions
 from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.models.base import BaseModel
@@ -83,26 +84,26 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         # am = AccountMapping()
         es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-        print(initial_time)
         q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
         while True:
             updated = base.execute(q.format(initial_time)).fetchall()
             if len(updated) > 0:
+                print(updated)
                 # print(updated)
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
-                print(initial_time)
+                # print(initial_time)
                 zpa_ids = [str(id[0]) for id in updated]
                 # print(zpa_ids)
                 accounts = Account(conn).get_accounts_by_id(zpa_ids)
                 # for account in accounts:
                 #     print(account.es())
                 actions = [account.es() for account in accounts]
-                print(actions)
-                t = threading.Thread(target=self.bulk_add_or_update, args=(es, actions), daemon=True)
+                # print(actions)
+                t = threading.Thread(target=helpers.bulk, args=(es, actions), daemon=True)
                 t.start()
                 # self.am.bulk_add_or_update(es, actions)
 
-            time.sleep(1)
+            # time.sleep(1)
 
 
     """
