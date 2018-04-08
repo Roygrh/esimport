@@ -8,6 +8,10 @@
 import sys
 import click
 import logging
+import time
+from datetime import datetime
+from operator import itemgetter
+from elasticsearch import Elasticsearch
 
 from esimport import settings
 from esimport.mappings.account import AccountMapping
@@ -16,6 +20,9 @@ from esimport.mappings.property import PropertyMapping
 from esimport.mappings.init_index import new_index
 from esimport.mappings.device import DeviceMapping
 from esimport.mappings.conference import ConferenceMapping
+from esimport.models.account import Account
+from esimport.models.base import BaseModel
+from esimport.connectors.mssql import MsSQLConnector
 
 
 
@@ -31,15 +38,37 @@ def setup_logging():
     logger.addHandler(ch)
 
 
-def check_for_change(data):
-    while True:
-        break
-        
-
-
 @click.group()
 def cli():
     setup_logging()
+
+
+@cli.command()
+def check_for_change():
+    # # datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+    conn = MsSQLConnector()
+    base = BaseModel(conn)
+    am = AccountMapping()
+    es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+    initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+    print(initial_time)
+    q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
+    while True:
+        updated = base.execute(q.format(initial_time)).fetchall()
+        if len(updated) > 0:
+            # print(updated)
+            initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
+            print(initial_time)
+            zpa_ids = [str(id[0]) for id in updated]
+            # print(zpa_ids)
+            accounts = Account(conn).get_accounts_by_id(zpa_ids)
+            # for account in accounts:
+            #     print(account.es())
+            actions = [account.es() for account in accounts]
+            print(actions)
+            am.bulk_add_or_update(es, actions)
+
+        time.sleep(1)
 
 
 @cli.command()
