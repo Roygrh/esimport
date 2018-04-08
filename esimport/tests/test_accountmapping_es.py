@@ -15,6 +15,7 @@ import subprocess
 
 from unittest import TestCase
 from datetime import datetime
+from operator import itemgetter
 
 from elasticsearch import Elasticsearch
 from mock import Mock, MagicMock
@@ -62,7 +63,7 @@ class TestAccountMappingElasticSearch(TestCase):
         #                                                              uid=settings.DATABASES['default']['USER'],
         #                                                              pwd=settings.DATABASES['default']['PASSWORD']))
         conn = MsSQLConnector()
-        self.am.model = Account(conn.conn)
+        self.am.model = Account(conn)
 
 
         # conn = Mock()
@@ -267,8 +268,8 @@ class TestAccountMappingElasticSearch(TestCase):
         # load a fixture with data from 2012 - 2016
         data = tests._mocked_sql('esimport_accounts_2012_2016.csv')
 
-        _rows = self.am.model.conn.cursor.execute
-        self.am.model.conn.cursor.execute = MagicMock(return_value=data)
+        _rows = self.am.model.get_accounts(self.start, self.end)
+        # self.am.model.conn.cursor.execute = MagicMock(return_value=data)
 
         start = 0
         limit = len(data)
@@ -281,8 +282,8 @@ class TestAccountMappingElasticSearch(TestCase):
         filtered_data = map(lambda x: x if datetime.strptime(x.get('Created'), dt_format) >= start_date
                                         else None, data)
         filtered_data = list(filter(lambda x: x, filtered_data))
-        _get_accounts = self.am.model.get_accounts
-        self.am.model.get_accounts = MagicMock(return_value=filtered_data)
+        _get_accounts = self.am.model.get_accounts(start, limit, start_date=start_date)
+        # self.am.model.get_accounts = MagicMock(return_value=filtered_data)
         self.am.backload('2015-01-01')
 
         # wait
@@ -374,20 +375,84 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def test_date_modified_update(self):
-        # t = threading.Thread(target=)
+        # backload db to elasticsearch
+        self.am.backload(start_date='1900-01-01')
+        am = AccountMapping()
+        check_time_change = lambda _am: am.check_for_time_change()
+        t = threading.Thread(target=check_time_change, args=(am,))
+        t.start()
+        self.assertTrue(t.is_alive())
+        
+        # check if zpa with id 1 exist
+        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
+        self.assertEqual(zpa_1[0], 1)
 
-        _rows = self.rows.copy()
-        for row in _rows:
-            print(row['Date_Modified_UTC'])
-        index = random.randint(0,8)
-        _rows[index]['Date_Modified_UTC'] = str(datetime.now())
+        # check elasticsearch if record exist
+        query = {'query': {'term': {'ID': '1'}}}
+        zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        self.assertTrue(len(zpa_1_es) > 0)
+        self.assertEqual(zpa_1_es[0]['_source']['ID'], 1)
+        self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
+        
+
+        # change a record in db
+        current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        self.am.model.execute("""UPDATE Zone_Plan_Account 
+                                        SET Purchase_Price=13.0,Date_Modified_UTC='{}' 
+                                        WHERE ID=1""".format(current_time))
+        
+        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
+        self.assertEqual(zpa_1[1], 13.0)
+        time.sleep(1)
+        zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        print(zpa_1_es)
+        self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
+
+        # update multiple records
+        q = """UPDATE Zone_Plan_Account
+            SET Purchase_Price = CASE ID
+                                    WHEN 1 THEN 20.0
+                                    WHEN 2 THEN 30.0
+                                    WHEN 3 THEN 40.0
+                                END,
+                Date_Modified_UTC = CASE ID
+                                    WHEN 1 THEN '{0}'
+                                    WHEN 2 THEN '{0}'
+                                    WHEN 3 THEN '{0}'
+                                END
+            WHERE ID IN (1,2,3)"""
+        self.am.model.execute(q.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]))
+
+        query = {'query': {
+                    'terms': {'ID': ['1','2','3']}
+                }
+        }
+        zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
+        zpa_123 = zpa_123.sort(key=itemgetter(0))
+        # print(zpa_123)
+        for zpa in zpa_123_es:
+            print(zpa)
+            if zpa['_source']['ID'] == 1:
+                self.assertEqual(zpa['_source']['Price'], zpa_123[0][1])
+            elif zpa['_source']['ID'] == 2:
+                self.assertEqual(zpa['_source']['Price'], zpa_123[1][1])
+            elif zpa['_source']['ID'] == 3:
+                self.assertEqual(zpa['_source']['Price'], zpa_123[2][1])
+
+
+        # _rows = self.rows.copy()
+        # for row in _rows:
+        #     print(row['Date_Modified_UTC'])
+        # index = random.randint(0,8)
+        # _rows[index]['Date_Modified_UTC'] = str(datetime.now())
 
         
-        print("Index: {}".format(index))
-        # print(_rows[index]['Date_Modified_UTC'])
-        print(_rows[index])
+        # print("Index: {}".format(index))
+        # # print(_rows[index]['Date_Modified_UTC'])
+        # print(_rows[index])
         
-        self.assertTrue(True)
+        # self.assertTrue(True)
 
     def tearDown(self):
         es = self.es
