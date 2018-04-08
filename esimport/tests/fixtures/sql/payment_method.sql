@@ -13,3 +13,6 @@ CREATE TABLE [dbo].[Payment_Method](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+INSERT INTO [dbo].[Payment_Method](Code)
+	VALUES('Card')
+GO
