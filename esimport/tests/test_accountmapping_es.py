@@ -379,7 +379,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.backload(start_date='1900-01-01')
         am = AccountMapping()
         check_time_change = lambda _am: am.check_for_time_change()
-        t = threading.Thread(target=check_time_change, args=(am,))
+        t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
         self.assertTrue(t.is_alive())
         
@@ -403,7 +403,6 @@ class TestAccountMappingElasticSearch(TestCase):
         
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         self.assertEqual(zpa_1[1], 13.0)
-        time.sleep(1)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         print(zpa_1_es)
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
