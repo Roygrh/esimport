@@ -45,30 +45,8 @@ def cli():
 
 @cli.command()
 def check_for_change():
-    # # datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-    conn = MsSQLConnector()
-    base = BaseModel(conn)
     am = AccountMapping()
-    es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-    initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-    print(initial_time)
-    q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
-    while True:
-        updated = base.execute(q.format(initial_time)).fetchall()
-        if len(updated) > 0:
-            # print(updated)
-            initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
-            print(initial_time)
-            zpa_ids = [str(id[0]) for id in updated]
-            # print(zpa_ids)
-            accounts = Account(conn).get_accounts_by_id(zpa_ids)
-            # for account in accounts:
-            #     print(account.es())
-            actions = [account.es() for account in accounts]
-            print(actions)
-            am.bulk_add_or_update(es, actions)
-
-        time.sleep(1)
+    am.check_for_time_change()
 
 
 @cli.command()
