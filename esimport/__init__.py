@@ -46,6 +46,7 @@ def cli():
 @cli.command()
 def check_for_change():
     am = AccountMapping()
+    am.setup()
     am.check_for_time_change()
 
 
