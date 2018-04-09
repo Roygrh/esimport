@@ -78,34 +78,20 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
 
     def check_for_time_change(self):
-        # datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-        conn = MsSQLConnector()
-        base = BaseModel(conn)
-        # am = AccountMapping()
-        es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-        q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
         while True:
-            updated = base.execute(q.format(initial_time)).fetchall()
+            updated = self.model.execute(self.am.get_updated_records_query(initial_time)).fetchall()
             if len(updated) > 0:
-                print(updated)
-                # print(updated)
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
-                # print(initial_time)
                 zpa_ids = [str(id[0]) for id in updated]
-                # print(zpa_ids)
-                accounts = Account(conn).get_accounts_by_id(zpa_ids)
-                # for account in accounts:
-                #     print(account.es())
+                accounts = self.model.get_accounts_by_id(zpa_ids)
                 actions = [account.es() for account in accounts]
-                # print(actions)
-                t = threading.Thread(target=helpers.bulk, args=(es, actions), daemon=True)
-                t.start()
-                # self.am.bulk_add_or_update(es, actions)
+                print(actions)
+                # t = threading.Thread(target=self.bulk_add_or_update, args=(self.es, actions), daemon=True)
+                # t.start()
+                self.bulk_add_or_update(self.es, actions)
 
-            # time.sleep(1)
-
-
+    
     """
     Get existing accounts from ElasticSearch
     """
