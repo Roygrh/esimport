@@ -89,6 +89,9 @@ class Account(BaseModel):
         else:
             return self.PayMethod
 
+    def get_updated_records(self, modified_date):
+        q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
+        return q.format(modified_date)
 
     @staticmethod
     def eleven_query(start_date, start_zpa_id, limit):
