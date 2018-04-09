@@ -89,7 +89,7 @@ class Account(BaseModel):
         else:
             return self.PayMethod
 
-    def get_updated_records(self, modified_date):
+    def get_updated_records_query(self, modified_date):
         q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
         return q.format(modified_date)
 
