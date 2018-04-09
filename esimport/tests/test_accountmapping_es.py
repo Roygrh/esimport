@@ -12,6 +12,7 @@ import random
 import pyodbc
 import os
 import subprocess
+from multiprocessing import Process
 
 from unittest import TestCase
 from datetime import datetime
@@ -22,6 +23,7 @@ from mock import Mock, MagicMock
 
 from esimport.models import ESRecord
 from esimport.models.account import Account
+from esimport.models.base import BaseModel
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.property import PropertyMapping
 from esimport.connectors.mssql import MsSQLConnector
@@ -39,16 +41,11 @@ class TestAccountMappingElasticSearch(TestCase):
 
     def setUp(self):
         # sqlcmd -S localhost -i esimport/tests/fixtures/sql/zone_plan_account.sql -U SA -P <password> -d Eleven_OS
-
         test_dir = os.getcwd()
-        host=settings.DATABASES['default']['HOST']
-        uid=settings.DATABASES['default']['USER']
-        pwd=settings.DATABASES['default']['PASSWORD']
-        db=settings.DATABASES['default']['NAME']
-        for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
-            script = test_dir + "/esimport/tests/fixtures/sql/"+sql
-            subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        host = settings.DATABASES['default']['HOST']
+        uid = settings.DATABASES['default']['USER']
+        pwd = settings.DATABASES['default']['PASSWORD']
+        db = settings.DATABASES['default']['NAME']
 
         self.rows = tests._mocked_sql('multiple_orders.csv')
 
@@ -56,14 +53,21 @@ class TestAccountMappingElasticSearch(TestCase):
         #     row['Date_Modified_UTC'] = str(datetime.now())
 
         self.am = AccountMapping()
+        self.am.setup()
         self.start = 0
-        self.end = self.start + min(len(self.rows), self.am.step_size)
+        for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
+            script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+            # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
+            #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            with open(script, 'r') as inp:
+                sqlQuery = ''
+                for line in inp:
+                    if 'GO' not in line:
+                        sqlQuery = sqlQuery + line
+                self.am.model.execute(sqlQuery).commit()
+            inp.close()
 
-        # conn = pyodbc.connect("DSN={dsn};UID={uid};PWD={pwd}".format(dsn=settings.DATABASES['default']['DSN'],
-        #                                                              uid=settings.DATABASES['default']['USER'],
-        #                                                              pwd=settings.DATABASES['default']['PASSWORD']))
-        conn = MsSQLConnector()
-        self.am.model = Account(conn)
+        self.end = self.start + min(len(self.rows), self.am.step_size)
 
 
         # conn = Mock()
@@ -71,16 +75,16 @@ class TestAccountMappingElasticSearch(TestCase):
         # self.am.model.conn.cursor = Mock()
         # self.am.model.conn.cursor.execute = MagicMock(return_value=self.rows)
 
-        self.properties = tests._mocked_sql('esimport_properties.csv')
+        # self.properties = tests._mocked_sql('esimport_properties.csv')
 
-        self.pm = PropertyMapping()
+        # self.pm = PropertyMapping()
         # self.pm.get_properties_by_service_area = MagicMock(return_value=self.properties)
-        self.am.pm = self.pm
+        # self.am.pm = self.pm
 
         # needs ES_HOME set to where elastic search is downloaded
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-        self.am.es = self.es
-        self.am.pm.es = self.es
+        # self.am.es = self.es
+        # self.am.pm.es = self.es
 
 
     # also an integration test
@@ -109,7 +113,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertFalse(es.indices.exists(index=_index))
 
 
-    def test_upsert(self):
+    def test_upsert(self): 
         _index = settings.ES_INDEX
         _type = Account.get_type()
 
@@ -378,11 +382,11 @@ class TestAccountMappingElasticSearch(TestCase):
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
         am = AccountMapping()
-        check_time_change = lambda _am: am.check_for_time_change()
+        am.setup()
+        check_time_change = lambda _am: _am.check_for_time_change()
         t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
-        self.assertTrue(t.is_alive())
-        
+
         # check if zpa with id 1 exist
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         self.assertEqual(zpa_1[0], 1)
@@ -397,14 +401,16 @@ class TestAccountMappingElasticSearch(TestCase):
 
         # change a record in db
         current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
-        self.am.model.execute("""UPDATE Zone_Plan_Account 
-                                        SET Purchase_Price=13.0,Date_Modified_UTC='{}' 
-                                        WHERE ID=1""".format(current_time))
+        q = """UPDATE Zone_Plan_Account 
+            SET Purchase_Price=13.0,Date_Modified_UTC='{}' 
+            WHERE ID=1"""
+
+        self.am.model.execute(q.format(current_time)).commit()
         
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         self.assertEqual(zpa_1[1], 13.0)
+        time.sleep(1)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
-        print(zpa_1_es)
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
 
         # update multiple records
@@ -420,18 +426,17 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN '{0}'
                                 END
             WHERE ID IN (1,2,3)"""
-        self.am.model.execute(q.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]))
+        self.am.model.execute(q.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3])).commit()
 
         query = {'query': {
                     'terms': {'ID': ['1','2','3']}
                 }
         }
+        time.sleep(1)
         zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
-        zpa_123 = zpa_123.sort(key=itemgetter(0))
-        # print(zpa_123)
+        zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
-            print(zpa)
             if zpa['_source']['ID'] == 1:
                 self.assertEqual(zpa['_source']['Price'], zpa_123[0][1])
             elif zpa['_source']['ID'] == 2:
@@ -440,20 +445,25 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertEqual(zpa['_source']['Price'], zpa_123[2][1])
 
 
-        # _rows = self.rows.copy()
-        # for row in _rows:
-        #     print(row['Date_Modified_UTC'])
-        # index = random.randint(0,8)
-        # _rows[index]['Date_Modified_UTC'] = str(datetime.now())
-
-        
-        # print("Index: {}".format(index))
-        # # print(_rows[index]['Date_Modified_UTC'])
-        # print(_rows[index])
-        
-        # self.assertTrue(True)
-
     def tearDown(self):
-        es = self.es
+        self.am.model.execute("""DROP TABLE [dbo].[Code]
+DROP TABLE [dbo].[Credit_Card_Type]
+DROP TABLE [dbo].[Credit_Card]
+DROP TABLE [dbo].[Currency]
+DROP TABLE [dbo].[Member_Marketing_Opt_In]
+DROP TABLE [dbo].[Member_Status]
+DROP TABLE [dbo].[Member]
+DROP TABLE [dbo].[Network_Access_Limits]
+DROP TABLE [dbo].[Org_Value]
+DROP TABLE [dbo].[Organization]
+DROP TABLE [dbo].[Payment_Method]
+DROP TABLE [dbo].[PMS_Charge]
+DROP TABLE [dbo].[Prepaid_Zone_Plan]
+DROP TABLE [dbo].[Promotional_Code]
+DROP TABLE [dbo].[Time_Unit]
+DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
+DROP TABLE [dbo].[Zone_Plan_Account]
+DROP TABLE [dbo].[Zone_Plan]""").commit()
+        es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
