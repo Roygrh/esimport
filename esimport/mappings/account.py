@@ -8,9 +8,16 @@
 
 import time
 import logging
+import threading
+from datetime import datetime
+from operator import itemgetter
 
 from elasticsearch import exceptions
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
+from esimport.connectors.mssql import MsSQLConnector
+from esimport.models.base import BaseModel
 from esimport import settings
 from esimport.utils import retry
 from esimport.utils import convert_utc_to_local_time
@@ -69,6 +76,21 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         while True:
             self.add_accounts(start_date)
 
+
+    def check_for_time_change(self):
+        initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        while True:
+            updated = self.model.execute(self.model.get_updated_records_query(initial_time)).fetchall()
+            if len(updated) > 0:
+                initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
+                zpa_ids = [str(id[0]) for id in updated]
+                accounts = self.model.get_accounts_by_id(zpa_ids)
+                actions = [account.es() for account in accounts]
+                # t = threading.Thread(target=self.bulk_add_or_update, args=(self.es, actions), daemon=True)
+                # t.start()
+                self.bulk_add_or_update(self.es, actions)
+
+    
     """
     Get existing accounts from ElasticSearch
     """

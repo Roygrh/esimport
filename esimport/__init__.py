@@ -8,6 +8,10 @@
 import sys
 import click
 import logging
+import time
+from datetime import datetime
+from operator import itemgetter
+from elasticsearch import Elasticsearch
 
 from esimport import settings
 from esimport.mappings.account import AccountMapping
@@ -16,6 +20,9 @@ from esimport.mappings.property import PropertyMapping
 from esimport.mappings.init_index import new_index
 from esimport.mappings.device import DeviceMapping
 from esimport.mappings.conference import ConferenceMapping
+from esimport.models.account import Account
+from esimport.models.base import BaseModel
+from esimport.connectors.mssql import MsSQLConnector
 
 
 
@@ -34,6 +41,13 @@ def setup_logging():
 @click.group()
 def cli():
     setup_logging()
+
+
+@cli.command()
+def check_for_change():
+    am = AccountMapping()
+    am.setup()
+    am.check_for_time_change()
 
 
 @cli.command()

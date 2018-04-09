@@ -48,6 +48,24 @@ class Account(BaseModel):
             yield ESRecord(row, self.get_type())
 
 
+    def get_accounts_by_id(self, id):
+        q = self.query_records_by_zpa_id(id)
+        columns = ['ID', 'Name', 'Created', 'Activated',
+                    'ServiceArea', 'Price', 'PurchaseMacAddress', 'ServicePlan',
+                    'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
+                    'LastName', 'RoomNumber', 'PayMethod', 'ZoneType',
+                    'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
+        dt_columns = ['Created', 'Activated']
+        for row in self.fetch_dict(q):
+            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            row['Duration'] = self.find_duration(row)
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
+            yield ESRecord(row, self.get_type())
+
+
     def get_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
@@ -71,6 +89,9 @@ class Account(BaseModel):
         else:
             return self.PayMethod
 
+    def get_updated_records_query(self, modified_date):
+        q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > '{0}'"""
+        return q.format(modified_date)
 
     @staticmethod
     def eleven_query(start_date, start_zpa_id, limit):
