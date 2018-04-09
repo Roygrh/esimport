@@ -80,13 +80,12 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def check_for_time_change(self):
         initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
         while True:
-            updated = self.model.execute(self.am.get_updated_records_query(initial_time)).fetchall()
+            updated = self.model.execute(self.model.get_updated_records_query(initial_time)).fetchall()
             if len(updated) > 0:
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
                 zpa_ids = [str(id[0]) for id in updated]
                 accounts = self.model.get_accounts_by_id(zpa_ids)
                 actions = [account.es() for account in accounts]
-                print(actions)
                 # t = threading.Thread(target=self.bulk_add_or_update, args=(self.es, actions), daemon=True)
                 # t.start()
                 self.bulk_add_or_update(self.es, actions)
