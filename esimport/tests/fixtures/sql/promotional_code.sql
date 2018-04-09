@@ -1,5 +1,15 @@
+-- DROP TABLE [dbo].[Promotional_Code]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Promotional_Code'))
+BEGIN
 DROP TABLE [dbo].[Promotional_Code]
+END
 GO
+
 
 CREATE TABLE [dbo].[Promotional_Code](
 	[ID] [int] IDENTITY(1,1) NOT NULL,

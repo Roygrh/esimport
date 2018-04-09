@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Network_Access_Limits]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Network_Access_Limits'))
+BEGIN
 DROP TABLE [dbo].[Network_Access_Limits]
+END
 GO
 
 CREATE TABLE [dbo].[Network_Access_Limits](

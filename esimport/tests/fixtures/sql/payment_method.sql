@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Payment_Method]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Payment_Method'))
+BEGIN
 DROP TABLE [dbo].[Payment_Method]
+END
 GO
 
 CREATE TABLE [dbo].[Payment_Method](

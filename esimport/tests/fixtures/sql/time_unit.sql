@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Time_Unit]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Time_Unit'))
+BEGIN
 DROP TABLE [dbo].[Time_Unit]
+END
 GO
 
 CREATE TABLE [dbo].[Time_Unit](

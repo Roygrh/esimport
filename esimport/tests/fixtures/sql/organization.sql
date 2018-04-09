@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Organization]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Organization'))
+BEGIN
 DROP TABLE [dbo].[Organization]
+END
 GO
 
 CREATE TABLE [dbo].[Organization](

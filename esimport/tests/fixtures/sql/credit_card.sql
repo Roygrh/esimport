@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Credit_Card]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Credit_Card'))
+BEGIN
 DROP TABLE [dbo].[Credit_Card]
+END
 GO
 
 CREATE TABLE [dbo].[Credit_Card](

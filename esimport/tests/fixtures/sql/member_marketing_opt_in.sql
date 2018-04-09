@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Member_Marketing_Opt_In]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Member_Marketing_Opt_In'))
+BEGIN
 DROP TABLE [dbo].[Member_Marketing_Opt_In]
+END
 GO
 
 CREATE TABLE [dbo].[Member_Marketing_Opt_In](

@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[Zone_Plan]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Zone_Plan'))
+BEGIN
 DROP TABLE [dbo].[Zone_Plan]
+END
 GO
 
 CREATE TABLE [dbo].[Zone_Plan](

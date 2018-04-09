@@ -1,4 +1,13 @@
+-- DROP TABLE [dbo].[PMS_Charge]
+-- GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'PMS_Charge'))
+BEGIN
 DROP TABLE [dbo].[PMS_Charge]
+END
 GO
 
 CREATE TABLE [dbo].[PMS_Charge](

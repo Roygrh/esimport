@@ -1,4 +1,14 @@
+-- DROP TABLE [dbo].[Currency]
+-- GO
+
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Currency'))
+BEGIN
 DROP TABLE [dbo].[Currency]
+END
 GO
 
 CREATE TABLE [dbo].[Currency](

@@ -1,4 +1,12 @@
+-- DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
+-- GO
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Zone_Plan_Account_Promotional_Code'))
+BEGIN
 DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
+END
 GO
 
 CREATE TABLE [dbo].[Zone_Plan_Account_Promotional_Code](

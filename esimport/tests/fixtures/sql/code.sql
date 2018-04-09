@@ -1,4 +1,10 @@
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Code'))
+BEGIN
 DROP TABLE [dbo].[Code]
+END
 GO
 
 CREATE TABLE [dbo].[Code](
