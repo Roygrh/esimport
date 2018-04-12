@@ -48,7 +48,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
 
             conference.update(self.amend_data(conference))
             rec = conference.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            logger.debug("Record found: {0}".format(conference.get('ID')))
             self.add(rec, self.step_size)
 
         # for cases when all/remaining items count were less than limit
@@ -76,7 +76,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             count = 0
             for conference in self.model.get_conferences(start, self.step_size, start_date):
                 count += 1
-                logger.debug("Record found: {0}".format(self.pp.pformat(conference.es())))
+                logger.debug("Record found: {0}".format(conference.get('ID')))
 
                 # get some properties from PropertyMapping
                 _action = {}
