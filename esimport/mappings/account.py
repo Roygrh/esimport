@@ -80,7 +80,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def check_for_time_change(self):
         initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
         while True:
-            updated = self.model.execute(self.model.get_updated_records_query(initial_time)).fetchall()
+            check_update = self.model.get_updated_records_query(initial_time)
+            updated = [u for u in check_update]
             if len(updated) > 0:
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
                 zpa_ids = [str(id[0]) for id in updated]
