@@ -402,10 +402,10 @@ class TestAccountMappingElasticSearch(TestCase):
         # change a record in db
         current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
         q = """UPDATE Zone_Plan_Account 
-            SET Purchase_Price=13.0,Date_Modified_UTC='{}' 
+            SET Purchase_Price=13.0,Date_Modified_UTC=? 
             WHERE ID=1"""
 
-        self.am.model.execute(q.format(current_time)).commit()
+        self.am.model.execute(q, current_time).commit()
         
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         self.assertEqual(zpa_1[1], 13.0)
@@ -421,12 +421,14 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN '{0}'
-                                    WHEN 2 THEN '{0}'
-                                    WHEN 3 THEN '{0}'
+                                    WHEN 1 THEN ?
+                                    WHEN 2 THEN ?
+                                    WHEN 3 THEN ?
                                 END
             WHERE ID IN (1,2,3)"""
-        self.am.model.execute(q.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3])).commit()
+        self.am.model.execute(q, datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3], 
+                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3],
+                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]).commit()
 
         query = {'query': {
                     'terms': {'ID': ['1','2','3']}
