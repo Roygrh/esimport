@@ -46,7 +46,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         start = self.max_id() + 1
         logger.debug("Get Accounts from {0} to {1} since {2}"
                      .format(start, start + self.step_size, start_date))
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             count += 1
 
             _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
@@ -179,7 +179,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     """
     def backload(self, start_date):
         start = 0
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             acc = account.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(acc)))
             self.add(dict(acc), self.step_size)
