@@ -76,9 +76,35 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         while True:
             self.add_accounts(start_date)
 
+    
+    """
+    Get last record modified time from elasticsearch
+    """
+    def get_initial_time(self):
+        q = {
+            "query": {
+                "match_all": {}
+            },
+            "sort": [
+                {
+                    "DateModified": {
+                        "order": "desc",
+                        "mode": "max"
+                    }
+                }
+            ],
+            "size": 1
+        }
+        hits = self.es.search(index='esrecord', body=q)['hits']['hits']
+        if hits:
+            initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
+        else:
+            initial_time = "2000-01-01 00:00:00.000"
+        return initial_time
+
 
     def check_for_time_change(self):
-        initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        initial_time = self.get_initial_time()
         while True:
             check_update = self.model.get_updated_records_query(initial_time)
             updated = [u for u in check_update]
