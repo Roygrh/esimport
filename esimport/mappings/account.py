@@ -95,7 +95,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             ],
             "size": 1
         }
-        hits = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        hits = self.es.search(index=settings.ES_INDEX, 
+                              doc_type=Account.get_type(), body=q)['hits']['hits']
         if hits:
             initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
         else:
