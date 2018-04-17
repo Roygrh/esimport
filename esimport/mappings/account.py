@@ -46,7 +46,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         start = self.max_id() + 1
         logger.debug("Get Accounts from {0} to {1} since {2}"
                      .format(start, start + self.step_size, start_date))
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             count += 1
 
             _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
@@ -76,11 +76,39 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         while True:
             self.add_accounts(start_date)
 
+    
+    """
+    Get last record modified time from elasticsearch
+    """
+    def get_initial_time(self):
+        q = {
+            "query": {
+                "match_all": {}
+            },
+            "sort": [
+                {
+                    "DateModified": {
+                        "order": "desc",
+                        "mode": "max"
+                    }
+                }
+            ],
+            "size": 1
+        }
+        hits = self.es.search(index=settings.ES_INDEX, 
+                              doc_type=Account.get_type(), body=q)['hits']['hits']
+        if hits:
+            initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
+        else:
+            initial_time = "2000-01-01 00:00:00.000"
+        return initial_time
+
 
     def check_for_time_change(self):
-        initial_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        initial_time = self.get_initial_time()
         while True:
-            updated = self.model.execute(self.model.get_updated_records_query(initial_time)).fetchall()
+            check_update = self.model.get_updated_records_query(initial_time)
+            updated = [u for u in check_update]
             if len(updated) > 0:
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
                 zpa_ids = [str(id[0]) for id in updated]
@@ -178,7 +206,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     """
     def backload(self, start_date):
         start = 0
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             acc = account.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(acc)))
             self.add(dict(acc), self.step_size)

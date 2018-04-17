@@ -97,7 +97,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertTrue(es.indices.exists(index=_index))
 
         # Note: start and end inputs are ignored because test data is hard coded
-        accounts = self.am.model.get_accounts(self.start, self.end)
+        accounts = self.am.model.get_accounts_by_created_date(self.start, self.end)
         for a in accounts:
             print(a)
         actions = [account.es() for account in accounts]
@@ -272,13 +272,13 @@ class TestAccountMappingElasticSearch(TestCase):
         # load a fixture with data from 2012 - 2016
         data = tests._mocked_sql('esimport_accounts_2012_2016.csv')
 
-        _rows = self.am.model.get_accounts(self.start, self.end)
+        _rows = self.am.model.get_accounts_by_created_date(self.start, self.end)
         # self.am.model.conn.cursor.execute = MagicMock(return_value=data)
 
         start = 0
         limit = len(data)
         # needed because we need ESRecord by Account's model
-        data = self.am.model.get_accounts(start, limit)
+        data = self.am.model.get_accounts_by_created_date(start, limit)
 
         # call backload with start_date=2015-*
         start_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
@@ -286,7 +286,7 @@ class TestAccountMappingElasticSearch(TestCase):
         filtered_data = map(lambda x: x if datetime.strptime(x.get('Created'), dt_format) >= start_date
                                         else None, data)
         filtered_data = list(filter(lambda x: x, filtered_data))
-        _get_accounts = self.am.model.get_accounts(start, limit, start_date=start_date)
+        _get_accounts = self.am.model.get_accounts_by_created_date(start, limit, start_date=start_date)
         # self.am.model.get_accounts = MagicMock(return_value=filtered_data)
         self.am.backload('2015-01-01')
 
@@ -306,7 +306,7 @@ class TestAccountMappingElasticSearch(TestCase):
             # verify that only 2015-2016 data exists
             self.assertGreaterEqual(datetime.strptime(rec.get('Created'), dt_format), start_date)
 
-        self.am.model.get_accounts = _get_accounts
+        self.am.model.get_accounts_by_created_date = _get_accounts
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
@@ -402,10 +402,10 @@ class TestAccountMappingElasticSearch(TestCase):
         # change a record in db
         current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
         q = """UPDATE Zone_Plan_Account 
-            SET Purchase_Price=13.0,Date_Modified_UTC='{}' 
+            SET Purchase_Price=13.0,Date_Modified_UTC=? 
             WHERE ID=1"""
 
-        self.am.model.execute(q.format(current_time)).commit()
+        self.am.model.execute(q, current_time).commit()
         
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         self.assertEqual(zpa_1[1], 13.0)
@@ -421,12 +421,14 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN '{0}'
-                                    WHEN 2 THEN '{0}'
-                                    WHEN 3 THEN '{0}'
+                                    WHEN 1 THEN ?
+                                    WHEN 2 THEN ?
+                                    WHEN 3 THEN ?
                                 END
             WHERE ID IN (1,2,3)"""
-        self.am.model.execute(q.format(datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3])).commit()
+        self.am.model.execute(q, datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3], 
+                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3],
+                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]).commit()
 
         query = {'query': {
                     'terms': {'ID': ['1','2','3']}
