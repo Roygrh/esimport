@@ -112,11 +112,16 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             if len(updated) > 0:
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
                 zpa_ids = [str(id[0]) for id in updated]
-                accounts = self.model.get_accounts_by_id(zpa_ids)
-                actions = [account.es() for account in accounts]
-                # t = threading.Thread(target=self.bulk_add_or_update, args=(self.es, actions), daemon=True)
-                # t.start()
-                self.bulk_add_or_update(self.es, actions)
+                start = 0
+                total_zpa_ids = len(zpa_ids)
+                while start < total_zpa_ids:
+                    if (total_zpa_ids-start) < settings.ES_BULK_LIMIT:
+                        accounts = self.model.get_accounts_by_id(zpa_ids[start:total_zpa_ids])
+                    else:
+                        accounts = self.model.get_accounts_by_id(zpa_ids[start:start+settings.ES_BULK_LIMIT])
+                    actions = [account.es() for account in accounts]
+                    self.bulk_add_or_update(self.es, actions)
+                    start += settings.ES_BULK_LIMIT
 
     
     """
