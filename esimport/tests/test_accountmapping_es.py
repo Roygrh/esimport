@@ -421,14 +421,12 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN ?
-                                    WHEN 2 THEN ?
-                                    WHEN 3 THEN ?
+                                    WHEN 1 THEN GETUTCDATE()
+                                    WHEN 2 THEN GETUTCDATE()
+                                    WHEN 3 THEN GETUTCDATE()
                                 END
             WHERE ID IN (1,2,3)"""
-        self.am.model.execute(q, datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3], 
-                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3],
-                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]).commit()
+        self.am.model.execute(q).commit()
 
         query = {'query': {
                     'terms': {'ID': ['1','2','3']}
