@@ -9,6 +9,8 @@
 import time
 import logging
 import threading
+import traceback
+import sys
 from datetime import datetime
 from operator import itemgetter
 
@@ -24,6 +26,8 @@ from esimport.utils import convert_utc_to_local_time
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+
+from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
@@ -95,13 +99,19 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             ],
             "size": 1
         }
-        hits = self.es.search(index=settings.ES_INDEX, 
-                              doc_type=Account.get_type(), body=q)['hits']['hits']
-        if hits:
-            initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
-        else:
-            initial_time = "2000-01-01 00:00:00.000"
-        return initial_time
+        try:
+            hits = self.es.search(index=settings.ES_INDEX, 
+                                doc_type=Account.get_type(), body=q)['hits']['hits']
+            if hits:
+                initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
+            else:
+                initial_time = "2000-01-01 00:00:00.000"
+            return initial_time
+        except Exception as err:
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
+        return 0
 
 
     def check_for_time_change(self):
