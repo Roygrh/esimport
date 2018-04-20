@@ -89,7 +89,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 {
                     "DateModified": {
                         "order": "desc",
-                        "mode": "max"
+                        "mode": "max",
+                        "unmapped_type": "date"
                     }
                 }
             ],
