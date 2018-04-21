@@ -98,18 +98,25 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         }
         hits = self.es.search(index=settings.ES_INDEX, 
                               doc_type=Account.get_type(), body=q)['hits']['hits']
-        if hits:
+
+        try:
             initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
-        else:
+        except:
             initial_time = "2000-01-01 00:00:00.000"
+
         return initial_time
 
 
     def check_for_time_change(self):
         initial_time = self.get_initial_time()
+
         while True:
+            logger.debug("Checking for accounts updated since {0}".format(initial_time))
+
             check_update = self.model.get_updated_records_query(initial_time)
             updated = [u for u in check_update]
+            logger.debug("Found {0} updated account records".format(len(updated)))
+
             if len(updated) > 0:
                 initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
                 zpa_ids = [str(id[0]) for id in updated]
@@ -121,10 +128,15 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                     else:
                         accounts = self.model.get_accounts_by_id(zpa_ids[start:start+settings.ES_BULK_LIMIT])
                     actions = [account.es() for account in accounts]
+                    logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
+
                     self.bulk_add_or_update(self.es, actions)
                     start += settings.ES_BULK_LIMIT
+            
+            # sleep before checking for new updates
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            time.sleep(self.db_wait)
 
-    
     """
     Get existing accounts from ElasticSearch
     """
