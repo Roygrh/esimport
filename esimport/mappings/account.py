@@ -91,7 +91,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             },
             "sort": [
                 {
-                    "DateModified": {
+                    "DateModifiedUTC": {
                         "order": "desc",
                         "mode": "max"
                     }
@@ -103,7 +103,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             hits = self.es.search(index=settings.ES_INDEX, 
                                 doc_type=Account.get_type(), body=q)['hits']['hits']
             if hits:
-                initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
+                initial_time = hits[0]['_source']['DateModifiedUTC'].replace('T', ' ')[:-3]
             else:
                 initial_time = "2000-01-01 00:00:00.000"
             return initial_time
