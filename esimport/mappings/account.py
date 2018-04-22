@@ -6,10 +6,16 @@
 # Eleven Wireless Inc.
 ################################################################################
 
+
+
+import sys
+import traceback
 import time
 import logging
 import threading
+
 from datetime import datetime
+from dateutil import parser
 from operator import itemgetter
 
 from elasticsearch import exceptions
@@ -25,8 +31,9 @@ from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
-logger = logging.getLogger(__name__)
+from extensions import sentry_client
 
+logger = logging.getLogger(__name__)
 
 class AccountMapping(PropertyAppendedDocumentMapping):
     dates_to_localize = (
@@ -87,7 +94,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             },
             "sort": [
                 {
-                    "DateModified": {
+                    "DateModifiedUTC": {
                         "order": "desc",
                         "mode": "max",
                         "unmapped_type": "date"
@@ -96,13 +103,17 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             ],
             "size": 1
         }
+
         hits = self.es.search(index=settings.ES_INDEX, 
                               doc_type=Account.get_type(), body=q)['hits']['hits']
 
         try:
-            initial_time = hits[0]['_source']['DateModified'].replace('T', ' ')[:-3]
-        except:
-            initial_time = "2000-01-01 00:00:00.000"
+            initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
+        except Exception as err:
+            initial_time = datetime(2000, 1, 1)
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
 
         return initial_time
 
@@ -118,7 +129,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             logger.debug("Found {0} updated account records".format(len(updated)))
 
             if len(updated) > 0:
-                initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
+                initial_time = max(updated, key=itemgetter(1))[1]
                 zpa_ids = [str(id[0]) for id in updated]
                 start = 0
                 total_zpa_ids = len(zpa_ids)
