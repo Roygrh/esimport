@@ -446,24 +446,11 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def tearDown(self):
-        self.am.model.execute("""DROP TABLE [dbo].[Code]
-DROP TABLE [dbo].[Credit_Card_Type]
-DROP TABLE [dbo].[Credit_Card]
-DROP TABLE [dbo].[Currency]
-DROP TABLE [dbo].[Member_Marketing_Opt_In]
-DROP TABLE [dbo].[Member_Status]
-DROP TABLE [dbo].[Member]
-DROP TABLE [dbo].[Network_Access_Limits]
-DROP TABLE [dbo].[Org_Value]
-DROP TABLE [dbo].[Organization]
-DROP TABLE [dbo].[Payment_Method]
-DROP TABLE [dbo].[PMS_Charge]
-DROP TABLE [dbo].[Prepaid_Zone_Plan]
-DROP TABLE [dbo].[Promotional_Code]
-DROP TABLE [dbo].[Time_Unit]
-DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
-DROP TABLE [dbo].[Zone_Plan_Account]
-DROP TABLE [dbo].[Zone_Plan]""").commit()
+        self.am.model.execute("""DECLARE @sql nvarchar(max) = '';
+SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+FROM [INFORMATION_SCHEMA].[TABLES]
+WHERE [TABLE_TYPE] = 'BASE TABLE';
+EXEC SP_EXECUTESQL @sql;""").commit()
         es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
