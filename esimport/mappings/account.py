@@ -92,8 +92,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             "sort": [
                 {
                     "DateModifiedUTC": {
-                        "order": "desc",
-                        "mode": "max"
+                        "order": "desc"
                     }
                 }
             ],
