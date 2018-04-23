@@ -438,11 +438,11 @@ class TestAccountMappingElasticSearch(TestCase):
         zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
             if zpa['_source']['ID'] == 1:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[0][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[0][1]))
             elif zpa['_source']['ID'] == 2:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[1][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[1][1]))
             elif zpa['_source']['ID'] == 3:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[2][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
 
 
     def tearDown(self):
