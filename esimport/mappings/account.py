@@ -105,18 +105,17 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             "size": 1
         }
         try:
-            hits = self.es.search(index=settings.ES_INDEX, 
-                                doc_type=Account.get_type(), body=q)['hits']['hits']
-            if hits:
-                initial_time = hits[0]['_source']['DateModifiedUTC'].replace('T', ' ')[:-3]
-            else:
-                initial_time = "2000-01-01 00:00:00.000"
-            return initial_time
+            # return 1/1/2000 just to re-process older modified account records.
+            initial_time = datetime(2000, 1, 1)
+            #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
+            initial_time = datetime(2000, 1, 1)
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
             sentry_client.captureException()
-        return 0
+
+        return initial_time
+
 
 
     def check_for_time_change(self):
@@ -124,6 +123,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
 
         while True:
+            print(initial_time)
             logger.debug("Checking for accounts updated since {0}".format(initial_time))
             try:
                 check_update = check_update_cursor.fetchmany()
@@ -133,7 +133,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             logger.debug("Found {0} updated account records".format(len(check_update)))
 
             if len(check_update) > 0:
-                initial_time = max(check_update, key=itemgetter(1))[1]
+                print(check_update)
+                initial_time = max(check_update, key=itemgetter(1))[9]
                 actions = []
                 column_names = [column[0] for column in check_update_cursor.description]
                 for row in check_update:
