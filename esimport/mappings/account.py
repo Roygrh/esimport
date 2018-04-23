@@ -108,8 +108,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                               doc_type=Account.get_type(), body=q)['hits']['hits']
 
         try:
-            # return 1/1/2000 just to re-process older modified account records.
-            initial_time = datetime(2000, 1, 1)
+            # return 4/23/2018 to only process recent records for now.
+            initial_time = datetime(2018, 4, 23)
             #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
             initial_time = datetime(2000, 1, 1)
