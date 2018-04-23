@@ -95,6 +95,7 @@ ENV/
 
 config.yml
 odbc.ini
+tempDSN
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

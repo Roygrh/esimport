@@ -18,7 +18,7 @@ es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 logger = logging.getLogger(__name__)
 
 
-class new_index():
+class new_index(object):
     es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def __init__(self):

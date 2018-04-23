@@ -6,12 +6,15 @@
 # Eleven Wireless Inc.
 ################################################################################
 
+
+
+import sys
+import traceback
 import time
 import logging
 import threading
-import traceback
-import sys
 from datetime import datetime
+from dateutil import parser
 from operator import itemgetter
 
 from elasticsearch import exceptions
@@ -30,7 +33,6 @@ from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
-
 
 class AccountMapping(PropertyAppendedDocumentMapping):
     dates_to_localize = (
@@ -94,6 +96,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                     "DateModifiedUTC": {
                         "order": "desc",
                         "missing": "_last"
+                        "mode": "max",
+                        "unmapped_type": "date"
                     }
                 }
             ],
@@ -116,24 +120,27 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
     def check_for_time_change(self):
         initial_time = self.get_initial_time()
-        while True:
-            check_update = self.model.get_updated_records_query(initial_time)
-            updated = [u for u in check_update]
-            if len(updated) > 0:
-                initial_time = datetime.strftime(max(updated, key=itemgetter(1))[1], '%Y-%m-%d %H:%M:%S.%f')[:-3]
-                zpa_ids = [str(id[0]) for id in updated]
-                start = 0
-                total_zpa_ids = len(zpa_ids)
-                while start < total_zpa_ids:
-                    if (total_zpa_ids-start) < settings.ES_BULK_LIMIT:
-                        accounts = self.model.get_accounts_by_id(zpa_ids[start:total_zpa_ids])
-                    else:
-                        accounts = self.model.get_accounts_by_id(zpa_ids[start:start+settings.ES_BULK_LIMIT])
-                    actions = [account.es() for account in accounts]
-                    self.bulk_add_or_update(self.es, actions)
-                    start += settings.ES_BULK_LIMIT
 
-    
+        while True:
+            logger.debug("Checking for accounts updated since {0}".format(initial_time))
+
+            check_update = self.model.get_updated_records_query(self.step_size, initial_time)
+            updated = [u for u in check_update]
+            logger.debug("Found {0} updated account records".format(len(updated)))
+
+            if len(updated) > 0:
+                initial_time = max(updated, key=itemgetter(1))[1]
+                zpa_ids = [str(id[0]) for id in updated]
+                accounts = self.model.get_accounts_by_id(zpa_ids)
+                actions = [account.es() for account in accounts]
+                logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
+                self.bulk_add_or_update(self.es, actions)
+            else:
+                # sleep before checking for new updates
+                self.model.conn.reset()
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
+
     """
     Get existing accounts from ElasticSearch
     """
