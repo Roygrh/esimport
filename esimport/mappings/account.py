@@ -109,7 +109,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         try:
             # return 4/23/2018 to only process recent records for now.
-            initial_time = datetime(2018, 4, 23)
+            initial_time = datetime(2018, 4, 24, 6)
             #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
             initial_time = datetime(2000, 1, 1)
