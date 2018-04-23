@@ -24,9 +24,14 @@ class Account(BaseModel):
         return Account._type
 
     def get_accounts(self, query):
+        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
         for row in self.fetch_dict(query):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             row['Duration'] = self.find_duration(row)
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
             yield ESRecord(row, self.get_type())
 
     def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
