@@ -41,7 +41,7 @@ class TestAccountMapping(TestCase):
 
     # whether returned result count is equal to request count
     def test_get_accounts(self):
-        accounts = self.am.model.get_accounts(self.start, self.end)
+        accounts = self.am.model.get_accounts_by_created_date(self.start, self.end)
         account_count = 0
         for account in accounts:
             self.assertIsInstance(account, ESRecord)

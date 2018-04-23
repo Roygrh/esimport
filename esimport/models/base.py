@@ -27,8 +27,10 @@ class BaseModel(object):
 
     @retry(settings.DATABASE_CALLS_RETRIES, settings.DATABASE_CALLS_RETRIES_WAIT,
             retry_exception=pyodbc.Error)
-    def execute(self, query):
-        return self.conn.cursor.execute(query)
+    def execute(self, query, *args):
+        if not args:
+            return self.conn.cursor.execute(query)
+        return self.conn.cursor.execute(query, list(args))
 
 
     def fetch(self, query, column_names=None):

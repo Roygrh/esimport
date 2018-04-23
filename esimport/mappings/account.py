@@ -6,11 +6,24 @@
 # Eleven Wireless Inc.
 ################################################################################
 
+
+
+import sys
+import traceback
 import time
 import logging
+import threading
+
+from datetime import datetime
+from dateutil import parser
+from operator import itemgetter
 
 from elasticsearch import exceptions
+from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
+from esimport.connectors.mssql import MsSQLConnector
+from esimport.models.base import BaseModel
 from esimport import settings
 from esimport.utils import retry
 from esimport.utils import convert_utc_to_local_time
@@ -18,8 +31,9 @@ from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
-logger = logging.getLogger(__name__)
+from extensions import sentry_client
 
+logger = logging.getLogger(__name__)
 
 class AccountMapping(PropertyAppendedDocumentMapping):
     dates_to_localize = (
@@ -39,7 +53,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         start = self.max_id() + 1
         logger.debug("Get Accounts from {0} to {1} since {2}"
                      .format(start, start + self.step_size, start_date))
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             count += 1
 
             _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
@@ -68,6 +82,71 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def sync(self, start_date):
         while True:
             self.add_accounts(start_date)
+
+    
+    """
+    Get last record modified time from elasticsearch
+    """
+    def get_initial_time(self):
+        q = {
+            "query": {
+                "match_all": {}
+            },
+            "sort": [
+                {
+                    "DateModifiedUTC": {
+                        "order": "desc",
+                        "mode": "max",
+                        "unmapped_type": "date"
+                    }
+                }
+            ],
+            "size": 1
+        }
+
+        hits = self.es.search(index=settings.ES_INDEX, 
+                              doc_type=Account.get_type(), body=q)['hits']['hits']
+
+        try:
+            initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
+        except Exception as err:
+            initial_time = datetime(2000, 1, 1)
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
+
+        return initial_time
+
+
+    def check_for_time_change(self):
+        initial_time = self.get_initial_time()
+
+        while True:
+            logger.debug("Checking for accounts updated since {0}".format(initial_time))
+
+            check_update = self.model.get_updated_records_query(initial_time)
+            updated = [u for u in check_update]
+            logger.debug("Found {0} updated account records".format(len(updated)))
+
+            if len(updated) > 0:
+                initial_time = max(updated, key=itemgetter(1))[1]
+                zpa_ids = [str(id[0]) for id in updated]
+                start = 0
+                total_zpa_ids = len(zpa_ids)
+                while start < total_zpa_ids:
+                    if (total_zpa_ids-start) < settings.ES_BULK_LIMIT:
+                        accounts = self.model.get_accounts_by_id(zpa_ids[start:total_zpa_ids])
+                    else:
+                        accounts = self.model.get_accounts_by_id(zpa_ids[start:start+settings.ES_BULK_LIMIT])
+                    actions = [account.es() for account in accounts]
+                    logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
+
+                    self.bulk_add_or_update(self.es, actions)
+                    start += settings.ES_BULK_LIMIT
+            
+            # sleep before checking for new updates
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            time.sleep(self.db_wait)
 
     """
     Get existing accounts from ElasticSearch
@@ -156,7 +235,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     """
     def backload(self, start_date):
         start = 0
-        for account in self.model.get_accounts(start, self.step_size, start_date):
+        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             acc = account.es()
             logger.debug("Record found: {0}".format(account.get('ID')))
             self.add(dict(acc), self.step_size)

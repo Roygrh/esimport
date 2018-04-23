@@ -1,3 +1,4 @@
+aws-xray-sdk==0.97
 PyYAML==3.12
 pyodbc==4.0.6
 elasticsearch==5.2.0
