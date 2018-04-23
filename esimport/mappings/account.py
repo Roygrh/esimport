@@ -32,6 +32,8 @@ from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 from extensions import sentry_client
 
+from pyodbc import ProgrammingError
+
 logger = logging.getLogger(__name__)
 
 class AccountMapping(PropertyAppendedDocumentMapping):
@@ -95,8 +97,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 {
                     "DateModifiedUTC": {
                         "order": "desc",
-                        "missing": "_last"
-                        "mode": "max",
+                        "missing": "_last",
                         "unmapped_type": "date"
                     }
                 }
@@ -120,26 +121,35 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
     def check_for_time_change(self):
         initial_time = self.get_initial_time()
+        check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
 
         while True:
             logger.debug("Checking for accounts updated since {0}".format(initial_time))
+            try:
+                check_update = check_update_cursor.fetchmany()
+            except ProgrammingError:
+                check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
+                continue
+            logger.debug("Found {0} updated account records".format(len(check_update)))
 
-            check_update = self.model.get_updated_records_query(self.step_size, initial_time)
-            updated = [u for u in check_update]
-            logger.debug("Found {0} updated account records".format(len(updated)))
-
-            if len(updated) > 0:
-                initial_time = max(updated, key=itemgetter(1))[1]
-                zpa_ids = [str(id[0]) for id in updated]
-                accounts = self.model.get_accounts_by_id(zpa_ids)
-                actions = [account.es() for account in accounts]
-                logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
+            if len(check_update) > 0:
+                initial_time = max(check_update, key=itemgetter(1))[1]
+                actions = []
+                column_names = [column[0] for column in check_update_cursor.description]
+                for row in check_update:
+                    rec_dict = dict([(cn, getattr(row, cn, '')) for cn in column_names])
+                    rec = ESRecord(rec_dict, Account.get_type())
+                    actions.append(rec.es())
+                print(actions)
                 self.bulk_add_or_update(self.es, actions)
+                if check_update:
+                    check_update = check_update_cursor.fetchmany()
             else:
                 # sleep before checking for new updates
                 self.model.conn.reset()
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
+
 
     """
     Get existing accounts from ElasticSearch
