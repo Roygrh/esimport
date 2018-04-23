@@ -123,7 +123,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
 
         while True:
-            print(initial_time)
             logger.debug("Checking for accounts updated since {0}".format(initial_time))
             try:
                 check_update = check_update_cursor.fetchmany()
@@ -133,7 +132,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             logger.debug("Found {0} updated account records".format(len(check_update)))
 
             if len(check_update) > 0:
-                print(check_update)
                 initial_time = max(check_update, key=itemgetter(1))[9]
                 actions = []
                 column_names = [column[0] for column in check_update_cursor.description]
@@ -141,7 +139,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                     rec_dict = dict([(cn, getattr(row, cn, '')) for cn in column_names])
                     rec = ESRecord(rec_dict, Account.get_type())
                     actions.append(rec.es())
-                print(actions)
                 self.bulk_add_or_update(self.es, actions)
                 if check_update:
                     check_update = check_update_cursor.fetchmany()
