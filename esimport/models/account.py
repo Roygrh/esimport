@@ -67,13 +67,13 @@ class Account(BaseModel):
     def get_updated_records_query(self, limit, modified_date):   
         self.conn.cursor.arraysize = limit     
         # q = """SELECT ID, Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > ?"""
-        q = self.updated_accounts_query(limit, modified_date)
-        return self.execute(q)
+        q = self.updated_accounts_query()
+        return self.execute(q, modified_date)
 
 
     @staticmethod
-    def updated_accounts_query(limit, modified_date):
-        q = """Select TOP {0} Zone_Plan_Account.ID as ID,
+    def updated_accounts_query():
+        q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
 Member_Status.Name AS Status,
@@ -120,9 +120,9 @@ LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
 LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Zone_Plan_Account.Date_Created_UTC > '{1}'
+WHERE Zone_Plan_Account.Date_Created_UTC > ?
 ORDER BY Zone_Plan_Account.ID ASC"""
-        q = q.format(limit, modified_date)
+        # q = q.format(limit, modified_date)
         return q
         
 
