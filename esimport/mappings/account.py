@@ -108,7 +108,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                               doc_type=Account.get_type(), body=q)['hits']['hits']
 
         try:
-            initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
+            # return 1/1/2000 just to re-process older modified account records.
+            initial_time = datetime(2000, 1, 1)
+            #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
             initial_time = datetime(2000, 1, 1)
             logger.error(err)
@@ -124,29 +126,22 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         while True:
             logger.debug("Checking for accounts updated since {0}".format(initial_time))
 
-            check_update = self.model.get_updated_records_query(initial_time)
+            check_update = self.model.get_updated_records_query(self.step_size, initial_time)
             updated = [u for u in check_update]
             logger.debug("Found {0} updated account records".format(len(updated)))
 
             if len(updated) > 0:
                 initial_time = max(updated, key=itemgetter(1))[1]
                 zpa_ids = [str(id[0]) for id in updated]
-                start = 0
-                total_zpa_ids = len(zpa_ids)
-                while start < total_zpa_ids:
-                    if (total_zpa_ids-start) < settings.ES_BULK_LIMIT:
-                        accounts = self.model.get_accounts_by_id(zpa_ids[start:total_zpa_ids])
-                    else:
-                        accounts = self.model.get_accounts_by_id(zpa_ids[start:start+settings.ES_BULK_LIMIT])
-                    actions = [account.es() for account in accounts]
-                    logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
-
-                    self.bulk_add_or_update(self.es, actions)
-                    start += settings.ES_BULK_LIMIT
-            
-            # sleep before checking for new updates
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
+                accounts = self.model.get_accounts_by_id(zpa_ids)
+                actions = [account.es() for account in accounts]
+                logger.debug("Sending {0} actions to Elasticsearch".format(len(actions)))
+                self.bulk_add_or_update(self.es, actions)
+            else:
+                # sleep before checking for new updates
+                self.model.conn.reset()
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
     """
     Get existing accounts from ElasticSearch
