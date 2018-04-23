@@ -14,31 +14,18 @@ from datetime import datetime
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 
-
 logger = logging.getLogger(__name__)
 
-
 class Account(BaseModel):
-
 
     _type = "account"
     @staticmethod
     def get_type():
         return Account._type
 
-
-    # test if output fields are exactly what are mentioned
-    # also check Created and Activated are date objects
-    # also check ID is int or long
-    def get_accounts(self, start, limit, start_date='1900-01-01'):
-        q = self.eleven_query(start_date, start, limit)
-        columns = ['ID', 'Name', 'Created', 'Activated',
-                    'ServiceArea', 'Price', 'PurchaseMacAddress', 'ServicePlan',
-                    'ServicePlanNumber', 'UpCap', 'DownCap', 'CreditCardNumber', 'CardType',
-                    'LastName', 'RoomNumber', 'PayMethod', 'ZoneType',
-                    'DiscountCode', 'ConsumableTime', 'ConsumableUnit', 'SpanTime', 'SpanUnit', 'Duration']
-        dt_columns = ['Created', 'Activated']
-        for row in self.fetch_dict(q):
+    def get_accounts(self, query):
+        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
+        for row in self.fetch_dict(query):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             row['Duration'] = self.find_duration(row)
             # convert datetime to string
@@ -47,11 +34,17 @@ class Account(BaseModel):
                     row[dt_column] = row[dt_column].isoformat()
             yield ESRecord(row, self.get_type())
 
+    def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
+        q = self.eleven_query(start_date, start, limit)
+        return self.get_accounts(q)
+
+    def get_accounts_by_id(self, id):
+        q = self.query_records_by_zpa_id(id)
+        return self.get_accounts(q)
 
     def get_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
-
 
     def find_duration(self, row):
         if row.get('ConsumableTime') is not None:
@@ -71,6 +64,9 @@ class Account(BaseModel):
         else:
             return self.PayMethod
 
+    def get_updated_records_query(self, modified_date):
+        q = """SELECT ID,Date_Modified_UTC FROM Zone_Plan_Account WHERE Date_Modified_UTC > ?"""
+        return self.execute(q, modified_date)
 
     @staticmethod
     def eleven_query(start_date, start_zpa_id, limit):
@@ -83,6 +79,7 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
+Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
@@ -125,7 +122,6 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(start_zpa_id, limit, start_date)
         return q
 
-
     @staticmethod
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
@@ -137,6 +133,7 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
+Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
