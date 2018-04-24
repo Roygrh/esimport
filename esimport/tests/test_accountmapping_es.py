@@ -432,7 +432,10 @@ class TestAccountMappingElasticSearch(TestCase):
                     'terms': {'ID': ['1','2','3']}
                 }
         }
-        time.sleep(1)
+
+        # Wait for the database connection to reset
+        time.sleep(settings.DATABASE_CALLS_WAIT)
+        
         zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
