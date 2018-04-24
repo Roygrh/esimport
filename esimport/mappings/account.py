@@ -6,14 +6,12 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-
-
 import sys
 import traceback
 import time
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import parser
 from operator import itemgetter
 
@@ -31,8 +29,6 @@ from esimport.models.account import Account
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 from extensions import sentry_client
-
-from pyodbc import ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -56,14 +52,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                      .format(start, start + self.step_size, start_date))
         for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             count += 1
-
-            _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
-
-            if 'TimeZone' in _action:
-                for pfik, pfiv in self.dates_to_localize:
-                    _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
-
-            account.update(_action)
+            self.append_site_values(account)
             rec = account.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
             self.add(rec, self.step_size)
@@ -117,36 +106,51 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         return initial_time
 
 
-
     def check_for_time_change(self):
-        initial_time = self.get_initial_time()
-        check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
+        start_time = self.get_initial_time()
+        time_delta_window = timedelta(hours=1)
 
         while True:
-            logger.debug("Checking for accounts updated since {0}".format(initial_time))
-            try:
-                check_update = check_update_cursor.fetchmany()
-            except ProgrammingError:
-                check_update_cursor = self.model.get_updated_records_query(self.step_size, initial_time)
-                continue
-            logger.debug("Found {0} updated account records".format(len(check_update)))
+            count = 0
+            logger.debug("Checking for updated accounts between {0} and {1}".format(start_time, (start_time + time_delta_window)))
 
-            if len(check_update) > 0:
-                initial_time = max(check_update, key=itemgetter(1))[9]
-                actions = []
-                column_names = [column[0] for column in check_update_cursor.description]
-                for row in check_update:
-                    rec_dict = dict([(cn, getattr(row, cn, '')) for cn in column_names])
-                    rec = ESRecord(rec_dict, Account.get_type())
-                    actions.append(rec.es())
-                self.bulk_add_or_update(self.es, actions)
-                if check_update:
-                    check_update = check_update_cursor.fetchmany()
-            else:
-                # sleep before checking for new updates
+            for account in self.model.get_updated_accounts(start_time, time_delta_window):
+                logger.debug("Record found: {0}".format(account.get('ID')))
+                count += 1
+                self.append_site_values(account)
+                self.add(account.es(), self.step_size)
+
+                # keep track of latest start_time (query is ordering DateModifiedUTC ascending)
+                start_time = parser.parse(account.get('DateModifiedUTC'))
+
+                # reset the time delta window anytime we see records returned.
+                time_delta_window = timedelta(hours=1)
+
+            # send the remainder of accounts to elasticsearch 
+            self.add(None, min(len(self._items), self.step_size))
+            
+            if count <= 0:
+                # wait between DB calls when there are no records to process            
                 self.model.conn.reset()
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
+
+                # also expand the window size by minutes when there are no records to process
+                # (this should prevent infinite loop with there may be not records modified in a given hour)
+                time_delta_window += timedelta(minutes=self.db_wait)
+
+
+    """
+    Append site values to account record
+    """
+    def append_site_values(self, account):
+        _action = super(AccountMapping, self).get_site_values(account.get('ServiceArea'))
+
+        if 'TimeZone' in _action:
+            for pfik, pfiv in self.dates_to_localize:
+                _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
+
+        account.update(_action)
 
 
     """
