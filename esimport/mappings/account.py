@@ -95,7 +95,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         }
         try:
             # return 1/1/2000 just to re-process older modified account records.
-            initial_time = datetime(2000, 1, 1)
+            initial_time = datetime(2018, 1, 22, 22) # 2018-01-22 22:54:00.640
             #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
             initial_time = datetime(2000, 1, 1)
