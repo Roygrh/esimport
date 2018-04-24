@@ -120,7 +120,7 @@ LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
 LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Zone_Plan_Account.Date_Created_UTC > ?
+WHERE Zone_Plan_Account.Date_Modified_UTC > ?
 ORDER BY Zone_Plan_Account.ID ASC"""
         # q = q.format(limit, modified_date)
         return q
