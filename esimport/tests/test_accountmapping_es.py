@@ -421,51 +421,39 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN ?
-                                    WHEN 2 THEN ?
-                                    WHEN 3 THEN ?
+                                    WHEN 1 THEN GETUTCDATE()
+                                    WHEN 2 THEN GETUTCDATE()
+                                    WHEN 3 THEN GETUTCDATE()
                                 END
             WHERE ID IN (1,2,3)"""
-        self.am.model.execute(q, datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3], 
-                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3],
-                                 datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]).commit()
+        self.am.model.execute(q).commit()
 
         query = {'query': {
                     'terms': {'ID': ['1','2','3']}
                 }
         }
-        time.sleep(1)
+
+        # Wait for the database connection to reset
+        time.sleep(settings.DATABASE_CALLS_WAIT)
+        
         zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
             if zpa['_source']['ID'] == 1:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[0][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[0][1]))
             elif zpa['_source']['ID'] == 2:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[1][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[1][1]))
             elif zpa['_source']['ID'] == 3:
-                self.assertEqual(zpa['_source']['Price'], zpa_123[2][1])
+                self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
 
 
     def tearDown(self):
-        self.am.model.execute("""DROP TABLE [dbo].[Code]
-DROP TABLE [dbo].[Credit_Card_Type]
-DROP TABLE [dbo].[Credit_Card]
-DROP TABLE [dbo].[Currency]
-DROP TABLE [dbo].[Member_Marketing_Opt_In]
-DROP TABLE [dbo].[Member_Status]
-DROP TABLE [dbo].[Member]
-DROP TABLE [dbo].[Network_Access_Limits]
-DROP TABLE [dbo].[Org_Value]
-DROP TABLE [dbo].[Organization]
-DROP TABLE [dbo].[Payment_Method]
-DROP TABLE [dbo].[PMS_Charge]
-DROP TABLE [dbo].[Prepaid_Zone_Plan]
-DROP TABLE [dbo].[Promotional_Code]
-DROP TABLE [dbo].[Time_Unit]
-DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
-DROP TABLE [dbo].[Zone_Plan_Account]
-DROP TABLE [dbo].[Zone_Plan]""").commit()
+        self.am.model.execute("""DECLARE @sql nvarchar(max) = '';
+SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+FROM [INFORMATION_SCHEMA].[TABLES]
+WHERE [TABLE_TYPE] = 'BASE TABLE';
+EXEC SP_EXECUTESQL @sql;""").commit()
         es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)

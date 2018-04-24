@@ -28,8 +28,6 @@ class BaseModel(object):
     @retry(settings.DATABASE_CALLS_RETRIES, settings.DATABASE_CALLS_RETRIES_WAIT,
             retry_exception=pyodbc.Error)
     def execute(self, query, *args):
-        if not args:
-            return self.conn.cursor.execute(query)
         return self.conn.cursor.execute(query, list(args))
 
 
@@ -41,8 +39,8 @@ class BaseModel(object):
                 yield row
 
 
-    def fetch_dict(self, query):
-        rows = self.execute(query)
+    def fetch_dict(self, query, *args):
+        rows = self.execute(query, *args)
         column_names = [column[0] for column in rows.description]
         for row in rows:
             if not isinstance(row, dict):
