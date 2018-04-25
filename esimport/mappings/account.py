@@ -54,7 +54,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             count += 1
             self.append_site_values(account)
             rec = account.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            logger.debug("Record found: {0}".format(account.get('ID')))
             self.add(rec, self.step_size)
 
         # for cases when all/remaining items count were less than limit
@@ -174,7 +174,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             ids.append(str(account.get('ID')))
 
         for row in self.model.get_records_by_zpa_id(ids):
-            logger.debug("Record found: {0}".format(row))
+            logger.debug("Record found: {0}".format(row.get('ID')))
             # only for account where there are 1 or more missing property fields
             if any([pfik not in row for pfik, pfiv in self.property_fields_include]):
                 new_property_fields_include = [(pfik, pfiv) for pfik, pfiv in self.property_fields_include
@@ -239,7 +239,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         start = 0
         for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
             acc = account.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(acc)))
+            logger.debug("Record found: {0}".format(account.get('ID')))
             self.add(dict(acc), self.step_size)
             start = account.get('ID') + 1
 

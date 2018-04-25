@@ -10,7 +10,7 @@ import os
 import logging
 
 
-LOG_LEVEL = logging.WARNING
+LOG_LEVEL = logging.DEBUG
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 PKG_DIR = os.path.dirname(os.path.abspath(__file__))

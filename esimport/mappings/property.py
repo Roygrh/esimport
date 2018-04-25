@@ -48,7 +48,7 @@ class PropertyMapping(DocumentMapping):
             start = self.max_id()
             for prop in self.model.get_properties(start, self.step_size):
                 count += 1
-                logger.debug("Record found: {0}".format(self.pp.pformat(prop.es())))
+                logger.debug("Record found: {0}".format(prop.get('ID')))
                 self.add(dict(prop.es()), self.step_size)
 
             # for cases when all/remaining items count were less than limit
@@ -82,7 +82,7 @@ class PropertyMapping(DocumentMapping):
             count = 0
             for prop in self.model.get_properties(start, self.step_size):
                 count += 1
-                logger.debug("Record found: {0}".format(self.pp.pformat(prop.es())))
+                logger.debug("Record found: {0}".format(prop.get('ID')))
                 self.add(dict(prop.es()), self.step_size)
                 start = prop.record.get('ID')
 

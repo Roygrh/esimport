@@ -54,7 +54,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
             device.update(_action)
 
             rec = device.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            logger.debug("Record found: {0}".format(device.get('ID')))
             self.add(rec, self.step_size)
 
         # for cases when all/remaining items count were less than limit

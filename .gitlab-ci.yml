@@ -50,10 +50,10 @@ production_west_deploy:
     - mkdir ~/.aws/
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.ENT04 local_settings.py
+    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.west local_settings.py
     - aws s3 cp s3://dataservices.esimport.production/odbcinst.ini.prod odbcinst.ini
     - aws s3 cp s3://dataservices.esimport.production/odbc.ini.prod odbc.ini
-    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.ENT04 freetds.conf
+    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.west freetds.conf
     - eb deploy $EB_PROD_ENV_NAME --verbose
   only:
     - master
@@ -68,10 +68,10 @@ production_east_deploy:
     - mkdir ~/.aws/
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
-    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.ENT05 local_settings.py
+    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.east local_settings.py
     - aws s3 cp s3://dataservices.esimport.production/odbcinst.ini.prod odbcinst.ini
     - aws s3 cp s3://dataservices.esimport.production/odbc.ini.prod odbc.ini
-    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.ENT05 freetds.conf
+    - aws s3 cp s3://dataservices.esimport.production/freetds.conf.prod.east freetds.conf
     - eb deploy $EB_PROD_ENV_NAME --verbose
   only:
     - master

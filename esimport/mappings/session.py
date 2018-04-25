@@ -48,7 +48,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             session.update(_action)
 
             rec = session.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
+            logger.debug("Record found: {0}".format(session.get('ID')))
             self.add(rec, self.step_size)
 
         # for cases when all/remaining items count were less than limit
