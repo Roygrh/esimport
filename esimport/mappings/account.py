@@ -118,7 +118,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             for account in self.model.get_updated_accounts(start_time, end_time):
                 logger.debug("Record found: {0}".format(account.get('ID')))
                 count += 1
-                #self.append_site_values(account)
                 self.add(account.es(), self.step_size)
 
                 # keep track of latest start_time (query is ordering DateModifiedUTC ascending)
