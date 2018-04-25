@@ -23,17 +23,6 @@ class Account(BaseModel):
     def get_type():
         return Account._type
 
-    def get_accounts(self, query, *args):
-        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
-        for row in self.fetch_dict(query, *args):
-            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
-            row['Duration'] = self.find_duration(row)
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
-            yield ESRecord(row, self.get_type())
-
     def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
         q = self.eleven_query(start_date, start, limit)
         return self.get_accounts(q)
@@ -46,6 +35,21 @@ class Account(BaseModel):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
 
+    def get_updated_accounts(self, start_date, end_date):
+        q = self.updated_accounts_query()        
+        return self.get_accounts(q, start_date, end_date)
+
+    def get_accounts(self, query, *args):
+        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
+        for row in self.fetch_dict(query, *args):
+            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            row['Duration'] = self.find_duration(row)
+            # convert datetime to string
+            for dt_column in dt_columns:
+                if dt_column in row and isinstance(row[dt_column], datetime):
+                    row[dt_column] = row[dt_column].isoformat()
+            yield ESRecord(row, self.get_type())
+
     def find_duration(self, row):
         if row.get('ConsumableTime') is not None:
             return "{0} {1} {2}".format(row.get('ConsumableTime'), row.get('ConsumableUnit'), "consumable")
@@ -53,22 +57,6 @@ class Account(BaseModel):
             return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
         else:
             return None
-
-    def pay_details(self):
-        if self.PayMethod is "CC":
-            return "{0}{1}".format(self.CardType, self.CreditCardNumber)
-        if self.PayMethod is "PMS":
-            return "PMS {0}/{1}".format(self.LastName, self.RoomNumber)
-        if self.PayMethod is "FREE":
-            return "FREE"
-        else:
-            return self.PayMethod
-
-    def get_updated_accounts(self, start_date, time_delta_window):
-        q = self.updated_accounts_query()
-        end_date = start_date + time_delta_window
-        return self.get_accounts(q, start_date, end_date)
-
 
     @staticmethod
     def updated_accounts_query():
@@ -139,7 +127,6 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
-Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
@@ -193,7 +180,6 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
-Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,

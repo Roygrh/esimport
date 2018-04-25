@@ -95,7 +95,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         }
         try:
             # return 1/1/2000 just to re-process older modified account records.
-            initial_time = datetime(2018, 1, 22, 22) # 2018-01-22 22:54:00.640
+            initial_time = datetime(2018, 1, 1)
             #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
         except Exception as err:
             initial_time = datetime(2000, 1, 1)
@@ -109,12 +109,13 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def check_for_time_change(self):
         start_time = self.get_initial_time()
         time_delta_window = timedelta(hours=1)
+        end_time = start_time + time_delta_window
 
         while True:
             count = 0
-            logger.debug("Checking for updated accounts between {0} and {1}".format(start_time, (start_time + time_delta_window)))
+            logger.debug("Checking for updated accounts between {0} and {1}".format(start_time, end_time))
 
-            for account in self.model.get_updated_accounts(start_time, time_delta_window):
+            for account in self.model.get_updated_accounts(start_time, end_time):
                 logger.debug("Record found: {0}".format(account.get('ID')))
                 count += 1
                 self.append_site_values(account)
@@ -123,21 +124,18 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 # keep track of latest start_time (query is ordering DateModifiedUTC ascending)
                 start_time = parser.parse(account.get('DateModifiedUTC'))
 
-                # reset the time delta window anytime we see records returned.
-                time_delta_window = timedelta(hours=1)
-
             # send the remainder of accounts to elasticsearch 
             self.add(None, min(len(self._items), self.step_size))
             
-            if count <= 0:
-                # wait between DB calls when there are no records to process            
-                self.model.conn.reset()
-                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
+            if count == 0:
+                if (datetime.utcnow() - end_time).total_seconds() <= time_delta_window.seconds:
+                    # wait between DB calls when there are no records to process            
+                    self.model.conn.reset()
+                    logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                    time.sleep(self.db_wait)
 
-                # also expand the window size by minutes when there are no records to process
-                # (this should prevent infinite loop with there may be not records modified in a given hour)
-                time_delta_window += timedelta(minutes=self.db_wait)
+                # advance end time until reaching now
+                end_time = min(end_time + time_delta_window, datetime.utcnow())
 
 
     """
