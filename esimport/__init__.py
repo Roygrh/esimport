@@ -42,7 +42,7 @@ def setup_logging():
 def cli():
     setup_logging()
 
-
+# delete this function
 @cli.command()
 def check_for_change():
     am = AccountMapping()

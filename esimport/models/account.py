@@ -35,8 +35,8 @@ class Account(BaseModel):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
 
-    def get_updated_accounts(self, start_date, end_date):
-        q = self.updated_accounts_query()        
+    def get_new_and_updated_accounts(self, start_date, end_date):
+        q = self.new_and_updated_accounts_query()        
         return self.get_accounts(q, start_date, end_date)
 
     def get_accounts(self, query, *args):
@@ -58,8 +58,12 @@ class Account(BaseModel):
         else:
             return None
 
+    """
+    Returns all account records that have been modified in the given date range.  
+    Since the Date_Modified_UTC defaults to the current time, this query also returns all new account records as well.
+    """
     @staticmethod
-    def updated_accounts_query():
+    def new_and_updated_accounts_query():
         return """
 SELECT
     Zone_Plan_Account.ID as ID,
