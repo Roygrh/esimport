@@ -42,13 +42,6 @@ def setup_logging():
 def cli():
     setup_logging()
 
-# delete this function
-@cli.command()
-def check_for_change():
-    am = AccountMapping()
-    am.setup()
-    am.check_for_time_change()
-
 
 @cli.command()
 @click.argument('mapping_name')
