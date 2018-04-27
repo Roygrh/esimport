@@ -81,7 +81,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             # wait between DB calls when there are no records to process            
             if count == 0:
-                #self.model.conn.reset()
+                self.model.conn.reset()
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
 
