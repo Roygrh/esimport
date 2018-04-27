@@ -83,6 +83,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
                 # advance end date until reaching now
                 end_date = min(end_date + time_delta_window, datetime.utcnow())
+            
+            logger.debug("Processed a total {0} accounts".format(count))
 
     
     """
