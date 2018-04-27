@@ -73,20 +73,19 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             # send the remainder of accounts to elasticsearch 
             self.add(None, min(len(self._items), self.step_size))
-            
+
+            logger.debug("Processed a total of {0} accounts".format(count))
+
+            # advance end date until reaching now
+            end_date = min(end_date + time_delta_window, datetime.utcnow())
+
+            # wait between DB calls when there are no records to process            
             if count == 0:
-                if (datetime.utcnow() - end_date).total_seconds() <= time_delta_window.seconds:
-                    # wait between DB calls when there are no records to process            
-                    self.model.conn.reset()
-                    logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                    time.sleep(self.db_wait)
+                self.model.conn.reset()
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
-                # advance end date until reaching now
-                end_date = min(end_date + time_delta_window, datetime.utcnow())
-            
-            logger.debug("Processed a total {0} accounts".format(count))
 
-    
     """
     Get the most recent date requested from elasticsearch
     """
