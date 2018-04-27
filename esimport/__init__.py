@@ -44,13 +44,6 @@ def cli():
 
 
 @cli.command()
-def check_for_change():
-    #am = AccountMapping()
-    #am.setup()
-    #am.check_for_time_change()
-
-
-@cli.command()
 @click.argument('mapping_name')
 @click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
 def sync(mapping_name, start_date):

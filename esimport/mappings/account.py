@@ -44,98 +44,79 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         super(AccountMapping, self).setup()
         self.model = Account(self.conn)
 
-    # Need this for tests
-    def add_accounts(self, start_date):
-        count = 0
-        start = self.max_id() + 1
-        logger.debug("Get Accounts from {0} to {1} since {2}"
-                     .format(start, start + self.step_size, start_date))
-        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
-            count += 1
-            self.append_site_values(account)
-            rec = account.es()
-            logger.debug("Record found: {0}".format(account.get('ID')))
-            self.add(rec, self.step_size)
-
-        # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
-
-        # only wait between DB calls when there is no delay from ES (HTTP requests)
-        if count <= 0:
-            self.model.conn.reset()
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
-
     """
-    Loop to continuous add accounts
+    Loop to continuous add/update accounts
     """
     def sync(self, start_date):
-        while True:
-            self.add_accounts(start_date)
 
-    
-    """
-    Get last record modified time from elasticsearch
-    """
-    def get_initial_time(self):
-        q = {
-            "query": {
-                "match_all": {}
-            },
-            "sort": [
-                {
-                    "DateModifiedUTC": {
-                        "order": "desc",
-                        "missing": "_last",
-                        "unmapped_type": "date"
-                    }
-                }
-            ],
-            "size": 1
-        }
-        try:
-            # return 1/1/2000 just to re-process older modified account records.
-            initial_time = datetime(2018, 1, 1)
-            #initial_time = parser.parse(hits[0]['_source']['DateModifiedUTC'])
-        except Exception as err:
-            initial_time = datetime(2000, 1, 1)
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-            sentry_client.captureException()
+        # TODO: Rework the code to look at the incoming start date.  If a valid start date is passed in we should use it, otherwise use the logic below.  
+        #       Of course, the way it's setup currently it will always default to 1/1/1900, so this is the same as not passing in a date at all and in 
+        #       that case, we should also use the logic below.
 
-        return initial_time
-
-
-    def check_for_time_change(self):
-        start_time = self.get_initial_time()
+        # get the most recent starting point
+        start_date = min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
         time_delta_window = timedelta(hours=1)
-        end_time = start_time + time_delta_window
+        end_date = start_date + time_delta_window
 
         while True:
             count = 0
-            logger.debug("Checking for updated accounts between {0} and {1}".format(start_time, end_time))
+            logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
-            for account in self.model.get_updated_accounts(start_time, end_time):
-                logger.debug("Record found: {0}".format(account.get('ID')))
+            for account in self.model.get_new_and_updated_accounts(start_date, end_date):
                 count += 1
+                self.append_site_values(account)
+                logger.debug("Record found: {0}".format(account.get('ID')))
                 self.add(account.es(), self.step_size)
 
-                # keep track of latest start_time (query is ordering DateModifiedUTC ascending)
-                start_time = parser.parse(account.get('DateModifiedUTC'))
+                # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                start_date = parser.parse(account.get('DateModifiedUTC'))
 
             # send the remainder of accounts to elasticsearch 
             self.add(None, min(len(self._items), self.step_size))
             
             if count == 0:
-                if (datetime.utcnow() - end_time).total_seconds() <= time_delta_window.seconds:
+                if (datetime.utcnow() - end_date).total_seconds() <= time_delta_window.seconds:
                     # wait between DB calls when there are no records to process            
                     self.model.conn.reset()
                     logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                     time.sleep(self.db_wait)
 
-                # advance end time until reaching now
-                end_time = min(end_time + time_delta_window, datetime.utcnow())
+                # advance end date until reaching now
+                end_date = min(end_date + time_delta_window, datetime.utcnow())
 
+    
+    """
+    Get the most recent date requested from elasticsearch
+    """
+    def get_most_recent_date(self, date_field):
+        
+        ## TODO: Is there a better way to get the date field variable into the query?
+        q = """{{
+            "query": {{
+                "match_all": {{}}
+            }},
+            "sort": [
+                {{
+                    "{0}": {{
+                        "order": "desc",
+                        "missing": "_last",
+                        "unmapped_type": "date"
+                    }}
+                }}
+            ],
+            "size": 1
+        }}""".format(date_field)
+
+        try:
+            hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']
+            initial_time = parser.parse(hits[0]['_source'][date_field])
+        except Exception as err:
+            initial_time = datetime.utcnow()
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
+
+        return initial_time
 
     """
     Append site values to account record
