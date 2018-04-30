@@ -54,7 +54,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         #       that case, we should also use the logic below.
 
         # get the most recent starting point
-        start_date = min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+        start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
 
@@ -73,18 +73,19 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             # send the remainder of accounts to elasticsearch 
             self.add(None, min(len(self._items), self.step_size))
-            
+
+            logger.debug("Processed a total of {0} accounts".format(count))
+
+            # advance end date until reaching now
+            end_date = min(end_date + time_delta_window, datetime.utcnow())
+
+            # wait between DB calls when there are no records to process            
             if count == 0:
-                if (datetime.utcnow() - end_date).total_seconds() <= time_delta_window.seconds:
-                    # wait between DB calls when there are no records to process            
-                    self.model.conn.reset()
-                    logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                    time.sleep(self.db_wait)
+                self.model.conn.reset()
+                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+                time.sleep(self.db_wait)
 
-                # advance end date until reaching now
-                end_date = min(end_date + time_delta_window, datetime.utcnow())
 
-    
     """
     Get the most recent date requested from elasticsearch
     """
