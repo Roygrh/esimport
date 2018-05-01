@@ -79,11 +79,13 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.utcnow())
 
+            self.model.conn.reset()
+
             # wait between DB calls when there are no records to process            
             if count == 0:
-                self.model.conn.reset()
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
+
 
 
     """
