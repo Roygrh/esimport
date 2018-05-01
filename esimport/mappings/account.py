@@ -76,14 +76,13 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             logger.debug("Processed a total of {0} accounts".format(count))
 
-            # advance end date until reaching now
-            end_date = min(end_date + time_delta_window, datetime.utcnow())
-
             self.model.conn.reset()
 
             logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
+            # advance end date until reaching now (after sleeping)
+            end_date = min(end_date + time_delta_window, datetime.utcnow())
 
 
     """
