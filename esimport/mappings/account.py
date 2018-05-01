@@ -92,21 +92,21 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def get_most_recent_date(self, date_field):
         
         ## TODO: Is there a better way to get the date field variable into the query?
-        q = """{{
-            "query": {{
-                "match_all": {{}}
-            }},
-            "sort": [
-                {{
-                    "{0}": {{
-                        "order": "desc",
-                        "missing": "_last",
-                        "unmapped_type": "date"
-                    }}
-                }}
-            ],
-            "size": 1
-        }}""".format(date_field)
+        q = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort":[
+                    {
+                        str(date_field): {
+                            "order": "desc",
+                            "missing": "_last",
+                            "unmapped_type": "date"
+                        }
+                    }
+                ],
+                "size": 1
+        }
 
         try:
             hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']
