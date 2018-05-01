@@ -13,6 +13,7 @@ import pyodbc
 import os
 import subprocess
 from multiprocessing import Process
+import glob
 
 from unittest import TestCase
 from datetime import datetime
@@ -55,11 +56,11 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am = AccountMapping()
         self.am.setup()
         self.start = 0
-        for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
-            script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+            # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
             # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
             #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            with open(script, 'r') as inp:
+            with open(sql, 'r') as inp:
                 sqlQuery = ''
                 for line in inp:
                     if 'GO' not in line:
@@ -383,7 +384,9 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.backload(start_date='1900-01-01')
         am = AccountMapping()
         am.setup()
-        check_time_change = lambda _am: _am.check_for_time_change()
+
+        initial_date = self.am.model.execute("""SELECT MIN(Date_Created_UTC) from Zone_Plan_Account""").fetchone()[0].strftime('%Y-%m-%d')
+        check_time_change = lambda _am: _am.sync(initial_date)
         t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
 
@@ -408,6 +411,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.model.execute(q, current_time).commit()
         
         zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
+        print(zpa_1)
         self.assertEqual(zpa_1[1], 13.0)
         time.sleep(1)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
@@ -449,11 +453,24 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
     def tearDown(self):
-        self.am.model.execute("""DECLARE @sql nvarchar(max) = '';
+        self.am.model.execute("""
+DECLARE @sql NVARCHAR(MAX);
+SET @sql = N'';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+  + QUOTENAME(c.name) + ';'
+FROM sys.objects AS c
+INNER JOIN sys.tables AS t
+ON c.parent_object_id = t.[object_id]
+INNER JOIN sys.schemas AS s 
+ON t.[schema_id] = s.[schema_id]
+WHERE c.[type] = 'F'
+ORDER BY c.[type];
 SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
 FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
 EXEC SP_EXECUTESQL @sql;""").commit()
+
         es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
