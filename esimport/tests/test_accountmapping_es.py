@@ -55,6 +55,10 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am = AccountMapping()
         self.am.setup()
+
+        self.pm = PropertyMapping()
+        self.pm.setup()
+
         self.start = 0
         for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
             # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
@@ -382,6 +386,8 @@ class TestAccountMappingElasticSearch(TestCase):
     def test_date_modified_update(self):
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
+        self.pm.backload()
+        
         am = AccountMapping()
         am.setup()
 
