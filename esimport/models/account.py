@@ -69,7 +69,7 @@ SELECT
     Zone_Plan_Account.ID as ID,
     Member.Display_Name AS Name,
     Member.Number AS MemberNumber,
-    Member_Status.Name AS Status,
+    Zone_Plan_Account_Status.Name AS Status,
     Organization.Number AS ServiceArea,
     Zone_Plan_Account.Purchase_Price AS Price,
     Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -97,7 +97,7 @@ SELECT
 FROM
     Zone_Plan_Account WITH (NOLOCK)
     JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-    JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+    JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
     JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
     JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
     JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
@@ -125,7 +125,7 @@ ORDER BY
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
-Member_Status.Name AS Status,
+Zone_Plan_Account_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -151,7 +151,7 @@ Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
@@ -178,7 +178,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
-Member_Status.Name AS Status,
+Zone_Plan_Account_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -204,7 +204,7 @@ Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
