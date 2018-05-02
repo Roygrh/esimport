@@ -385,7 +385,7 @@ class TestAccountMappingElasticSearch(TestCase):
         am = AccountMapping()
         am.setup()
 
-        initial_date = self.am.model.execute("""SELECT MIN(Date_Created_UTC) from Zone_Plan_Account""").fetchone()[0].strftime('%Y-%m-%d')
+        initial_date = self.am.model.execute("""SELECT MAX(Date_Modified_UTC) from Zone_Plan_Account""").fetchone()[0].strftime('%Y-%m-%d %H:%M:%S')
         check_time_change = lambda _am: _am.sync(initial_date)
         t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
@@ -403,17 +403,16 @@ class TestAccountMappingElasticSearch(TestCase):
         
 
         # change a record in db
-        current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        # current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        current_time = '2018-04-05 10:33:20.000'
         q = """UPDATE Zone_Plan_Account 
             SET Purchase_Price=13.0,Date_Modified_UTC=? 
             WHERE ID=1"""
 
         self.am.model.execute(q, current_time).commit()
-        
-        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
-        print(zpa_1)
-        self.assertEqual(zpa_1[1], 13.0)
+        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price,Date_Modified_UTC FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         time.sleep(1)
+        self.assertEqual(zpa_1[1], 13.0)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
 
@@ -425,11 +424,11 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN GETUTCDATE()
-                                    WHEN 2 THEN GETUTCDATE()
-                                    WHEN 3 THEN GETUTCDATE()
+                                    WHEN 1 THEN '{0}'
+                                    WHEN 2 THEN '{0}'
+                                    WHEN 3 THEN '{0}'
                                 END
-            WHERE ID IN (1,2,3)"""
+            WHERE ID IN (1,2,3)""".format('2018-04-05 10:34:20.000')
         self.am.model.execute(q).commit()
 
         query = {'query': {
@@ -438,9 +437,10 @@ class TestAccountMappingElasticSearch(TestCase):
         }
 
         # Wait for the database connection to reset
-        time.sleep(settings.DATABASE_CALLS_WAIT)
+        # time.sleep(settings.DATABASE_CALLS_WAIT)
+        time.sleep(1)
         
-        zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query, doc_type='account')['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
@@ -450,6 +450,7 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[1][1]))
             elif zpa['_source']['ID'] == 3:
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
+        t.is_alive()
 
 
     def tearDown(self):
