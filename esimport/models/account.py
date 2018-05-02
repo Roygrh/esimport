@@ -37,7 +37,7 @@ class Account(BaseModel):
 
     def get_new_and_updated_accounts(self, start_date, end_date):
         q = self.new_and_updated_accounts_query()        
-        return self.get_accounts(q, start_date, end_date)
+        return self.get_accounts(q, start_date, end_date, start_date, end_date)
 
     def get_accounts(self, query, *args):
         dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
@@ -82,6 +82,7 @@ SELECT
     Network_Access_Limits.Down_kbs AS DownCap,
     Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
     Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
+    Network_Access_Limits.Date_Modified_UTC AS NetworkAccessDateModifiedUTC,
     Payment_Method.Code AS PayMethod,
     Currency.Code AS Currency,
     Credit_Card.Masked_Number AS CreditCardNumber,
@@ -117,7 +118,9 @@ FROM
     LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
     LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE 
-    Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
+    (Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?)
+    OR
+    (Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?)
 ORDER BY 
 	Zone_Plan_Account.Date_Modified_UTC ASC"""
 
