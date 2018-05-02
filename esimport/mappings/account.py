@@ -26,6 +26,7 @@ from esimport.utils import retry
 from esimport.utils import convert_utc_to_local_time
 from esimport.models import ESRecord
 from esimport.models.account import Account
+from esimport.models.property import Property
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 from extensions import sentry_client
@@ -55,7 +56,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         # get the most recent starting point
         if start_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            start_date = parser.parse(start_date)
         else:
             start_date = start_date or self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
         
@@ -73,6 +74,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 self.add(account.es(), self.step_size)
 
                 # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
                 start_date = parser.parse(account.get('DateModifiedUTC'))
 
             # send the remainder of accounts to elasticsearch 
