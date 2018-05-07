@@ -65,22 +65,30 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         while True:
             count = 0
+            step_count = 0
             logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
-            for account in self.model.get_new_and_updated_accounts(start_date, end_date):
-                count += 1
-                self.append_site_values(account)
-                logger.debug("Record found: {0}".format(account.get('ID')))
-                self.add(account.es(), self.step_size)
+            updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
-                # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
-                start_date = parser.parse(account.get('DateModifiedUTC'))
+            updated_ids_len = len(updated_ids)
 
-            # send the remainder of accounts to elasticsearch 
-            self.add(None, min(len(self._items), self.step_size))
+            while step_count < (updated_ids_len+self.step_size) and len(updated_ids) > 0:
+                for account in self.model.get_es_records_by_zpa_id(updated_ids[step_count:self.step_size]):
+                    print(account)
+                    step_count += self.step_size
+                    count += 1
+                    self.append_site_values(account)
+                    logger.debug("Record found: {0}".format(account.get('ID')))
+                    self.add(account.es(), self.step_size)
 
-            logger.debug("Processed a total of {0} accounts".format(count))
+                    # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                    # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
+                    start_date = max(parser.parse(str(account.get('DateModifiedUTC'))), parser.parse(str(account.get('NetworkAccessDateModifiedUTC'))))
+
+                # send the remainder of accounts to elasticsearch 
+                self.add(None, min(len(self._items), self.step_size))
+
+                logger.debug("Processed a total of {0} accounts".format(count))
 
             # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.utcnow())

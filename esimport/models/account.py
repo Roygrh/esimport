@@ -30,7 +30,7 @@ class Account(BaseModel):
     def get_accounts_by_id(self, id):
         q = self.query_records_by_zpa_id(id)
         return self.get_accounts(q)
-
+    
     def get_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
@@ -38,6 +38,14 @@ class Account(BaseModel):
     def get_new_and_updated_accounts(self, start_date, end_date):
         q = self.new_and_updated_accounts_query()        
         return self.get_accounts(q, start_date, end_date, start_date, end_date)
+
+    def get_new_and_updated_zpa_ids(self, start_date, end_date):
+        q = self.get_new_and_updated_zpa_ids_query()
+        return self.execute(q, start_date, end_date, start_date, end_date)
+
+    def get_es_records_by_zpa_id(self, ids):
+        q = self.query_records_by_zpa_id(ids)
+        return self.get_accounts(q)
 
     def get_accounts(self, query, *args):
         dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
@@ -57,6 +65,20 @@ class Account(BaseModel):
             return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
         else:
             return None
+
+
+    @staticmethod
+    def get_new_and_updated_zpa_ids_query():
+        return """
+SELECT  Zone_Plan_Account.ID
+FROM Zone_Plan_Account WITH (NOLOCK)
+WHERE Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
+    UNION
+SELECT  Zone_Plan_Account.ID
+FROM Zone_Plan_Account WITH (NOLOCK)
+JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID 
+WHERE Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?"""
+
 
     """
     Returns all account records that have been modified in the given date range.  
@@ -191,12 +213,14 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
+Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
 Network_Access_Limits.Down_kbs AS DownCap,
 Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
 Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
+Network_Access_Limits.Date_Modified_UTC AS NetworkAccessDateModifiedUTC,
 Payment_Method.Code AS PayMethod,
 Currency.Code AS Currency,
 Credit_Card.Masked_Number AS CreditCardNumber,
