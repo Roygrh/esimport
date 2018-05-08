@@ -70,11 +70,13 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
+            # REVIEW: I don't think we need this anymore?
             updated_ids_len = len(updated_ids)
 
-            # MB_REVIEW: Why have step_count?  Couldn't we just use count?
+            # REVIEW: Why have step_count?  Couldn't we just use count?
             #while step_count < (updated_ids_len+self.step_size) and len(updated_ids) > 0:
 
+            # REVIEW: I don't think we need this IF anymore?
             if updated_ids_len > 0:
                 while updated_ids:
                     for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
