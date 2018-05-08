@@ -64,24 +64,21 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
-            updated_ids_len = len(updated_ids)
+            while updated_ids:
+                for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
+                    count += 1
+                    self.append_site_values(account)
+                    logger.debug("Record found: {0}".format(account.get('ID')))
+                    self.add(account.es(), self.step_size)
 
-            if updated_ids_len > 0:
-                while updated_ids:
-                    for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
-                        count += 1
-                        self.append_site_values(account)
-                        logger.debug("Record found: {0}".format(account.get('ID')))
-                        self.add(account.es(), self.step_size)
+                    # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                    start_date = max(start_date, parser.parse(str(account.get('DateModifiedUTC'))))
 
-                        # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                        start_date = max(start_date, parser.parse(str(account.get('DateModifiedUTC'))))
+                # send the remainder of accounts to elasticsearch 
+                self.add(None, min(len(self._items), self.step_size))
 
-                    # send the remainder of accounts to elasticsearch 
-                    self.add(None, min(len(self._items), self.step_size))
-
-                    # delete updated account ids in elasticsearch from updated_ids list
-                    del updated_ids[0:self.step_size]
+                # delete updated account ids in elasticsearch from updated_ids list
+                del updated_ids[0:self.step_size]
 
             logger.debug("Processed a total of {0} accounts".format(count))
 
