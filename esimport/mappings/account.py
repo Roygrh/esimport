@@ -76,12 +76,13 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             #while step_count < (updated_ids_len+self.step_size) and len(updated_ids) > 0:
 
             if updated_ids_len > 0:
-                while count < updated_ids_len:
-                    for account in self.model.get_es_records_by_zpa_id(updated_ids[count:self.step_size]):
+                while updated_ids:
+                    for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
                         count += 1
                         self.append_site_values(account)
                         logger.debug("Record found: {0}".format(account.get('ID')))
                         self.add(account.es(), self.step_size)
+                        del updated_ids[0:self.step_size]
 
                         # MB_REVIEW: The query no longer orders by the DateModifiedUTC, so this logic won't work.  Let's just have one DateModifiedUTC value returned from the
                         #  query (put a CASE statement in the query to achieve this) and then we would set start_date = max(start_date, account.get('DateModifiedUTC'))
