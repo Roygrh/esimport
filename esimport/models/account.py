@@ -213,14 +213,18 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
-Zone_Plan_Account.Date_Modified_UTC AS DateModifiedUTC,
+CASE WHEN 
+    Zone_Plan_Account.Date_Modified_UTC > Network_Access_Limits.Date_Modified_UTC
+        THEN Zone_Plan_Account.Date_Modified_UTC
+        ELSE Network_Access_Limits.Date_Modified_UTC
+        END
+AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
 Network_Access_Limits.Down_kbs AS DownCap,
 Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
 Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
-Network_Access_Limits.Date_Modified_UTC AS NetworkAccessDateModifiedUTC,
 Payment_Method.Code AS PayMethod,
 Currency.Code AS Currency,
 Credit_Card.Masked_Number AS CreditCardNumber,

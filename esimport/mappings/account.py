@@ -89,7 +89,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                         #  query (put a CASE statement in the query to achieve this) and then we would set start_date = max(start_date, account.get('DateModifiedUTC'))
                         # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
                         # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
-                        start_date = max(parser.parse(str(account.get('DateModifiedUTC'))), parser.parse(str(account.get('NetworkAccessDateModifiedUTC'))))
+                        start_date = max(start_date, parser.parse(str(account.get('DateModifiedUTC'))))
 
                     # send the remainder of accounts to elasticsearch 
                     self.add(None, min(len(self._items), self.step_size))
