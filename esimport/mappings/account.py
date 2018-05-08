@@ -65,30 +65,36 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         while True:
             count = 0
-            step_count = 0
+            #step_count = 0
             logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
             updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
             updated_ids_len = len(updated_ids)
 
-            while step_count < (updated_ids_len+self.step_size) and len(updated_ids) > 0:
-                for account in self.model.get_es_records_by_zpa_id(updated_ids[step_count:self.step_size]):
-                    print(account)
-                    step_count += self.step_size
-                    count += 1
-                    self.append_site_values(account)
-                    logger.debug("Record found: {0}".format(account.get('ID')))
-                    self.add(account.es(), self.step_size)
+            # MB_REVIEW: Why have step_count?  Couldn't we just use count?
+            #while step_count < (updated_ids_len+self.step_size) and len(updated_ids) > 0:
 
-                    # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                    # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
-                    start_date = max(parser.parse(str(account.get('DateModifiedUTC'))), parser.parse(str(account.get('NetworkAccessDateModifiedUTC'))))
+            if updated_ids_len > 0:
+                while count < updated_ids_len:
+                    for account in self.model.get_es_records_by_zpa_id(updated_ids[count:self.step_size]):
+                        print(account)
+                        #step_count += self.step_size
+                        count += 1
+                        self.append_site_values(account)
+                        logger.debug("Record found: {0}".format(account.get('ID')))
+                        self.add(account.es(), self.step_size)
 
-                # send the remainder of accounts to elasticsearch 
-                self.add(None, min(len(self._items), self.step_size))
+                        # MB_REVIEW: The query no longer orders by the DateModifiedUTC, so this logic won't work.  Let's just have one DateModifiedUTC value returned from the
+                        #  query (put a CASE statement in the query to achieve this) and then we would set start_date = max(start_date, account.get('DateModifiedUTC'))
+                        # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                        # max of DateModifiedUTC and NetworkAccessDateModifiedUTC
+                        start_date = max(parser.parse(str(account.get('DateModifiedUTC'))), parser.parse(str(account.get('NetworkAccessDateModifiedUTC'))))
 
-                logger.debug("Processed a total of {0} accounts".format(count))
+                    # send the remainder of accounts to elasticsearch 
+                    self.add(None, min(len(self._items), self.step_size))
+
+            logger.debug("Processed a total of {0} accounts".format(count))
 
             # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.utcnow())
