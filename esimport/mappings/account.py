@@ -58,7 +58,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if start_date:
             start_date = parser.parse(start_date)
         else:
-            start_date = start_date or self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+            start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
         
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
@@ -78,8 +78,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             if updated_ids_len > 0:
                 while count < updated_ids_len:
                     for account in self.model.get_es_records_by_zpa_id(updated_ids[count:self.step_size]):
-                        print(account)
-                        #step_count += self.step_size
                         count += 1
                         self.append_site_values(account)
                         logger.debug("Record found: {0}".format(account.get('ID')))
