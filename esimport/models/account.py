@@ -27,7 +27,6 @@ class Account(BaseModel):
         q = self.eleven_query(start_date, start, limit)
         return self.get_accounts(q)
 
-    # REVIEW: Rename this function to get_accounts_by_ids() and also change the parameter name from id to ids
     def get_accounts_by_ids(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.get_accounts(q)
@@ -84,6 +83,12 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
+CASE WHEN 
+    Zone_Plan_Account.Date_Modified_UTC > Network_Access_Limits.Date_Modified_UTC
+        THEN Zone_Plan_Account.Date_Modified_UTC
+        ELSE Network_Access_Limits.Date_Modified_UTC
+        END
+AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
@@ -128,9 +133,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(start_zpa_id, limit, start_date)
         return q
 
-    #REVIEW: Since we've added the CASE statement that returns the DateModifiedUTC field.  Let's add this to the other queries to make them consistent.
-    #  For the most part all of the queries that return an account entity should return the same select list and have the same joins ... it's really just
-    #  the where clause that is different among them.
+
     @staticmethod
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
