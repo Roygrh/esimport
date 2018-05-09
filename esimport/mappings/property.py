@@ -118,3 +118,14 @@ class PropertyMapping(DocumentMapping):
 
         logger.warning("Property Service Area match not found for {0}".format(
             service_area))
+
+
+    def backload(self):
+        start = 0
+        for prop in self.model.get_properties(start, self.step_size):
+            p = prop.es()
+            logger.debug("Record found: {0}".format(prop.get('ID')))
+            self.add(dict(p), self.step_size)
+
+            # for cases when all/remaining items count were less than limit
+        self.add(None, min(len(self._items), self.step_size))

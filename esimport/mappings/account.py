@@ -26,6 +26,7 @@ from esimport.utils import retry
 from esimport.utils import convert_utc_to_local_time
 from esimport.models import ESRecord
 from esimport.models.account import Account
+from esimport.models.property import Property
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 
 from extensions import sentry_client
@@ -49,12 +50,17 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     """
     def sync(self, start_date):
 
+        # REVIEW: Only remove the TODO comment if it's actually done.  If I don't pass a date in, the code still defaults to 1/1/1900.  This is not the expected behavior.
         # TODO: Rework the code to look at the incoming start date.  If a valid start date is passed in we should use it, otherwise use the logic below.  
         #       Of course, the way it's setup currently it will always default to 1/1/1900, so this is the same as not passing in a date at all and in 
         #       that case, we should also use the logic below.
 
         # get the most recent starting point
+        #if start_date:
+        #    start_date = parser.parse(start_date)
+        #else:
         start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+        
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
 
@@ -62,23 +68,28 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             count = 0
             logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
-            for account in self.model.get_new_and_updated_accounts(start_date, end_date):
-                count += 1
-                self.append_site_values(account)
-                logger.debug("Record found: {0}".format(account.get('ID')))
-                self.add(account.es(), self.step_size)
+            updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
-                # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                start_date = parser.parse(account.get('DateModifiedUTC'))
+            while updated_ids:
+                for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
+                    count += 1
+                    self.append_site_values(account)
+                    logger.debug("Record found: {0}".format(account.get('ID')))
+                    self.add(account.es(), self.step_size)
 
-            # send the remainder of accounts to elasticsearch 
-            self.add(None, min(len(self._items), self.step_size))
+                    # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                    start_date = max(start_date, parser.parse(str(account.get('DateModifiedUTC'))))
+
+                # send the remainder of accounts to elasticsearch 
+                self.add(None, min(len(self._items), self.step_size))
+
+                # delete updated account ids in elasticsearch from updated_ids list
+                del updated_ids[0:self.step_size]
 
             logger.debug("Processed a total of {0} accounts".format(count))
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
 
             self.model.conn.reset()
-
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
             # advance end date until reaching now (after sleeping)
@@ -89,23 +100,21 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     Get the most recent date requested from elasticsearch
     """
     def get_most_recent_date(self, date_field):
-        
-        ## TODO: Is there a better way to get the date field variable into the query?
-        q = """{{
-            "query": {{
-                "match_all": {{}}
-            }},
-            "sort": [
-                {{
-                    "{0}": {{
-                        "order": "desc",
-                        "missing": "_last",
-                        "unmapped_type": "date"
-                    }}
-                }}
-            ],
-            "size": 1
-        }}""".format(date_field)
+        q = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort":[
+                    {
+                        str(date_field): {
+                            "order": "desc",
+                            "missing": "_last",
+                            "unmapped_type": "date"
+                        }
+                    }
+                ],
+                "size": 1
+        }
 
         try:
             hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']

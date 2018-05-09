@@ -30,14 +30,22 @@ class Account(BaseModel):
     def get_accounts_by_id(self, id):
         q = self.query_records_by_zpa_id(id)
         return self.get_accounts(q)
-
+    
     def get_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
 
     def get_new_and_updated_accounts(self, start_date, end_date):
         q = self.new_and_updated_accounts_query()        
-        return self.get_accounts(q, start_date, end_date)
+        return self.get_accounts(q, start_date, end_date, start_date, end_date)
+
+    def get_new_and_updated_zpa_ids(self, start_date, end_date):
+        q = self.get_new_and_updated_zpa_ids_query()
+        return self.execute(q, start_date, end_date, start_date, end_date)
+
+    def get_es_records_by_zpa_id(self, ids):
+        q = self.query_records_by_zpa_id(ids)
+        return self.get_accounts(q)
 
     def get_accounts(self, query, *args):
         dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
@@ -58,6 +66,20 @@ class Account(BaseModel):
         else:
             return None
 
+
+    @staticmethod
+    def get_new_and_updated_zpa_ids_query():
+        return """
+SELECT  Zone_Plan_Account.ID
+FROM Zone_Plan_Account WITH (NOLOCK)
+WHERE Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
+    UNION
+SELECT  Zone_Plan_Account.ID
+FROM Zone_Plan_Account WITH (NOLOCK)
+JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID 
+WHERE Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?"""
+
+
     """
     Returns all account records that have been modified in the given date range.  
     Since the Date_Modified_UTC defaults to the current time, this query also returns all new account records as well.
@@ -69,7 +91,7 @@ SELECT
     Zone_Plan_Account.ID as ID,
     Member.Display_Name AS Name,
     Member.Number AS MemberNumber,
-    Member_Status.Name AS Status,
+    Zone_Plan_Account_Status.Name AS Status,
     Organization.Number AS ServiceArea,
     Zone_Plan_Account.Purchase_Price AS Price,
     Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -80,6 +102,9 @@ SELECT
     Zone_Plan.Plan_Number AS ServicePlanNumber,
     Network_Access_Limits.Up_kbs AS UpCap,
     Network_Access_Limits.Down_kbs AS DownCap,
+    Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
+    Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
+    Network_Access_Limits.Date_Modified_UTC AS NetworkAccessDateModifiedUTC,
     Payment_Method.Code AS PayMethod,
     Currency.Code AS Currency,
     Credit_Card.Masked_Number AS CreditCardNumber,
@@ -97,7 +122,7 @@ SELECT
 FROM
     Zone_Plan_Account WITH (NOLOCK)
     JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-    JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+    JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
     JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
     JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
     JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
@@ -115,7 +140,9 @@ FROM
     LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
     LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE 
-    Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
+    (Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?)
+    OR
+    (Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?)
 ORDER BY 
 	Zone_Plan_Account.Date_Modified_UTC ASC"""
 
@@ -125,7 +152,7 @@ ORDER BY
         q = """Select TOP {1} Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
-Member_Status.Name AS Status,
+Zone_Plan_Account_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
@@ -135,6 +162,8 @@ Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
 Network_Access_Limits.Down_kbs AS DownCap,
+Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
+Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
 Payment_Method.Code AS PayMethod,
 Currency.Code AS Currency,
 Credit_Card.Masked_Number AS CreditCardNumber,
@@ -151,7 +180,7 @@ Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
@@ -178,16 +207,24 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
-Member_Status.Name AS Status,
+Zone_Plan_Account_Status.Name AS Status,
 Organization.Number AS ServiceArea,
 Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
+CASE WHEN 
+    Zone_Plan_Account.Date_Modified_UTC > Network_Access_Limits.Date_Modified_UTC
+        THEN Zone_Plan_Account.Date_Modified_UTC
+        ELSE Network_Access_Limits.Date_Modified_UTC
+        END
+AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
 Network_Access_Limits.Down_kbs AS DownCap,
+Network_Access_Limits.Start_Date_UTC AS NetworkAccessStartDateUTC,
+Network_Access_Limits.End_Date_UTC AS NetworkAccessEndDateUTC,
 Payment_Method.Code AS PayMethod,
 Currency.Code AS Currency,
 Credit_Card.Masked_Number AS CreditCardNumber,
@@ -204,7 +241,7 @@ Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
 Org_Value.Value AS ZoneType
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
-JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
+JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID

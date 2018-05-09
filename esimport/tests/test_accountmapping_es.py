@@ -13,6 +13,7 @@ import pyodbc
 import os
 import subprocess
 from multiprocessing import Process
+import glob
 
 from unittest import TestCase
 from datetime import datetime
@@ -54,12 +55,16 @@ class TestAccountMappingElasticSearch(TestCase):
 
         self.am = AccountMapping()
         self.am.setup()
+
+        self.pm = PropertyMapping()
+        self.pm.setup()
+
         self.start = 0
-        for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
-            script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+            # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
             # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
             #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            with open(script, 'r') as inp:
+            with open(sql, 'r') as inp:
                 sqlQuery = ''
                 for line in inp:
                     if 'GO' not in line:
@@ -381,9 +386,13 @@ class TestAccountMappingElasticSearch(TestCase):
     def test_date_modified_update(self):
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
+        self.pm.backload()
+        
         am = AccountMapping()
         am.setup()
-        check_time_change = lambda _am: _am.check_for_time_change()
+
+        initial_date = self.am.model.execute("""SELECT MAX(Date_Modified_UTC) from Zone_Plan_Account""").fetchone()[0].strftime('%Y-%m-%d %H:%M:%S')
+        check_time_change = lambda _am: _am.sync(initial_date)
         t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
 
@@ -400,16 +409,16 @@ class TestAccountMappingElasticSearch(TestCase):
         
 
         # change a record in db
-        current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        # current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
+        current_time = '2018-04-05 10:33:20.000'
         q = """UPDATE Zone_Plan_Account 
             SET Purchase_Price=13.0,Date_Modified_UTC=? 
             WHERE ID=1"""
 
         self.am.model.execute(q, current_time).commit()
-        
-        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID=1""").fetchone()
-        self.assertEqual(zpa_1[1], 13.0)
+        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price,Date_Modified_UTC FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         time.sleep(1)
+        self.assertEqual(zpa_1[1], 13.0)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
 
@@ -421,11 +430,11 @@ class TestAccountMappingElasticSearch(TestCase):
                                     WHEN 3 THEN 40.0
                                 END,
                 Date_Modified_UTC = CASE ID
-                                    WHEN 1 THEN GETUTCDATE()
-                                    WHEN 2 THEN GETUTCDATE()
-                                    WHEN 3 THEN GETUTCDATE()
+                                    WHEN 1 THEN '{0}'
+                                    WHEN 2 THEN '{0}'
+                                    WHEN 3 THEN '{0}'
                                 END
-            WHERE ID IN (1,2,3)"""
+            WHERE ID IN (1,2,3)""".format('2018-04-05 10:34:20.000')
         self.am.model.execute(q).commit()
 
         query = {'query': {
@@ -434,9 +443,10 @@ class TestAccountMappingElasticSearch(TestCase):
         }
 
         # Wait for the database connection to reset
-        time.sleep(settings.DATABASE_CALLS_WAIT)
+        # time.sleep(settings.DATABASE_CALLS_WAIT)
+        time.sleep(1)
         
-        zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query, doc_type='account')['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
@@ -446,14 +456,28 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[1][1]))
             elif zpa['_source']['ID'] == 3:
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
+        t.is_alive()
 
 
     def tearDown(self):
-        self.am.model.execute("""DECLARE @sql nvarchar(max) = '';
+        self.am.model.execute("""
+DECLARE @sql NVARCHAR(MAX);
+SET @sql = N'';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+  + QUOTENAME(c.name) + ';'
+FROM sys.objects AS c
+INNER JOIN sys.tables AS t
+ON c.parent_object_id = t.[object_id]
+INNER JOIN sys.schemas AS s 
+ON t.[schema_id] = s.[schema_id]
+WHERE c.[type] = 'F'
+ORDER BY c.[type];
 SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
 FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
 EXEC SP_EXECUTESQL @sql;""").commit()
+
         es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
