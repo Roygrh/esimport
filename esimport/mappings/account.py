@@ -78,7 +78,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                     self.add(account.es(), self.step_size)
 
                     # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                    start_date = max(start_date, parser.parse(str(account.get('DateModifiedUTC'))))
+                    start_date = max(start_date, parser.parse(account.get('DateModifiedUTC')))
 
                 # send the remainder of accounts to elasticsearch 
                 self.add(None, min(len(self._items), self.step_size))
