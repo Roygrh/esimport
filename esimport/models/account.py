@@ -27,6 +27,7 @@ class Account(BaseModel):
         q = self.eleven_query(start_date, start, limit)
         return self.get_accounts(q)
 
+    # REVIEW: Rename this function to get_accounts_by_ids() and also change the parameter name from id to ids
     def get_accounts_by_id(self, id):
         q = self.query_records_by_zpa_id(id)
         return self.get_accounts(q)
@@ -35,6 +36,7 @@ class Account(BaseModel):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
 
+    # REVIEW: Clean up this code. If nothing is calling this, let's delete it.  Also delete any function it calls if it's not being used.
     def get_new_and_updated_accounts(self, start_date, end_date):
         q = self.new_and_updated_accounts_query()        
         return self.get_accounts(q, start_date, end_date, start_date, end_date)
@@ -43,6 +45,8 @@ class Account(BaseModel):
         q = self.get_new_and_updated_zpa_ids_query()
         return self.execute(q, start_date, end_date, start_date, end_date)
 
+    # REVIEW:  Why create a new function?  The function above (get_accounts_by_id()) does exactly the same thing as this.  Let's delete this function
+    # and rework the code to use the existing function.
     def get_es_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.get_accounts(q)
@@ -70,16 +74,17 @@ class Account(BaseModel):
     @staticmethod
     def get_new_and_updated_zpa_ids_query():
         return """
-SELECT  Zone_Plan_Account.ID
+SELECT Zone_Plan_Account.ID
 FROM Zone_Plan_Account WITH (NOLOCK)
 WHERE Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
     UNION
-SELECT  Zone_Plan_Account.ID
+SELECT Zone_Plan_Account.ID
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID 
 WHERE Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?"""
 
 
+    # REVIEW: Is this needed anymore?  If not, delete it.
     """
     Returns all account records that have been modified in the given date range.  
     Since the Date_Modified_UTC defaults to the current time, this query also returns all new account records as well.
@@ -202,6 +207,9 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         q = q.format(start_zpa_id, limit, start_date)
         return q
 
+    #REVIEW: Since we've added the CASE statement that returns the DateModifiedUTC field.  Let's add this to the other queries to make them consistent.
+    #  For the most part all of the queries that return an account entity should return the same select list and have the same joins ... it's really just
+    #  the where clause that is different among them.
     @staticmethod
     def query_records_by_zpa_id(ids):
         q = """Select Zone_Plan_Account.ID as ID,
