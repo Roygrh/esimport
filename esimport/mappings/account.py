@@ -49,6 +49,12 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     Loop to continuous add/update accounts
     """
     def sync(self, start_date):
+
+        # REVIEW: Only remove the TODO comment if it's actually done.  If I don't pass a date in, the code still defaults to 1/1/1900.  This is not the expected behavior.
+        # TODO: Rework the code to look at the incoming start date.  If a valid start date is passed in we should use it, otherwise use the logic below.  
+        #       Of course, the way it's setup currently it will always default to 1/1/1900, so this is the same as not passing in a date at all and in 
+        #       that case, we should also use the logic below.
+
         # get the most recent starting point
         if start_date:
             start_date = parser.parse(start_date)
@@ -81,10 +87,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 del updated_ids[0:self.step_size]
 
             logger.debug("Processed a total of {0} accounts".format(count))
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
 
             self.model.conn.reset()
-
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
             # advance end date until reaching now (after sleeping)
