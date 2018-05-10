@@ -27,21 +27,13 @@ class Account(BaseModel):
         q = self.eleven_query(start_date, start, limit)
         return self.get_accounts(q)
 
-    def get_accounts_by_modified_date_range(self, start_date, end_date):
-        q = self.query_records_by_modified_date_range()
+    def get_accounts_by_modified_date(self, start_date, end_date):
+        q = self.query_records_by_modified_date()
         return self.get_accounts(q, start_date, end_date, start_date, end_date)
 
-    def get_accounts_by_ids(self, ids):
-        q = self.query_records_by_zpa_id(ids)
-        return self.get_accounts(q)
-    
     def get_records_by_zpa_id(self, ids):
         q = self.query_records_by_zpa_id(ids)
         return self.fetch_dict(q)
-
-    def get_new_and_updated_zpa_ids(self, start_date, end_date):
-        q = self.get_new_and_updated_zpa_ids_query()
-        return self.execute(q, start_date, end_date, start_date, end_date)
 
     def get_accounts(self, query, *args):
         dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
@@ -61,19 +53,6 @@ class Account(BaseModel):
             return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
         else:
             return None
-
-
-    @staticmethod
-    def get_new_and_updated_zpa_ids_query():
-        return """
-SELECT Zone_Plan_Account.ID
-FROM Zone_Plan_Account WITH (NOLOCK)
-WHERE Zone_Plan_Account.Date_Modified_UTC > ? AND Zone_Plan_Account.Date_Modified_UTC <= ?
-    UNION
-SELECT Zone_Plan_Account.ID
-FROM Zone_Plan_Account WITH (NOLOCK)
-JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID 
-WHERE Network_Access_Limits.Date_Modified_UTC > ? AND Network_Access_Limits.Date_Modified_UTC <= ?"""
 
 
     @staticmethod
@@ -198,7 +177,7 @@ ORDER BY Zone_Plan_Account.ID ASC"""
         return q
 
     @staticmethod
-    def query_records_by_modified_date_range():
+    def query_records_by_modified_date():
         return """
 SELECT
     Zone_Plan_Account.ID as ID,
