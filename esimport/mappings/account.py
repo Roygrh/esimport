@@ -60,6 +60,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         #    start_date = parser.parse(start_date)
         #else:
         start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+
+        # for testing on staging env
+        start_date = datetime(2018, 3, 30)
         
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
