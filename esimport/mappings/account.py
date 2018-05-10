@@ -71,7 +71,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
 
             while updated_ids:
-                for account in self.model.get_es_records_by_zpa_id(updated_ids[0:self.step_size]):
+                for account in self.model.get_accounts_by_ids(updated_ids[0:self.step_size]):
                     count += 1
                     self.append_site_values(account)
                     logger.debug("Record found: {0}".format(account.get('ID')))
