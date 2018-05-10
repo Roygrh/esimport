@@ -60,7 +60,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         #    start_date = parser.parse(start_date)
         #else:
         start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
-        
+
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
 
@@ -68,23 +68,18 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             count = 0
             logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
-            updated_ids = [str(id[0]) for id in self.model.get_new_and_updated_zpa_ids(start_date, end_date)]
+            for account in self.model.get_accounts_by_modified_date(start_date, end_date):
+                count += 1
+                self.append_site_values(account)
+                logger.debug("Record found: {0}".format(account.get('ID')))
+                self.add(account.es(), self.step_size)
 
-            while updated_ids:
-                for account in self.model.get_accounts_by_ids(updated_ids[0:self.step_size]):
-                    count += 1
-                    self.append_site_values(account)
-                    logger.debug("Record found: {0}".format(account.get('ID')))
-                    self.add(account.es(), self.step_size)
+                # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
+                start_date = parser.parse(account.get('DateModifiedUTC'))
+                logger.debug("New Start Date: {0}".format(start_date))
 
-                    # keep track of latest start_date
-                    start_date = max(start_date, parser.parse(account.get('DateModifiedUTC') or account.get('Created')))
-
-                # send the remainder of accounts to elasticsearch 
-                self.add(None, min(len(self._items), self.step_size))
-
-                # delete updated account ids in elasticsearch from updated_ids list
-                del updated_ids[0:self.step_size]
+            # send the remainder of accounts to elasticsearch 
+            self.add(None, min(len(self._items), self.step_size))
 
             logger.debug("Processed a total of {0} accounts".format(count))
             logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
