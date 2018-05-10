@@ -79,7 +79,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
                     # keep track of latest start_date
                     logger.debug("Date Modified UTC: {0}".format(account.get('DateModifiedUTC')))
-                    start_date = max(start_date, parser.parse(account.get('DateModifiedUTC')))
+                    logger.debug("Created: {0}".format(account.get('Created')))
+                    start_date = max(start_date, parser.parse(account.get('DateModifiedUTC') or account.get('Created')))
 
                 # send the remainder of accounts to elasticsearch 
                 self.add(None, min(len(self._items), self.step_size))
