@@ -83,12 +83,11 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
-CASE WHEN 
-    Zone_Plan_Account.Date_Modified_UTC > Network_Access_Limits.Date_Modified_UTC
-        THEN Zone_Plan_Account.Date_Modified_UTC
-        ELSE Network_Access_Limits.Date_Modified_UTC
-        END
-AS DateModifiedUTC,
+CASE 
+	WHEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC) > COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+    THEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+    ELSE COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+END AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
@@ -145,12 +144,11 @@ Zone_Plan_Account.Purchase_Price AS Price,
 Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
 Zone_Plan_Account.Activation_Date_UTC AS Activated,
 Zone_Plan_Account.Date_Created_UTC AS Created,
-CASE WHEN 
-    Zone_Plan_Account.Date_Modified_UTC > Network_Access_Limits.Date_Modified_UTC
-        THEN Zone_Plan_Account.Date_Modified_UTC
-        ELSE Network_Access_Limits.Date_Modified_UTC
-        END
-AS DateModifiedUTC,
+CASE 
+	WHEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC) > COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+    THEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+    ELSE COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
+END AS DateModifiedUTC,
 Zone_Plan.Name AS ServicePlan,
 Zone_Plan.Plan_Number AS ServicePlanNumber,
 Network_Access_Limits.Up_kbs AS UpCap,
