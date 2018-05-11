@@ -87,7 +87,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             self.model.conn.reset()
             time.sleep(self.db_wait)
 
-            # advance end date until reaching now (after sleeping)
+            # advance start date but never beyond the last end date
+            start_date = min(start_date, end_date)
+
+            # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.utcnow())
 
 
