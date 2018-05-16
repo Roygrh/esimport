@@ -66,7 +66,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         while True:
             count = 0
-            logger.debug("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
+            logger.info("Checking for new and updated accounts between {0} and {1}".format(start_date, end_date))
 
             for account in self.model.get_accounts_by_modified_date(start_date, end_date):
                 count += 1
@@ -81,8 +81,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             # send the remainder of accounts to elasticsearch 
             self.add(None, min(len(self._items), self.step_size))
 
-            logger.debug("Processed a total of {0} accounts".format(count))
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            logger.info("Processed a total of {0} accounts".format(count))
+            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
 
             self.model.conn.reset()
             time.sleep(self.db_wait)
