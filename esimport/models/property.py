@@ -27,8 +27,9 @@ class Property(BaseModel):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
-                'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
+        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 
+              'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 
+              'TimeZone', 'ActiveMembers', 'ActiveDevices']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
@@ -66,11 +67,20 @@ Organization.Pan_Enabled as Pan,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
-Time_Zone.Tzid as TimeZone
+Time_Zone.Tzid as TimeZone,
+COALESCE(Radius_Active_Usage_Count.ActiveMembers, 0) as ActiveMembers,
+COALESCE(Radius_Active_Usage_Count.ActiveDevices, 0) as ActiveDevices
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
 Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+LEFT JOIN 
+    (SELECT
+        Radius_Active_Usage.Organization_ID,
+        COUNT( DISTINCT Radius_Active_Usage.Member_ID) ActiveMembers, 
+        COUNT( DISTINCT Radius_Active_Usage.Calling_Station_Id) ActiveDevices
+     FROM Radius_Active_Usage
+     GROUP BY Radius_Active_Usage.Organization_ID) AS Radius_Active_Usage_Count ON Radius_Active_Usage_Count.Organization_ID = Organization.ID
 Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
