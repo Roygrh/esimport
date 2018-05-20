@@ -27,8 +27,9 @@ class Property(BaseModel):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms',
-                'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
+        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 
+              'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 
+              'TimeZone', 'ActiveMembers', 'ActiveDevices']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
