@@ -67,8 +67,8 @@ Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
 Time_Zone.Tzid as TimeZone,
-Radius_Active_Usage_Count.ActiveMembers as ActiveMembers,
-Radius_Active_Usage_Count.ActiveDevices as ActiveDevices
+ISNULL(Radius_Active_Usage_Count.ActiveMembers, 0) as ActiveMembers,
+ISNULL(Radius_Active_Usage_Count.ActiveDevices, 0) as ActiveDevices
 FROM Organization WITH (NOLOCK)
 LEFT JOIN Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 LEFT JOIN Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
