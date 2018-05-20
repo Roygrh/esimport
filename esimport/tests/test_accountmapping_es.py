@@ -459,6 +459,23 @@ class TestAccountMappingElasticSearch(TestCase):
         t.is_alive()
 
 
+
+    def test_property_query_one(self):
+        count_query = """SELECT 
+    Organization_ID, 
+    COUNT(DISTINCT Member_ID) ActiveMembers, 
+    COUNT(DISTINCT Calling_Station_Id) ActiveDevices
+FROM Radius_Active_Usage
+GROUP BY Organization_ID"""
+        counts = self.am.model.execute(count_query).fetchall()
+        q = self.pm.model.query_one('0', '2')
+        results = self.am.model.execute(q).fetchall()
+
+        # check if count matches
+        self.assertEqual(results[0][11], counts[results[0][0]][1])
+        self.assertEqual(results[0][12], counts[results[0][0]][2])
+
+
     def tearDown(self):
         self.am.model.execute("""
 DECLARE @sql NVARCHAR(MAX);
