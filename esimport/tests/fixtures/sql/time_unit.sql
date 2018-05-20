@@ -1,5 +1,5 @@
--- DROP TABLE [dbo].[Time_Unit]
--- GO
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 

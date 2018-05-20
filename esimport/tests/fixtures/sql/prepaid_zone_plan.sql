@@ -1,5 +1,5 @@
--- DROP TABLE [dbo].[Prepaid_Zone_Plan]
--- GO
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 

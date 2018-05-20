@@ -1,5 +1,6 @@
--- DROP TABLE [dbo].[Zone_Plan_Account_Promotional_Code]
--- GO
+USE [Eleven_OS]
+GO
+
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 
                  WHERE TABLE_SCHEMA = 'dbo' 

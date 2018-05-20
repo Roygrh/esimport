@@ -1,5 +1,5 @@
--- DROP TABLE [dbo].[Credit_Card_Type]
--- GO
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 
