@@ -475,6 +475,12 @@ GROUP BY Organization_ID"""
         self.assertEqual(results[0][11], counts[results[0][0]][1])
         self.assertEqual(results[0][12], counts[results[0][0]][2])
 
+        # check if sql COUNT() returns 0, column also contains 0 rather than NULL
+        self.am.model.execute("""DELETE FROM Radius_Active_Usage WHERE Organization_ID = 3""").commit()
+        results = self.am.model.execute(q).fetchall()
+        self.assertEqual(results[0][11], 0)
+        self.assertEqual(results[0][12], 0)
+
 
     def tearDown(self):
         self.am.model.execute("""
