@@ -24,13 +24,13 @@ CREATE TABLE [dbo].[Time_Zone](
 	-- [Enabled] [bit] NOT NULL,
 	-- [Base_Pst_Offset]  AS ((-25200)-[Base_Utc_Offset]),
  CONSTRAINT [PK_Time_Zone] PRIMARY KEY CLUSTERED 
-(-
+(
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 75) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-ALTER TABLE [dbo].[Time_Zone] ADD  CONSTRAINT [DF_Time_Zone_Enabled]  DEFAULT ((1)) FOR [Enabled]
-GO
+-- ALTER TABLE [dbo].[Time_Zone] ADD  CONSTRAINT [DF_Time_Zone_Enabled]  DEFAULT ((1)) FOR [Enabled]
+-- GO
 
 
 INSERT INTO [dbo].[Time_Zone](Description, Tzid)
