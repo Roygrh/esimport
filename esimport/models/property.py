@@ -78,7 +78,7 @@ LEFT JOIN
         ( SELECT Radius_Active_Usage.Organization_ID,
              COUNT( DISTINCT Radius_Active_Usage.Member_ID) ActiveMembers,
              COUNT( DISTINCT Radius_Active_Usage.Calling_Station_Id) ActiveDevices
-        FROM Radius_Active_Usage WHERE Radius_Active_Usage.Organization_ID = Radius_Active_Usage.Organization_ID
+        FROM Radius_Active_Usage
         GROUP BY Radius_Active_Usage.Organization_ID ) AS Radius_Active_Usage_Count
     ON Organization.ID = Radius_Active_Usage_Count.Organization_ID
 WHERE Organization.Org_Category_Type_ID = 3
