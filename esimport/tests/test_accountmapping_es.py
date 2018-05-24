@@ -458,29 +458,30 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
         t.is_alive()
 
+    def test_esrecord_has_devices_members_count(self):
+        count_query = """SELECT Organization_ID,
+                                COUNT(DISTINCT Member_ID) ActiveMembers,
+                                COUNT(DISTINCT Calling_Station_Id) ActiveDevices
+                        FROM Radius_Active_Usage
+                        GROUP BY Organization_ID"""
 
-
-    def test_property_query_one(self):
-        count_query = """SELECT 
-    Organization_ID, 
-    COUNT(DISTINCT Member_ID) ActiveMembers, 
-    COUNT(DISTINCT Calling_Station_Id) ActiveDevices
-FROM Radius_Active_Usage
-GROUP BY Organization_ID"""
         counts = self.am.model.execute(count_query).fetchall()
-        q = self.pm.model.query_one('0', '2')
-        results = self.am.model.execute(q).fetchall()
-
-        # check if count matches
-        self.assertEqual(results[0][11], counts[results[0][0]][1])
-        self.assertEqual(results[0][12], counts[results[0][0]][2])
-
-        # check if sql COUNT() returns 0, column also contains 0 rather than NULL
-        self.am.model.execute("""DELETE FROM Radius_Active_Usage WHERE Organization_ID = 3""").commit()
-        results = self.am.model.execute(q).fetchall()
-        self.assertEqual(results[0][11], 0)
-        self.assertEqual(results[0][12], 0)
-
+#         q = self.pm.model.query_one('0', '2')
+#         results = self.am.model.execute(q).fetchall()
+#
+#         # check if count matches
+#         self.assertEqual(results[0][11], counts[results[0][0]][1])
+#         self.assertEqual(results[0][12], counts[results[0][0]][2])
+#
+#         # check if sql COUNT() returns 0, column also contains 0 rather than NULL
+#         self.am.model.execute("""DELETE FROM Radius_Active_Usage WHERE Organization_ID = 3""").commit()
+#         results = self.am.model.execute(q).fetchall()
+#         self.assertEqual(results[0][11], 0)
+#         self.assertEqual(results[0][12], 0)
+        props = [prop for prop in self.pm.model.get_properties(0, 2)]
+        for prop in props:
+            self.assertEqual(prop.record['ActiveMembers'], counts[prop.record['ID']-1][1])
+            self.assertEqual(prop.record['ActiveDevices'], counts[prop.record['ID']-1][2])
 
     def tearDown(self):
         self.am.model.execute("""
