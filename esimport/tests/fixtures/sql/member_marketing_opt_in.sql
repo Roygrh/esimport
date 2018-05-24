@@ -1,5 +1,5 @@
--- DROP TABLE [dbo].[Member_Marketing_Opt_In]
--- GO
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 

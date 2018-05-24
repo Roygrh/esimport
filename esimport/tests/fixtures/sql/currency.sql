@@ -1,6 +1,5 @@
--- DROP TABLE [dbo].[Currency]
--- GO
-
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 

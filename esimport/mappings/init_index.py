@@ -59,7 +59,7 @@ class new_index(object):
                 "Lite": {"type": "boolean"},
                 "Pan": {"type": "boolean"},
                 "Status": {"type": "keyword", "ignore_above": 16},
-                "CreatedUTC": {"type": "date"}, "GoLiveUTC": {"type": "date"},
+                "CreatedUTC": {"type": "date"},
                 "GoLiveUTC": {"type": "date"},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "Provider": {"type": "keyword", "ignore_above": 128},
@@ -80,7 +80,9 @@ class new_index(object):
                                  }
                              }
                              },
-                "TaxRate": {"type": "float"}
+                "TaxRate": {"type": "float"},
+                "ActiveMembers": {"type": "integer"},
+                "ActiveDevices": {"type": "integer"}
             }
         }
 
@@ -159,7 +161,6 @@ class new_index(object):
                 "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
                 "SpanTime": {"type": "integer"},
                 "SpanUnit": {"type": "keyword", "ignore_above": 16},
-                "ConnectCode": {"type": "text"},
                 "ZoneType": {"type": "text",
                              "fields": {
                                  "keyword": {
