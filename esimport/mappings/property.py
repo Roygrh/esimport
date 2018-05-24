@@ -100,8 +100,9 @@ class PropertyMapping(DocumentMapping):
     Use ElasticSearch Property data to find the site associated with a service area
     """
 
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
+    # @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
+    # @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionTimeout)
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_properties_by_service_area(self, service_area):
         logger.debug("Fetching records from ES where field name {0} exists." \
                      .format(service_area))
