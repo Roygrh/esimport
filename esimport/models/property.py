@@ -27,9 +27,8 @@ class Property(BaseModel):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 
-              'Lite', 'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 
-              'TimeZone', 'ActiveMembers', 'ActiveDevices']
+        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
+              'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
@@ -50,6 +49,13 @@ class Property(BaseModel):
                 sa_list.append(rec4.Service_Area_Number)
 
             rec1['ServiceAreas'] = sa_list
+
+            q = self.query_get_active_counts()
+            row = self.execute(q, rec1['ID']).fetchone()
+
+            rec1['ActiveMembers'] = row.ActiveMembers if row else 0
+            rec1['ActiveDevices'] = row.ActiveDevices if row else 0
+            
             rec1['UpdateTime'] = datetime.utcnow().isoformat()
 
             yield ESRecord(rec1, self.get_type())
@@ -67,21 +73,12 @@ Organization.Pan_Enabled as Pan,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
-Time_Zone.Tzid as TimeZone,
-ISNULL(Radius_Active_Usage_Count.ActiveMembers, 0) as ActiveMembers,
-ISNULL(Radius_Active_Usage_Count.ActiveDevices, 0) as ActiveDevices
-FROM Organization WITH (NOLOCK)
-LEFT JOIN Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
-LEFT JOIN Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
-LEFT JOIN Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
-LEFT JOIN
-        ( SELECT Radius_Active_Usage.Organization_ID,
-             COUNT( DISTINCT Radius_Active_Usage.Member_ID) ActiveMembers,
-             COUNT( DISTINCT Radius_Active_Usage.Calling_Station_Id) ActiveDevices
-        FROM Radius_Active_Usage
-        GROUP BY Radius_Active_Usage.Organization_ID ) AS Radius_Active_Usage_Count
-    ON Organization.ID = Radius_Active_Usage_Count.Organization_ID
-WHERE Organization.Org_Category_Type_ID = 3
+Time_Zone.Tzid as TimeZone
+From Organization WITH (NOLOCK)
+Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
+Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
+Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
         q = q.format(limit, start)
@@ -118,3 +115,12 @@ WHERE Parent_Org_ID = {0}
     AND Organization.Org_Category_Type_ID = 4"""
         q = q.format(org_id)
         return q
+
+
+    @staticmethod
+    def query_get_active_counts():
+        return """SELECT COUNT(DISTINCT r.Member_ID) as ActiveMembers,
+                         COUNT(DISTINCT r.Calling_Station_Id) as ActiveDevices
+                  FROM Radius_Active_Usage r
+                  INNER JOIN Org_Relation_Cache o ON o.Child_Org_ID = r.Organization_ID
+                  WHERE o.Parent_Org_ID = ?"""
