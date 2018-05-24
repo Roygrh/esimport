@@ -161,7 +161,6 @@ class new_index(object):
                 "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
                 "SpanTime": {"type": "integer"},
                 "SpanUnit": {"type": "keyword", "ignore_above": 16},
-                "ConnectCode": {"type": "text"},
                 "ZoneType": {"type": "text",
                              "fields": {
                                  "keyword": {
