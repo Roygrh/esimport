@@ -459,17 +459,13 @@ class TestAccountMappingElasticSearch(TestCase):
         t.is_alive()
 
     def test_esrecord_has_devices_members_count(self):
-        count_query = """SELECT Organization_ID,
-                                COUNT(DISTINCT Member_ID) ActiveMembers,
-                                COUNT(DISTINCT Calling_Station_Id) ActiveDevices
-                        FROM Radius_Active_Usage
-                        GROUP BY Organization_ID"""
-
-        counts = self.am.model.execute(count_query).fetchall()
+        count_query_by_id = self.pm.model.query_get_active_counts()
         props = [prop for prop in self.pm.model.get_properties(0, 2)]
+
         for prop in props:
-            self.assertEqual(prop.record['ActiveMembers'], counts[prop.record['ID']-1][1])
-            self.assertEqual(prop.record['ActiveDevices'], counts[prop.record['ID']-1][2])
+            counts = self.am.model.execute(count_query_by_id, prop.record['ID']).fetchone()
+            self.assertEqual(prop.record['ActiveMembers'], counts[0])
+            self.assertEqual(prop.record['ActiveDevices'], counts[1])
 
     def test_property_update_in_elasticsearch(self):
         # create index
