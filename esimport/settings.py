@@ -58,6 +58,10 @@ SENTRY_DSN = ''
 ES_CLUSTER = ''
 SQL_SERVER = ''
 
+# Redis
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+
 try:
     from local_settings import *
 except:
