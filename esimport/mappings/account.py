@@ -56,10 +56,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         #       that case, we should also use the logic below.
 
         # get the most recent starting point
-        #if start_date:
-        #    start_date = parser.parse(start_date)
-        #else:
-        start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+        if start_date:
+            start_date = parser.parse(start_date)
+        else:
+            start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
 
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window

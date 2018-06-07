@@ -61,7 +61,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             time.sleep(self.db_wait)
 
     """
-    Loop to continuously find new Devices and add them
+    Loop to continuously find new Conferences and add them
     """
     def sync(self, start_date):
         while True:

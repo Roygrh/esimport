@@ -24,8 +24,8 @@ class Conference(BaseModel):
         return Conference._type
 
     def get_conferences(self, start, limit, start_date='1900-01-01'):
-        logger.debug("Fetching conferences from Organization.ID >= {0} (limit: {1})"
-                     .format(start, limit))
+        logger.debug("Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
+                     .format(start, start_date, limit))
 
         dt_columns = ['DateCreatedUTC', 'StartDateUTC', 'EndDateUTC']
         q1 = self.query_one(start_date, start, limit)
