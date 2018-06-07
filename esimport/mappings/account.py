@@ -61,7 +61,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         else:
             start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
 
-        time_delta_window = timedelta(hours=1)
+        time_delta_window = timedelta(days=1)
         end_date = start_date + time_delta_window
 
         while True:
