@@ -1,5 +1,5 @@
--- DROP TABLE [dbo].[Network_Access_Limits]
--- GO
+USE [Eleven_OS]
+GO
 
 IF (EXISTS (SELECT * 
                  FROM INFORMATION_SCHEMA.TABLES 

@@ -118,7 +118,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertFalse(es.indices.exists(index=_index))
 
 
-    def test_upsert(self): 
+    def test_upsert(self):
         _index = settings.ES_INDEX
         _type = Account.get_type()
 
@@ -387,7 +387,7 @@ class TestAccountMappingElasticSearch(TestCase):
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
         self.pm.backload()
-        
+
         am = AccountMapping()
         am.setup()
 
@@ -406,7 +406,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertTrue(len(zpa_1_es) > 0)
         self.assertEqual(zpa_1_es[0]['_source']['ID'], 1)
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
-        
+
 
         # change a record in db
         # current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -445,7 +445,7 @@ class TestAccountMappingElasticSearch(TestCase):
         # Wait for the database connection to reset
         # time.sleep(settings.DATABASE_CALLS_WAIT)
         time.sleep(1)
-        
+
         zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query, doc_type='account')['hits']['hits']
         zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
@@ -458,6 +458,44 @@ class TestAccountMappingElasticSearch(TestCase):
                 self.assertEqual(zpa['_source']['Price'], float(zpa_123[2][1]))
         t.is_alive()
 
+    def test_esrecord_has_devices_members_count(self):
+        count_query_by_id = self.pm.model.query_get_active_counts()
+        props = [prop for prop in self.pm.model.get_properties(0, 2)]
+
+        for prop in props:
+            counts = self.am.model.execute(count_query_by_id, prop.record['ID']).fetchone()
+            self.assertEqual(prop.record['ActiveMembers'], counts[0])
+            self.assertEqual(prop.record['ActiveDevices'], counts[1])
+
+    def test_property_update_in_elasticsearch(self):
+        # create index
+        self.es.indices.create(index=settings.ES_INDEX, ignore=400)
+
+        pm = PropertyMapping()
+        pm.setup()
+        property_update = lambda _pm: _pm.update()
+        t = threading.Thread(target=property_update, args=(pm,), daemon=True)
+        t.start()
+
+        # time to catch up
+        time.sleep(1)
+
+        property_list = []
+        props = [prop for prop in self.pm.model.get_properties(0, 2)]
+        for prop in props:
+            property_list.append(prop.record)
+        property_list.sort(key=itemgetter('ID'))
+
+        # get all property from elasticsearch
+        property_es_list = []
+        query = {'query': {'term': {'_type': 'property'}}}
+        property_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        for prop in property_es:
+            property_es_list.append(prop['_source'])
+        property_es_list.sort(key=itemgetter('ID'))
+
+        self.assertEqual(property_list[0]['ActiveMembers'], property_es_list[0]['ActiveMembers'])
+        self.assertEqual(property_list[1]['ActiveMembers'], property_es_list[1]['ActiveMembers'])
 
     def tearDown(self):
         self.am.model.execute("""
