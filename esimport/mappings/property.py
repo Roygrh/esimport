@@ -18,6 +18,7 @@ from esimport import settings
 from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.doc import DocumentMapping
+from esimport.cache import RedisClient
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class PropertyMapping(DocumentMapping):
         logger.debug("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.redis_client = RedisClient()
 
     """
     Add Properties from SQL into ElasticSearch
@@ -83,6 +85,8 @@ class PropertyMapping(DocumentMapping):
             for prop in self.model.get_properties(start, self.step_size):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
+                print(prop.record)
+                self.redis_client.set(prop.record)
                 self.add(dict(prop.es()), self.step_size)
                 start = prop.record.get('ID')
 
