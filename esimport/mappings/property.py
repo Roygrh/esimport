@@ -85,7 +85,6 @@ class PropertyMapping(DocumentMapping):
             for prop in self.model.get_properties(start, self.step_size):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
-                print(prop.record)
                 self.redis_client.set(prop.record)
                 self.add(dict(prop.es()), self.step_size)
                 start = prop.record.get('ID')
@@ -106,18 +105,24 @@ class PropertyMapping(DocumentMapping):
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_properties_by_service_area(self, service_area):
-        logger.debug("Fetching records from ES where field name {0} exists." \
-                     .format(service_area))
-        records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
-                                 body={
-                                     "query": {
-                                         "match": {
-                                             "ServiceAreas": service_area
-                                         }
-                                     }
-                                 })
-        for record in records['hits']['hits']:
-            yield record.get('_source')
+        if self.redis_client.get_keys(service_area):
+            logger.debug("Fetching records from Redis where key {0} exists." \
+                     .format(service_area))    
+            for k in self.redis_client.get_keys(service_area):
+                yield self.redis_client.get_record_by_key(k)
+        else:
+            logger.debug("Fetching records from ES where field name {0} exists." \
+                        .format(service_area))
+            records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+                                    body={
+                                        "query": {
+                                            "match": {
+                                                "ServiceAreas": service_area
+                                            }
+                                        }
+                                    })
+            for record in records['hits']['hits']:
+                yield record.get('_source')
 
         logger.warning("Property Service Area match not found for {0}".format(
             service_area))
