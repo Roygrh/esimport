@@ -105,10 +105,11 @@ class PropertyMapping(DocumentMapping):
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_properties_by_service_area(self, service_area):
-        if self.redis_client.get_keys(service_area):
+        service_area_keys = self.redis_client.get_keys(service_area)
+        if service_area_keys:
             logger.debug("Fetching records from Redis where key {0} exists." \
                      .format(service_area))    
-            for k in self.redis_client.get_keys(service_area):
+            for k in service_area_keys:
                 yield self.redis_client.get_record_by_key(k)
         else:
             logger.debug("Fetching records from ES where field name {0} exists." \
