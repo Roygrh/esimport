@@ -1,8 +1,7 @@
 import redis
-import ast
+import json
 import logging
 import datetime
-import ast
 
 from esimport import settings
 
@@ -22,7 +21,7 @@ class RedisClient(object):
             if isinstance(v, datetime.datetime):
                 record[k] = v.isoformat()
         for service_area in record['ServiceAreas']:
-            self.client.set('{0}:{1}'.format(service_area, record['ID']), str(record))
+            self.client.set('{0}:{1}'.format(service_area, record['ID']), json.dumps(record))
             logger.debug("ID added to set: 'record:{}'".format(record['ID']))
         
     def get_keys(self, service_area):
@@ -30,6 +29,6 @@ class RedisClient(object):
         return service_area_keys
 
     def get_record_by_key(self, key):
-        rec = self.client.get(key).decode('utf-8')
-        d = ast.literal_eval(rec)
+        rec = self.client.get(key)
+        d = json.loads(rec)
         return d
