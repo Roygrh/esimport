@@ -3,6 +3,7 @@ pyodbc==4.0.13
 elasticsearch==5.2.0
 click==6.7
 python-dateutil==2.6.0
+redis==2.10.6
 
 # tests
 pytest==3.0.6
