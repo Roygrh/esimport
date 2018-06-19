@@ -14,6 +14,7 @@ import os
 import subprocess
 from multiprocessing import Process
 import glob
+import dateutil.parser
 
 from unittest import TestCase
 from datetime import datetime
@@ -525,6 +526,7 @@ class TestAccountMappingElasticSearch(TestCase):
         for key in record_keys:
             res = self.pm.redis_client.get_record_by_key(key)
             res['cache'] = True
+            res['CreatedUTC'] = dateutil.parser.parse(res['CreatedUTC'])
             self.pm.redis_client.set(res)
         
         for service_area in service_areas:
