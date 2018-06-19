@@ -19,7 +19,8 @@ class RedisClient(object):
         # convert datetime objects to isoformat
         datetime_fields = ['CreatedUTC', 'GoLiveUTC']
         for dt in datetime_fields:
-            record[dt] = record[dt].isoformat()
+            if record.get(dt):
+                record[dt] = record[dt].isoformat()
         for service_area in record['ServiceAreas']:
             self.client.set('{0}:{1}'.format(service_area, record['ID']), json.dumps(record))
             logger.debug("ID added to set: 'record:{}'".format(record['ID']))
