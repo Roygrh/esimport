@@ -5,31 +5,28 @@ import datetime
 
 from esimport import settings
 
-
 logger = logging.getLogger(__name__)
 
-
-class RedisClient(object):
+class CacheClient(object):
     def __init__(self):
         self.client = redis.StrictRedis(host=settings.REDIS_HOST, 
                                         port=settings.REDIS_PORT,
                                         encoding='utf-8')
 
-    def set(self, record):
-        # convert datetime objects to isoformat
-        datetime_fields = ['CreatedUTC', 'GoLiveUTC']
-        for dt in datetime_fields:
-            if record.get(dt):
-                record[dt] = record[dt].isoformat()
-        for service_area in record['ServiceAreas']:
-            self.client.set('{0}:{1}'.format(service_area, record['ID']), json.dumps(record))
-            logger.debug("ID added to set: 'record:{}'".format(record['ID']))
-        
-    def get_keys(self, service_area):
-        service_area_keys = self.client.keys(pattern='*{}*'.format(service_area))
-        return service_area_keys
+    def set(self, key, record):
+        logger.debug("Cache - setting record for key: {0}".format(key))
+        self.client.set(key, json.dumps(record, cls=DateEncoder))
 
-    def get_record_by_key(self, key):
+    def get(self, key):
+        logger.debug("Cache - getting record for key: {0}".format(key))
         rec = self.client.get(key)
-        d = json.loads(rec)
-        return d
+        return json.loads(rec) if rec else None
+
+# https://gist.github.com/drmalex07/5149635e6ab807c8b21e
+class DateEncoder(json.JSONEncoder):
+    # https://github.com/PyCQA/pylint/issues/414
+    def default(self, obj): # pylint: disable=E0202
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
+        else:
+            return json.JSONEncoder.default(self, obj)
