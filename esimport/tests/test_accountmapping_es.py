@@ -14,6 +14,7 @@ import os
 import subprocess
 from multiprocessing import Process
 import glob
+import dateutil.parser
 
 from unittest import TestCase
 from datetime import datetime
@@ -497,6 +498,42 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertEqual(property_list[0]['ActiveMembers'], property_es_list[0]['ActiveMembers'])
         self.assertEqual(property_list[1]['ActiveMembers'], property_es_list[1]['ActiveMembers'])
 
+    def test_redis_cache(self):
+        # create index
+        self.es.indices.create(index=settings.ES_INDEX, ignore=400)
+
+        pm = PropertyMapping()
+        pm.setup()
+        property_update = lambda _pm: _pm.update()
+        t = threading.Thread(target=property_update, args=(pm,), daemon=True)
+        t.start()
+
+        # time to catch up
+        time.sleep(1)
+        
+        record_keys = []
+        service_areas = []
+        # check if property records are in redis    
+        property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]
+        for prop in property_list:
+            for service_area in prop['ServiceAreas']:
+                record_keys.append('{0}:{1}'.format(service_area, prop['ID']))
+                service_areas.append(service_area)
+        for key in record_keys:
+            self.assertTrue(self.pm.redis_client.client.exists(key))
+
+        # check records are returning from redis rather than elasticsearch
+        for key in record_keys:
+            res = self.pm.redis_client.get_record_by_key(key)
+            res['cache'] = True
+            res['CreatedUTC'] = dateutil.parser.parse(res['CreatedUTC'])
+            self.pm.redis_client.set(res)
+        
+        for service_area in service_areas:
+            records = self.pm.get_properties_by_service_area(service_area)
+            for rec in records:
+                self.assertTrue(rec['cache'])
+
     def tearDown(self):
         self.am.model.execute("""
 DECLARE @sql NVARCHAR(MAX);
@@ -519,3 +556,5 @@ EXEC SP_EXECUTESQL @sql;""").commit()
         es = self.am.es
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
+
+        self.pm.redis_client.client.flushall()
