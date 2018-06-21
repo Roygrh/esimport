@@ -111,7 +111,7 @@ class PropertyMapping(DocumentMapping):
         record = self.cache_client.get(service_area)
         if record is not None:
             logger.debug("Fetched record from cache for Service Area: {0}.".format(service_area))
-            return record
+            yield record
         else:
             logger.debug("Fetching records from ES where Service Area: {0} exists." \
                         .format(service_area))
