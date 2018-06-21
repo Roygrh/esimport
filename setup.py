@@ -19,13 +19,15 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'PyYAML==3.12',
-        'pyodbc==4.0.22',
+        'click==6.7',
         'elasticsearch==5.2.0',
-        'six==1.11.0',
-        'raven==6.5.0',
+        'hiredis==0.2.0',
+        'pyodbc==4.0.22',
         'python-dateutil==2.6.1',
-        'click==6.7'
+        'PyYAML==3.12',
+        'raven==6.5.0',
+        'redis==2.10.6',
+        'six==1.11.0'
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']
