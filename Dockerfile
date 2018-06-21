@@ -7,7 +7,7 @@ LABEL authors="Walid ZIOUCHE <wziouche@gmail.com>"
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 
 # Install 'build-base' meta-package for gcc and other packages needed
-# to compile dependencies listed in requirements.txt
+# to compile dependencies listed in dev-requirements.txt
 RUN apk add --update --no-cache build-base libffi-dev openssl-dev git \
             libxml2-dev libxslt-dev unixodbc-dev freetds freetds-dev g++
 

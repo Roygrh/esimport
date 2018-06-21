@@ -1,0 +1,18 @@
+click==6.7
+elasticsearch==5.2.0
+hiredis==0.2.0
+pyodbc==4.0.22
+python-dateutil==2.6.1
+PyYAML==3.12
+redis==2.10.6
+six==1.11.0
+
+# tests
+coverage==4.3.4
+mock==2.0.0
+pytest==3.0.6
+pytest-cov==2.4.0
+tox==2.6.0
+
+# alerting
+raven==6.5.0
