@@ -30,4 +30,6 @@ INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
 	VALUES(1, 'Public', 'Public')
 INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
 	VALUES(2, 'Meeting', 'Meeting')
+INSERT INTO [dbo].[Org_Value](Organization_ID, Name, Value)
+	VALUES(4, 'ZoneType', 'Meeting')
 GO
