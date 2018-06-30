@@ -29,20 +29,20 @@ GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
 SET IDENTITY_INSERT Radius_Event_History ON
-INSERT INTO [dbo].[Radius_Event_History](User_Name, Radius_Event_ID, Organization_ID)
+INSERT INTO [dbo].[Radius_Event_History](User_Name, Radius_Event_ID, Organization_ID, Member_ID)
 VALUES
-	('username1', 4464775943, 1),
-	('username2', 4464775940, 1),
-	('username3', 4464775937, 1),
-	('username4', 4464775934, 1),
-	('username5', 4464775933, 2),
-	('username6', 4464775932, 2),
-	('username7', 4464775931, 2),
-	('username8', 4464775930, 3),
-	('username9', 4464775928, 3),
-	('username10', 4464775925, 4),
-	('username11', 4464775924, 4),
-	('username12', 4464775917, 4)
+	('username1', 4464775943, 1, 1),
+	('username2', 4464775940, 1, 2),
+	('username3', 4464775937, 1, 3),
+	('username4', 4464775934, 1, 1),
+	('username5', 4464775933, 2, 2),
+	('username6', 4464775932, 2, 3),
+	('username7', 4464775931, 2, 1),
+	('username8', 4464775930, 3, 2),
+	('username9', 4464775928, 3, 3),
+	('username10', 4464775925, 4, 1),
+	('username11', 4464775924, 4, 2),
+	('username12', 4464775917, 4, 3)
 GO
 --  CONSTRAINT [PK_Radius_Event_History] PRIMARY KEY CLUSTERED 
 -- (
