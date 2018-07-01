@@ -1,5 +1,15 @@
 USE [Radius]
 GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Radius_Terminate_Cause'))
+BEGIN
+DROP TABLE [dbo].[Radius_Terminate_Cause]
+END
+GO
+
 /****** Object:  Table [dbo].[Radius_Terminate_Cause]    Script Date: 6/29/2018 8:12:55 AM ******/
 SET ANSI_NULLS ON
 GO
