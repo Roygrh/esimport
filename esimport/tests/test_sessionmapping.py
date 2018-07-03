@@ -36,20 +36,21 @@ class TestSessionMappingElasticsearch(TestCase):
 
     def test_session_data_in_es(self):
         self.es.indices.create(index=settings.ES_INDEX)
-        sm = SessionMapping()
-        sm.setup()
-        sync = lambda _sm: _sm.sync('2018-06-27')
-        t = threading.Thread(target=sync, args=(sm,), daemon=True)
-        t.start()
-
-        time.sleep(1)
+        # sm = SessionMapping()
+        # sm.setup()
+        # sync = lambda _sm: _sm.sync('2018-06-27')
+        # t = threading.Thread(target=sync, args=(sm,), daemon=True)
+        # t.start()
+        print("Before")
+        time_end = time.time() + 5
+        while time.time() < time_end:
+            self.sm.sync('2018-06-27')
 
         q = {"query": {"term": {"_type": "session"}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)
         # session_id_es = [session['_source']['ID'] for session in res]
         print(res)
         # print(session_id_es)
-        self.assertTrue(t.is_alive())
 
     def tearDown(self):
         self.sm.model.execute("""
