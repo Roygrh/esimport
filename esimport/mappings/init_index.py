@@ -118,7 +118,12 @@ class new_index(object):
 
         account_mapping = {
             "properties": {
-                "Name": {"type": "text"},
+                "Name": { "type": "text", 
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 128
+                            }}},
                 "MemberNumber": {"type": "keyword", "ignore_above": 32},
                 "Status": {"type": "keyword", "ignore_above": 16},
                 "ServiceArea": {"type": "keyword", "ignore_above": 12},

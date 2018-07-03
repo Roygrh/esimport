@@ -31,6 +31,7 @@ from esimport.mappings.property import PropertyMapping
 from esimport.connectors.mssql import MsSQLConnector
 from esimport import tests
 from esimport import settings
+from esimport.cache import CacheClient
 
 
 """
@@ -511,23 +512,21 @@ class TestAccountMappingElasticSearch(TestCase):
         # time to catch up
         time.sleep(1)
         
-        record_keys = []
         service_areas = []
         # check if property records are in redis    
         property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]
         for prop in property_list:
             for service_area in prop['ServiceAreas']:
-                record_keys.append('{0}:{1}'.format(service_area, prop['ID']))
                 service_areas.append(service_area)
-        for key in record_keys:
-            self.assertTrue(self.pm.redis_client.client.exists(key))
+        for service_area in service_areas:
+            self.assertTrue(self.pm.cache_client.client.exists(service_area))
 
         # check records are returning from redis rather than elasticsearch
-        for key in record_keys:
-            res = self.pm.redis_client.get_record_by_key(key)
+        for service_area in service_areas:
+            res = self.pm.cache_client.get(service_area)
             res['cache'] = True
             res['CreatedUTC'] = dateutil.parser.parse(res['CreatedUTC'])
-            self.pm.redis_client.set(res)
+            self.pm.cache_client.set(service_area, res)
         
         for service_area in service_areas:
             records = self.pm.get_properties_by_service_area(service_area)
@@ -557,4 +556,4 @@ EXEC SP_EXECUTESQL @sql;""").commit()
         if es.indices.exists(index=settings.ES_INDEX):
             es.indices.delete(index=settings.ES_INDEX, ignore=400)
 
-        self.pm.redis_client.client.flushall()
+        self.pm.cache_client.client.flushall()

@@ -62,3 +62,13 @@ Start an ElasticSearch server and then run following commands.
 $ export PYTHONPATH=/path/to/local_settings.py
 $ tox
 ```
+
+## Using docker-compose
+
+For now, docker-compose can be used to spin up SQLServer, Redis and ElasticSearch. 
+you can start these services with `make start-environment` or `docker-compose up redis mssql elasticsearch`.
+
+Once these services are up, you can access them like so:
+- ElasticSearch: `localhost:9200`
+- MSSQL Server: `localhost:1433`, user: `sa`, password: `DistroDev@11` (you have to create the DB and the tables)
+- Redis: `localhost:6379`

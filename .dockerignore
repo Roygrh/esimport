@@ -1,0 +1,24 @@
+.cache
+.ebextensions
+.elasticbeanstalk
+.vscode
+
+docker
+
+.git/
+
+build
+dist
+*.egg-info
+*.egg/
+*.pyc
+*.swp
+
+.gitlab-ci.yml
+.tox
+.coverage
+.coveragerc
+**/__pycache__
+
+# Compiled Documentation
+docs/_build

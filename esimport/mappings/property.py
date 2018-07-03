@@ -19,6 +19,7 @@ from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.doc import DocumentMapping
 from esimport.cache import CacheClient
+from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,12 @@ class PropertyMapping(DocumentMapping):
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_properties_by_service_area(self, service_area):
-        record = self.cache_client.get(service_area)
+        try:
+            record = self.cache_client.get(service_area)
+        except Exception:
+            record = None
+            sentry_client.captureException()
+
         if record is not None:
             logger.debug("Fetched record from cache for Service Area: {0}.".format(service_area))
             yield record

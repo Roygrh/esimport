@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+
+  # esimport can be run inside a docker container as weel, feel free to uncomment this
+  # and adjust you local_settings.py file accordingly 
+  # esimport:
+  #   container_name: esimport
+  #   build: .
+  #   # env_file: .env
+  #   depends_on:
+  #     - redis
+  #     - elasticsearch
+  #     - mssql
+  #   environment:
+  #     - PYTHONDONTWRITEBYTECODE=1
+  #   # entrypoint: pytest
+  #   entrypoint: sh
+
+  redis:
+    image: "redis:alpine"
+    container_name: esimport-redis
+    logging:
+      driver: none # disable redis logging for clearer testing readibility
+    volumes:
+      - 'redis:/var/lib/redis/data'
+    ports:
+      - '6379:6379'
+
+  elasticsearch:
+    image: elasticsearch:5-alpine
+    container_name: esimport-elasticsearch
+    volumes:
+      - 'elasticsearch:/usr/share/elasticsearch/data'
+    ports:
+      - '9200:9200'
+
+  mssql:
+    image: microsoft/mssql-server-linux:2017-CU5
+    container_name: esimport-mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=DistroDev@11
+      # DB User is 'sa', and it does not need any enviornment variable
+    ports:
+      - '1433:1433'
+    # Note: MsSQL Docker image does not support volumes on Mac machines, you might
+    # need to uncoment volumes if you're using a Mac box.
+    volumes:
+      - 'mssql:/var/opt/mssql'
+
+  # kibana:
+  #   container_name: esimport-kibana
+  #   image: kibana
+  #   ports:
+  #     - '5601:5601'
+
+volumes:
+  elasticsearch:
+  redis:
+  mssql:
