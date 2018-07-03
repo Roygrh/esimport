@@ -256,7 +256,8 @@ class new_index(object):
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"}
+                "TaxRate": {"type": "float"},
+                "NetworkDeviceType": {"type": "keyword", "ignore_above": 256}
             }
         }
 
