@@ -12,7 +12,6 @@ import logging
 
 from elasticsearch import Elasticsearch
 from elasticsearch import exceptions
-from redis import ConnectionError
 
 from esimport.utils import retry
 from esimport import settings
@@ -112,7 +111,7 @@ class PropertyMapping(DocumentMapping):
     def get_properties_by_service_area(self, service_area):
         try:
             record = self.cache_client.get(service_area)
-        except ConnectionError:
+        except Exception:
             record = None
             sentry_client.captureException()
 
