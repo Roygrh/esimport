@@ -30,27 +30,31 @@ class TestSessionMappingElasticsearch(TestCase):
                         sqlQuery = sqlQuery + line
                 self.sm.model.execute(sqlQuery).commit()
             inp.close()
+            self.sm.model.conn.reset()
 
         # self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.es = self.sm.es
 
     def test_session_data_in_es(self):
         self.es.indices.create(index=settings.ES_INDEX)
-        # sm = SessionMapping()
-        # sm.setup()
-        # sync = lambda _sm: _sm.sync('2018-06-27')
-        # t = threading.Thread(target=sync, args=(sm,), daemon=True)
-        # t.start()
-        print("Before")
-        time_end = time.time() + 5
-        while time.time() < time_end:
-            self.sm.sync('2018-06-27')
-
-        q = {"query": {"term": {"_type": "session"}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)
-        # session_id_es = [session['_source']['ID'] for session in res]
-        print(res)
-        # print(session_id_es)
+        sm = SessionMapping()
+        sm.setup()
+        sync = lambda _sm: _sm.sync('2018-06-27')
+        t = threading.Thread(target=sync, args=(sm,), daemon=True)
+        t.start()
+        time.sleep(2)
+        # increase pagination size to 12 as there's 12 rows of session in db
+        q = {
+                "size": 12,
+                "query": {"term": {"_type": "session"}}
+        }
+        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        session_id_es = [session['_source']['ID'] for session in res]
+        session_id_es.sort()
+        s = self.sm.model.execute('''SELECT ID FROM Radius.dbo.Radius_Stop_Event''').fetchall()
+        stop_ids = [stop_id[0] for stop_id in s]
+        stop_ids.sort()
+        self.assertEqual(session_id_es, stop_ids)
 
     def tearDown(self):
         self.sm.model.execute("""
