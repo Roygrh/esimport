@@ -15,7 +15,7 @@ class CacheClient(object):
 
     def set(self, key, record):
         logger.debug("Cache - setting record for key: {0}".format(key))
-        self.client.set(key, json.dumps(record, cls=DateEncoder))
+        self.client.setex(key, datetime.timedelta(days=1), json.dumps(record, cls=DateEncoder))
 
     def get(self, key):
         logger.debug("Cache - getting record for key: {0}".format(key))
