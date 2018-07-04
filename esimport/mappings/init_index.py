@@ -191,73 +191,73 @@ class new_index(object):
 
         session_mapping = {
             "properties": {
-                "UserName": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "VLAN": {"type": "integer"},
-                "LogoutTime": {"type": "date"},
-                "LogoutTimeLocal": {"type": "date"},
-                "LoginTime": {"type": "date"},
-                "LoginTimeLocal": {"type": "date"},
+                "Brand": {"type": "keyword", "ignore_above": 64},
                 "BytesIn": {"type": "long"},
-                "MacAddress": {"type": "keyword", "ignore_above": 18},
                 "BytesOut": {"type": "long"},
-                "SessionID": {"type": "text",
-                              "fields": {
-                                  "keyword": {
-                                      "type": "keyword",
-                                      "ignore_above": 128
-                                  }}},
                 "CalledStation": {"type": "text",
                                   "fields": {
                                       "keyword": {
                                           "type": "keyword",
                                           "ignore_above": 128
                                       }}},
+                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
+                "Country": {"type": "keyword", "ignore_above": 64},
+                "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "LoginTime": {"type": "date"},
+                "LoginTimeLocal": {"type": "date"},
+                "LogoutTime": {"type": "date"},
+                "LogoutTimeLocal": {"type": "date"},
+                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MacAddress": {"type": "keyword", "ignore_above": 18},
+                "MemberNumber": {"type": "keyword", "ignore_above": 32},
                 "Name": {"type": "text",
                          "fields": {
                              "keyword": {
                                  "type": "keyword",
                                  "ignore_above": 128
                              }}},
-                "NetworkDeviceType": {"type": "keyword"},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "TerminationReason": {"type": "text",
-                                      "fields": {
-                                          "keyword": {
-                                              "type": "keyword",
-                                              "ignore_above": 128
-                                          }}},
                 "NasIdentifier": {"type": "text",
                                   "fields": {
                                       "keyword": {
                                           "type": "keyword",
                                           "ignore_above": 256
                                       }}},
+                "NetworkDeviceType": {"type": "keyword"},
+                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
+                "PropertyName": {"type": "text"},
+                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
+                "Provider": {"type": "keyword", "ignore_above": 128},
+                "Region": {"type": "keyword", "ignore_above": 64},
+                "ServiceArea": {"type": "keyword", "ignore_above": 12},
+                "SessionID": {"type": "text",
+                              "fields": {
+                                  "keyword": {
+                                      "type": "keyword",
+                                      "ignore_above": 128
+                                  }}},
                 "SessionLength": {"type": "integer"},
-                "ZoneType": {"type": "text",
+                "SubRegion": {"type": "keyword", "ignore_above": 64},
+                "TaxRate": {"type": "float"},
+                "TerminationReason": {"type": "text",
+                                      "fields": {
+                                          "keyword": {
+                                              "type": "keyword",
+                                              "ignore_above": 128
+                                          }}},
+                "TimeZone": {"type": "keyword", "ignore_above": 32},
+                "UserName": {"type": "text",
                              "fields": {
                                  "keyword": {
                                      "type": "keyword",
                                      "ignore_above": 128
                                  }}},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"}                
+                "VLAN": {"type": "integer"},
+                "ZoneType": {"type": "text",
+                             "fields": {
+                                 "keyword": {
+                                     "type": "keyword",
+                                     "ignore_above": 128
+                                }}}
             }
         }
 
