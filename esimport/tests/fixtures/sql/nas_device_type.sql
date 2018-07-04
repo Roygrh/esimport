@@ -1,0 +1,73 @@
+USE [Eleven_OS]
+GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'NAS_Device_Type'))
+BEGIN
+DROP TABLE [dbo].[NAS_Device_Type]
+END
+GO
+
+/****** Object:  Table [dbo].[NAS_Device_Type]    Script Date: 4/26/2018 12:32:19 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[NAS_Device_Type](
+	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
+	[Name] [varchar](64) NOT NULL,
+	[Description] [varchar](256) NOT NULL,
+ CONSTRAINT [PK_NAS_Device_Type] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY],
+ CONSTRAINT [UQ_NAS_Device_Type] UNIQUE NONCLUSTERED 
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- PUT DATA INSERT SCRIPTS BELOW
+SET IDENTITY_INSERT NAS_Device_Type ON
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(1,'Nomadix','The Nomadix NAS device type.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(2,'IP3','The IP3 NAS device type.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(3,'HP ProCurve','The HP ProCurve NAS device type.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(4,'HP ProCurve 5.4','The HP ProCurve NAS device type running the 5.4 Firmware.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(5,'iPad','The iPad device type.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(6,'ElevenGC','The Guest Computing device type.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(7,'Ruckus ZoneDirector','Ruckus ZoneDirector device.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(8,'HP Switch','HP switch device.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(9,'Meraki Cloud Controller','Meraki Cloud Controller device.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(10,'Cisco Switch','Cisco 2960 switch device')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(11,'Generic Radius','Device to map radius requests.')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(12,'Cisco WLC','Cisco Wireless Lan Controller')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(13,'Ruckus SmartZone','Ruckus SmartZone Device')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(14,'Aruba Controller','Aruba controller')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(15,'Eleven Standard','Gateway Supporting the Eleven Standard')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(16,'Brocade Switch','Brocade Switch')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(17,'Ruckus SmartZone Gateway','Ruckus SmartZone device as a gateway')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(18,'British Telecom','British Telecom')
+INSERT [dbo].[NAS_Device_Type](ID, Name, Description)
+VALUES(19,'Mikrotik Gateway','Mikrotik Gateway')
+GO
