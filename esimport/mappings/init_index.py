@@ -224,6 +224,7 @@ class new_index(object):
                                  "type": "keyword",
                                  "ignore_above": 128
                              }}},
+                "NetworkDeviceType": {"type": "keyword"},
                 "MemberNumber": {"type": "keyword", "ignore_above": 32},
                 "TerminationReason": {"type": "text",
                                       "fields": {
@@ -256,8 +257,7 @@ class new_index(object):
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"},
-                "NetworkDeviceType": {"type": "keyword", "ignore_above": 256}
+                "TaxRate": {"type": "float"}                
             }
         }
 
