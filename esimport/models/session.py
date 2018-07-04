@@ -42,7 +42,8 @@ class Session(BaseModel):
 
     @staticmethod
     def query_one(start_date, start_rad_id, limit):
-        q = """SELECT TOP ({1}) stop.ID AS ID,
+        q = """SELECT TOP ({1}) 
+stop.ID AS ID,
 org.Number AS ServiceArea,
 val.Value AS ZoneType,
 hist.User_Name AS UserName,
@@ -50,6 +51,7 @@ mem.Display_Name AS Name,
 mem.Number AS MemberNumber,
 hist.NAS_Identifier AS NasIdentifier,
 hist.Called_Station_Id AS CalledStation,
+nas_type.Name AS NetworkDeviceType,
 hist.VLAN AS VLAN,
 hist.Calling_Station_Id AS MacAddress,
 hist.Date_UTC AS LogoutTime,
@@ -65,6 +67,8 @@ LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop
 JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
 LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
+LEFT JOIN NAS_Device nas WITH (NOLOCK) ON nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END
+LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE stop.ID >= {0} AND hist.Date_UTC > '{2}'
 ORDER BY stop.ID ASC"""
         q = q.format(start_rad_id, limit, start_date)
