@@ -49,16 +49,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     Loop to continuous add/update accounts
     """
     def sync(self, start_date):
-
-        # REVIEW: Only remove the TODO comment if it's actually done.  If I don't pass a date in, the code still defaults to 1/1/1900.  This is not the expected behavior.
-        # TODO: Rework the code to look at the incoming start date.  If a valid start date is passed in we should use it, otherwise use the logic below.  
-        #       Of course, the way it's setup currently it will always default to 1/1/1900, so this is the same as not passing in a date at all and in 
-        #       that case, we should also use the logic below.
-
-        # get the most recent starting point
         if start_date and start_date != '1900-01-01':
             start_date = parser.parse(start_date)
         else:
+            # get the most recent starting point    
             start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
 
         time_delta_window = timedelta(hours=1)
