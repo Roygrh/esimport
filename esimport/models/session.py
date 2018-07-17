@@ -59,10 +59,13 @@ acct.Session_ID AS SessionID,
 stop.Acct_Session_Time AS SessionLength,
 stop.Acct_Output_Octets AS BytesOut,
 stop.Acct_Input_Octets AS BytesIn,
-term.Name AS TerminationReason
+term.Name AS TerminationReason,
+zp.Name as ServicePlan
 FROM Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
 JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
 JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
+JOIN Zone_Plan_Account zpa WITH (NOLOCK) ON zpa.Member_ID = hist.Member_ID
+JOIN Zone_Plan zp WITH (NOLOCK) ON zp.ID = zpa.Zone_Plan_ID
 LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
 JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
 LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
