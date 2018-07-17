@@ -60,27 +60,6 @@ class TestSessionMappingElasticsearch(TestCase):
         stop_ids.sort()
         self.assertEqual(session_id_es, stop_ids)
 
-    def test_check_session_mappings(self):
-        session_mapping_keys = ['Brand', 'BytesIn', 'BytesOut',
-                                'CalledStation', 'CorporateBrand', 'Country',
-                                'ExtPropId', 'LoginTime', 'LoginTimeLocal',
-                                'LogoutTime', 'LogoutTimeLocal', 'MARSHA_Code',
-                                'MacAddress', 'MemberNumber', 'Name',
-                                'NasIdentifier', 'NetworkDeviceType', 'OwnershipGroup',
-                                'PropertyName', 'PropertyNumber', 'Provider',
-                                'Region', 'ServiceArea', 'ServicePlan',
-                                'SessionID', 'SessionLength', 'SubRegion', 
-                                'TaxRate', 'TerminationReason', 'TimeZone',
-                                'UserName', 'VLAN', 'ZoneType']
-        index = settings.ES_INDEX
-        doc_type = self.sm.model._type
-        mappings = self.es.indices.get_mapping(index=index, doc_type=doc_type)[index]['mappings'][doc_type]['properties']
-        mappings_key = []
-        for key, value in mappings.items():
-            mappings_key.append(key)
-        
-        self.assertEquals(session_mapping_keys.sort(), mappings_key.sort())
-
     def test_serviceplan_in_session_mapping_records(self):
         sm = SessionMapping()
         sm.setup()
