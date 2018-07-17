@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 
 from esimport.mappings.session import SessionMapping
 from esimport import settings
+from esimport.mappings.init_index import new_index
 
 
 class TestSessionMappingElasticsearch(TestCase):
@@ -17,7 +18,6 @@ class TestSessionMappingElasticsearch(TestCase):
         uid = settings.DATABASES['default']['USER']
         pwd = settings.DATABASES['default']['PASSWORD']
         db = settings.DATABASES['default']['NAME']
-        
 
         self.sm = SessionMapping()
         self.sm.setup()
@@ -35,8 +35,12 @@ class TestSessionMappingElasticsearch(TestCase):
         # self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.es = self.sm.es
 
+        ni = new_index()
+        ni.setup()
+        ni.setupindex()
+
     def test_session_data_in_es(self):
-        self.es.indices.create(index=settings.ES_INDEX)
+        # self.es.indices.create(index=settings.ES_INDEX)
         sm = SessionMapping()
         sm.setup()
         sync = lambda _sm: _sm.sync('2018-06-27')
@@ -55,6 +59,44 @@ class TestSessionMappingElasticsearch(TestCase):
         stop_ids = [stop_id[0] for stop_id in s]
         stop_ids.sort()
         self.assertEqual(session_id_es, stop_ids)
+
+    def test_check_session_mappings(self):
+        session_mapping_keys = ['Brand', 'BytesIn', 'BytesOut',
+                                'CalledStation', 'CorporateBrand', 'Country',
+                                'ExtPropId', 'LoginTime', 'LoginTimeLocal',
+                                'LogoutTime', 'LogoutTimeLocal', 'MARSHA_Code',
+                                'MacAddress', 'MemberNumber', 'Name',
+                                'NasIdentifier', 'NetworkDeviceType', 'OwnershipGroup',
+                                'PropertyName', 'PropertyNumber', 'Provider',
+                                'Region', 'ServiceArea', 'ServicePlan',
+                                'SessionID', 'SessionLength', 'SubRegion', 
+                                'TaxRate', 'TerminationReason', 'TimeZone',
+                                'UserName', 'VLAN', 'ZoneType']
+        index = settings.ES_INDEX
+        doc_type = self.sm.model._type
+        mappings = self.es.indices.get_mapping(index=index, doc_type=doc_type)[index]['mappings'][doc_type]['properties']
+        mappings_key = []
+        for key, value in mappings.items():
+            mappings_key.append(key)
+        
+        self.assertEquals(session_mapping_keys.sort(), mappings_key.sort())
+
+    def test_serviceplan_in_session_mapping_records(self):
+        sm = SessionMapping()
+        sm.setup()
+        sync = lambda _sm: _sm.sync('2018-06-27')
+        t = threading.Thread(target=sync, args=(sm,), daemon=True)
+        t.start()
+        time.sleep(2)
+
+        q = {'query': {'term': {'_type': self.sm.model._type}}}
+        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        
+        session_records = [record['_source'] for record in res]
+
+        for record in session_records:
+            keys = [key for key, value in record.items()]
+            self.assertTrue('ServicePlan' in keys)  
 
     def tearDown(self):
         self.sm.model.execute("""
