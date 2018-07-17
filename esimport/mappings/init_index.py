@@ -229,6 +229,12 @@ class new_index(object):
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "ServiceArea": {"type": "keyword", "ignore_above": 12},
+                "ServicePlan": {"type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 128
+                                    }}},
                 "SessionID": {"type": "text",
                               "fields": {
                                   "keyword": {
