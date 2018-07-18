@@ -60,8 +60,8 @@ SELECT DISTINCT TOP ({1})
 	stop.Acct_Session_Time AS SessionLength,
 	stop.Acct_Output_Octets AS BytesOut,
 	stop.Acct_Input_Octets AS BytesIn,
-	term.Name AS TerminationReason,
-    zp.Name as ServicePlan
+	term.Name AS TerminationReason
+    --,zp.Name as ServicePlan
 FROM 
 	Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
 	JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
@@ -70,8 +70,8 @@ FROM
 	JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
-    LEFT JOIN Zone_Plan_Account zpa WITH (NOLOCK) ON zpa.Member_ID = hist.Member_ID
-    LEFT JOIN Zone_Plan zp WITH (NOLOCK) ON zp.ID = zpa.Zone_Plan_ID
+    --LEFT JOIN Zone_Plan_Account zpa WITH (NOLOCK) ON zpa.Member_ID = hist.Member_ID
+    --LEFT JOIN Zone_Plan zp WITH (NOLOCK) ON zp.ID = zpa.Zone_Plan_ID
 	-- if Radius_Event_History.NAS_Identifier is a MAC address, use Access_Point_NAS_Device.Net_MAC_Address to get a NAS_Device
 	LEFT JOIN Access_Point_Nas_Device ap_nas WITH (NOLOCK) ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
 	LEFT JOIN NAS_Device ap_nas_device WITH (NOLOCK) ON 
