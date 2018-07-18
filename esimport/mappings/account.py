@@ -49,17 +49,12 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     Loop to continuous add/update accounts
     """
     def sync(self, start_date):
-
-        # REVIEW: Only remove the TODO comment if it's actually done.  If I don't pass a date in, the code still defaults to 1/1/1900.  This is not the expected behavior.
-        # TODO: Rework the code to look at the incoming start date.  If a valid start date is passed in we should use it, otherwise use the logic below.  
-        #       Of course, the way it's setup currently it will always default to 1/1/1900, so this is the same as not passing in a date at all and in 
-        #       that case, we should also use the logic below.
-
-        # get the most recent starting point
-        #if start_date:
-        #    start_date = parser.parse(start_date)
-        #else:
-        start_date = self.get_most_recent_date('Created') # Don't start with last modified record just yet... min(self.get_most_recent_date('DateModifiedUTC'), self.get_most_recent_date('Created'))
+        if start_date and start_date != '1900-01-01':
+            start_date = parser.parse(start_date)
+        else:
+            # otherwise, get the most recent starting point from data in Elasticsearch
+            modified_date = self.get_most_recent_date('DateModifiedUTC') 
+            start_date = modified_date if modified_date is not None else self.get_most_recent_date('Created')
 
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
@@ -118,7 +113,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']
             initial_time = parser.parse(hits[0]['_source'][date_field])
         except Exception as err:
-            initial_time = datetime.utcnow()
+            initial_time = None
             logger.error(err)
             traceback.print_exc(file=sys.stdout)
             sentry_client.captureException()

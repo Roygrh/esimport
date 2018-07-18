@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 
 from esimport.mappings.session import SessionMapping
 from esimport import settings
+from esimport.mappings.init_index import new_index
 
 
 class TestSessionMappingElasticsearch(TestCase):
@@ -17,7 +18,6 @@ class TestSessionMappingElasticsearch(TestCase):
         uid = settings.DATABASES['default']['USER']
         pwd = settings.DATABASES['default']['PASSWORD']
         db = settings.DATABASES['default']['NAME']
-        
 
         self.sm = SessionMapping()
         self.sm.setup()
@@ -35,8 +35,12 @@ class TestSessionMappingElasticsearch(TestCase):
         # self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.es = self.sm.es
 
+        ni = new_index()
+        ni.setup()
+        ni.setupindex()
+
     def test_session_data_in_es(self):
-        self.es.indices.create(index=settings.ES_INDEX)
+        # self.es.indices.create(index=settings.ES_INDEX)
         sm = SessionMapping()
         sm.setup()
         sync = lambda _sm: _sm.sync('2018-06-27')
@@ -55,6 +59,29 @@ class TestSessionMappingElasticsearch(TestCase):
         stop_ids = [stop_id[0] for stop_id in s]
         stop_ids.sort()
         self.assertEqual(session_id_es, stop_ids)
+
+    def test_serviceplan_in_session_mapping_records(self):
+        sm = SessionMapping()
+        sm.setup()
+        
+        sessions_gen = sm.model.get_sessions(1, 100, '2018-06-27')
+        sessions_dict = {}
+        for s in sessions_gen:
+            sessions_dict[s.record['ID']] = s.record
+            
+        sync = lambda _sm: _sm.sync('2018-06-27')
+        t = threading.Thread(target=sync, args=(sm,), daemon=True)
+        t.start()
+        time.sleep(2)
+
+
+        q = {'query': {'term': {'_type': self.sm.model._type}}}
+        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        
+        session_records = [record['_source'] for record in res]
+
+        for record in session_records:
+            self.assertCountEqual(record['ServicePlan'], sessions_dict[record['ID']]['ServicePlan'])
 
     def tearDown(self):
         self.sm.model.execute("""

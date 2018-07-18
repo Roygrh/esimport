@@ -42,34 +42,46 @@ class Session(BaseModel):
 
     @staticmethod
     def query_one(start_date, start_rad_id, limit):
-        q = """SELECT TOP ({1}) 
-stop.ID AS ID,
-org.Number AS ServiceArea,
-val.Value AS ZoneType,
-hist.User_Name AS UserName,
-mem.Display_Name AS Name,
-mem.Number AS MemberNumber,
-hist.NAS_Identifier AS NasIdentifier,
-hist.Called_Station_Id AS CalledStation,
-nas_type.Name AS NetworkDeviceType,
-hist.VLAN AS VLAN,
-hist.Calling_Station_Id AS MacAddress,
-hist.Date_UTC AS LogoutTime,
-acct.Session_ID AS SessionID,
-stop.Acct_Session_Time AS SessionLength,
-stop.Acct_Output_Octets AS BytesOut,
-stop.Acct_Input_Octets AS BytesIn,
-term.Name AS TerminationReason
-FROM Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
-JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
-JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
-LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
-JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
-LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
-LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
-LEFT JOIN NAS_Device nas WITH (NOLOCK) ON nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END
-LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = nas.NAS_Device_Type_ID
-WHERE stop.ID >= {0} AND hist.Date_UTC > '{2}'
-ORDER BY stop.ID ASC"""
+        q = """
+SELECT DISTINCT TOP ({1}) 
+	stop.ID AS ID,
+	org.Number AS ServiceArea,
+	val.Value AS ZoneType,
+	hist.User_Name AS UserName,
+	mem.Display_Name AS Name,
+	mem.Number AS MemberNumber,
+	hist.NAS_Identifier AS NasIdentifier,
+	hist.Called_Station_Id AS CalledStation,
+	nas_type.Name AS NetworkDeviceType,
+	hist.VLAN AS VLAN,
+	hist.Calling_Station_Id AS MacAddress,
+	hist.Date_UTC AS LogoutTime,
+	acct.Session_ID AS SessionID,
+	stop.Acct_Session_Time AS SessionLength,
+	stop.Acct_Output_Octets AS BytesOut,
+	stop.Acct_Input_Octets AS BytesIn,
+	term.Name AS TerminationReason    
+FROM 
+	Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
+	JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
+	JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
+	LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
+	JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
+	LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
+	LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
+	LEFT JOIN Access_Point_Nas_Device ap_nas WITH (NOLOCK) ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
+	LEFT JOIN NAS_Device nas WITH (NOLOCK) ON 
+		nas.Organization_ID = hist.Organization_ID AND
+		nas.VLAN_Range_Start <= hist.VLAN AND 
+		nas.VLAN_Range_End >= hist.VLAN AND
+		(nas.ID = ap_nas.Nas_Device_ID OR
+		 nas.Radius_NAS_ID = hist.NAS_Identifier OR
+		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
+	LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = nas.NAS_Device_Type_ID
+WHERE 
+	stop.ID >= {0} AND hist.Date_UTC > '{2}'
+ORDER BY 
+	stop.ID ASC
+"""
         q = q.format(start_rad_id, limit, start_date)
         return q
