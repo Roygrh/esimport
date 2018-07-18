@@ -60,8 +60,7 @@ SELECT DISTINCT TOP ({1})
 	stop.Acct_Session_Time AS SessionLength,
 	stop.Acct_Output_Octets AS BytesOut,
 	stop.Acct_Input_Octets AS BytesIn,
-	term.Name AS TerminationReason
-    --,zp.Name as ServicePlan
+	term.Name AS TerminationReason    
 FROM 
 	Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
 	JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
@@ -70,29 +69,15 @@ FROM
 	JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
-    --LEFT JOIN Zone_Plan_Account zpa WITH (NOLOCK) ON zpa.Member_ID = hist.Member_ID
-    --LEFT JOIN Zone_Plan zp WITH (NOLOCK) ON zp.ID = zpa.Zone_Plan_ID
-	-- if Radius_Event_History.NAS_Identifier is a MAC address, use Access_Point_NAS_Device.Net_MAC_Address to get a NAS_Device
 	LEFT JOIN Access_Point_Nas_Device ap_nas WITH (NOLOCK) ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
-	LEFT JOIN NAS_Device ap_nas_device WITH (NOLOCK) ON 
-		ap_nas_device.Organization_ID = hist.Organization_ID AND
-		ap_nas_device.ID = ap_nas.Nas_Device_ID AND
-		ap_nas_device.VLAN_Range_Start <= hist.VLAN AND 
-		ap_nas_device.VLAN_Range_End >= hist.VLAN
-	-- if Radius_Event_History.NAS_Identifier is NOT a MAC address, go straight to NAS_Device.Radius_NAS_ID (see COALESCE below)
-	LEFT JOIN NAS_Device nas_device WITH (NOLOCK) ON 
-		nas_device.Organization_ID = hist.Organization_ID AND
-		nas_device.Radius_NAS_ID = hist.NAS_Identifier AND
-		nas_device.VLAN_Range_Start <= hist.VLAN AND 
-		nas_device.VLAN_Range_End >= hist.VLAN
-	-- alternative approach of using Radius_Event_History.Called_Station_Id to get a NAS_Device
-	LEFT JOIN NAS_Device nas_device_alt WITH (NOLOCK) ON 
-		nas_device_alt.Organization_ID = hist.Organization_ID AND
-		nas_device_alt.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END AND
-		nas_device_alt.VLAN_Range_Start <= hist.VLAN AND 
-		nas_device_alt.VLAN_Range_End >= hist.VLAN
-	-- then take the first valid NAS_Device and lookup its type
-	LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = COALESCE(ap_nas_device.NAS_Device_Type_ID, nas_device.NAS_Device_Type_ID, nas_device_alt.NAS_Device_Type_ID)
+	LEFT JOIN NAS_Device nas WITH (NOLOCK) ON 
+		nas.Organization_ID = hist.Organization_ID AND
+		nas.VLAN_Range_Start <= hist.VLAN AND 
+		nas.VLAN_Range_End >= hist.VLAN AND
+		(nas.ID = ap_nas.Nas_Device_ID OR
+		 nas.Radius_NAS_ID = hist.NAS_Identifier OR
+		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
+	LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE 
 	stop.ID >= {0} AND hist.Date_UTC > '{2}'
 ORDER BY 
