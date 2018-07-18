@@ -63,10 +63,17 @@ class TestSessionMappingElasticsearch(TestCase):
     def test_serviceplan_in_session_mapping_records(self):
         sm = SessionMapping()
         sm.setup()
+        
+        sessions_gen = sm.model.get_sessions(1, 100, '2018-06-27')
+        sessions_dict = {}
+        for s in sessions_gen:
+            sessions_dict[s.record['ID']] = s.record
+            
         sync = lambda _sm: _sm.sync('2018-06-27')
         t = threading.Thread(target=sync, args=(sm,), daemon=True)
         t.start()
         time.sleep(2)
+
 
         q = {'query': {'term': {'_type': self.sm.model._type}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
@@ -74,8 +81,7 @@ class TestSessionMappingElasticsearch(TestCase):
         session_records = [record['_source'] for record in res]
 
         for record in session_records:
-            keys = [key for key, value in record.items()]
-            self.assertTrue('ServicePlan' in keys)  
+            self.assertCountEqual(record['ServicePlan'], sessions_dict[record['ID']]['ServicePlan'])
 
     def tearDown(self):
         self.sm.model.execute("""
