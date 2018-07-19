@@ -56,6 +56,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             modified_date = self.get_most_recent_date('DateModifiedUTC') 
             start_date = modified_date if modified_date is not None else self.get_most_recent_date('Created')
 
+            # if ES read fails, default to now
+            start_date = start_date or datetime.utcnow()
+
         time_delta_window = timedelta(hours=1)
         end_date = start_date + time_delta_window
 
