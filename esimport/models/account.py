@@ -90,7 +90,8 @@ Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Code.Code AS ConnectCode,
 Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
-Org_Value.Value AS ZoneType
+Org_Value.Value AS ZoneType,
+Member_Vlan.Vlan as VLAN
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
 JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
@@ -100,6 +101,7 @@ JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan
 JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
 JOIN Currency WITH (NOLOCK) ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
 JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+JOIN Member_Vlan WITH (NOLOCK) ON Member_Vlan.Member_ID = Zone_Plan_Account.Member_ID
 LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
@@ -151,7 +153,8 @@ Prepaid_Zone_Plan.Lifespan_Time AS SpanTime,
 STU.Name AS SpanUnit,
 Code.Code AS ConnectCode,
 Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
-Org_Value.Value AS ZoneType
+Org_Value.Value AS ZoneType,
+Member_Vlan.Vlan as VLAN
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
 JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
@@ -161,6 +164,7 @@ JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan
 JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
 JOIN Currency WITH (NOLOCK) ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
 JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+JOIN Member_Vlan WITH (NOLOCK) ON Member_Vlan.Member_ID = Zone_Plan_Account.Member_ID
 LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
 LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
 LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
@@ -213,7 +217,8 @@ SELECT
     STU.Name AS SpanUnit,
     Code.Code AS ConnectCode,
     Member_Marketing_Opt_In.Marketing_Contact_Info AS MarketingContact,
-    Org_Value.Value AS ZoneType
+    Org_Value.Value AS ZoneType,
+    Member_Vlan.Vlan as VLAN
 FROM
     Zone_Plan_Account WITH (NOLOCK)
     JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
@@ -224,6 +229,7 @@ FROM
     JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
     JOIN Currency WITH (NOLOCK) ON Currency.ID = Zone_Plan_Account.Purchase_Price_Currency_ID
     JOIN Prepaid_Zone_Plan WITH (NOLOCK) ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+    JOIN Member_Vlan WITH (NOLOCK) ON Member_Vlan.Member_ID = Zone_Plan_Account.Member_ID
     LEFT JOIN Credit_Card WITH (NOLOCK) ON Credit_Card.ID = Zone_Plan_Account.Credit_Card_ID
     LEFT JOIN Credit_Card_Type WITH (NOLOCK) ON Credit_Card_Type.ID = Credit_Card.Credit_Card_Type_ID
     LEFT JOIN PMS_Charge WITH (NOLOCK) ON PMS_Charge.ID = Zone_Plan_Account.PMS_Charge_ID
