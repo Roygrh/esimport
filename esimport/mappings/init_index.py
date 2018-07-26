@@ -302,6 +302,9 @@ class new_index(object):
                              "type": "keyword",
                              "ignore_above": 64
                          }}},
+                "ConnectionLimit": {"type": "integer"},
+                "DownKbs": {"type": "integer"},
+                "UpKbs": {"type": "integer"},
                 "UserCount": {"type": "integer"},
                 "TotalInputBytes": {"type": "long"},
                 "TotalOutputBytes": {"type": "long"},
