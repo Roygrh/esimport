@@ -1,0 +1,108 @@
+################################################################################
+# Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
+#
+# This file is the sole property of Eleven Wireless Inc. and can not be used
+# or distributed without the expressed written permission of
+# Eleven Wireless Inc.
+################################################################################
+
+import chardet
+import glob
+import os
+import six
+import threading
+import time
+
+from datetime import datetime
+from operator import itemgetter
+
+from esimport import settings, tests
+from esimport.connectors.mssql import MsSQLConnector
+from esimport.models.conference import Conference
+from esimport.mappings.conference import ConferenceMapping
+from esimport.models.base import BaseModel
+from esimport.models import ESRecord
+
+from elasticsearch import Elasticsearch
+
+from unittest import TestCase
+
+class TestConferenceMappingElasticSearch(TestCase):
+
+    def setUp(self):
+
+        test_dir = os.getcwd()
+        host = settings.DATABASES['default']['HOST']
+        uid = settings.DATABASES['default']['USER']
+        pwd = settings.DATABASES['default']['PASSWORD']
+        db = settings.DATABASES['default']['NAME']
+
+        self.cm = ConferenceMapping()
+        self.cm.setup()
+
+        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+            with open(sql, 'b+r') as inp:
+                sqlQuery = ''
+                inp_b = inp.read()
+                the_encoding = chardet.detect(inp_b)['encoding']
+                inp = inp_b.decode(the_encoding).replace('GO', '')
+                self.cm.model.execute(inp).commit()
+
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+
+
+    def test_conference_update_in_elasticsearch(self):
+        # create index
+        self.es.indices.create(index=settings.ES_INDEX, ignore=400)
+
+        cm = ConferenceMapping()
+        cm.setup()
+
+        conference_update = lambda _cm: _cm.update('2018-05-01')
+        t = threading.Thread(target=conference_update, args=(cm,), daemon=True)
+        t.start()
+
+        # time to catch up
+        time.sleep(5)
+
+        conference_list = []
+        confs = [conf for conf in self.cm.model.get_conferences(0, 5, '2018-05-01')]
+        for conf in confs:
+            conference_list.append(conf.record)
+        conference_list.sort(key=itemgetter('ID'))
+
+        # get all property from elasticsearch
+        conference_es_list = []
+        query = {'query': {'term': {'_type': 'conference'}}}
+        conference_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        for conf in conference_es:
+            conference_es_list.append(conf['_source'])
+        conference_es_list.sort(key=itemgetter('ID'))
+
+        self.assertEqual(conference_list[0]['Code'], conference_es_list[0]['Code'])
+        self.assertEqual(conference_list[1]['Code'], conference_es_list[1]['Code'])
+        self.assertEqual(conference_list[2]['Code'], conference_es_list[2]['Code'])
+        self.assertEqual(conference_list[3]['Code'], conference_es_list[3]['Code'])
+
+    def tearDown(self):
+        self.cm.model.execute("""
+DECLARE @sql NVARCHAR(MAX);
+SET @sql = N'';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+  + QUOTENAME(c.name) + ';'
+FROM sys.objects AS c
+INNER JOIN sys.tables AS t
+ON c.parent_object_id = t.[object_id]
+INNER JOIN sys.schemas AS s 
+ON t.[schema_id] = s.[schema_id]
+WHERE c.[type] = 'F'
+ORDER BY c.[type];
+SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+FROM [INFORMATION_SCHEMA].[TABLES]
+WHERE [TABLE_TYPE] = 'BASE TABLE';
+EXEC SP_EXECUTESQL @sql;""").commit()
+
+        es = self.cm.es
+        if es.indices.exists(index=settings.ES_INDEX):
+            es.indices.delete(index=settings.ES_INDEX, ignore=400)
