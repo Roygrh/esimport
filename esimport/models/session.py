@@ -62,24 +62,24 @@ SELECT DISTINCT TOP ({1})
 	stop.Acct_Input_Octets AS BytesIn,
 	term.Name AS TerminationReason    
 FROM 
-	Radius.dbo.Radius_Stop_Event stop WITH (NOLOCK)
-	JOIN Radius.dbo.Radius_Acct_Event acct WITH (NOLOCK) ON acct.ID = stop.Radius_Acct_Event_ID
-	JOIN Radius.dbo.Radius_Event_History hist WITH (NOLOCK) ON hist.Radius_Event_ID = acct.Radius_Event_ID
-	LEFT JOIN Radius.dbo.Radius_Terminate_Cause term WITH (NOLOCK) ON term.ID = stop.Acct_Terminate_Cause
-	JOIN Organization org WITH (NOLOCK) ON org.ID = hist.Organization_ID
-	LEFT JOIN Org_Value val WITH (NOLOCK) ON val.Organization_ID = org.ID AND val.Name='ZoneType'
-	LEFT JOIN Member mem WITH (NOLOCK) ON mem.ID = hist.Member_ID
-	LEFT JOIN Access_Point_Nas_Device ap_nas WITH (NOLOCK) ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
-	LEFT JOIN NAS_Device nas WITH (NOLOCK) ON 
+	Radius.dbo.Radius_Stop_Event stop
+	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
+	JOIN Radius.dbo.Radius_Event_History hist ON hist.Radius_Event_ID = acct.Radius_Event_ID
+	LEFT JOIN Radius.dbo.Radius_Terminate_Cause term ON term.ID = stop.Acct_Terminate_Cause
+	JOIN Organization org ON org.ID = hist.Organization_ID
+	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
+	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
+	LEFT JOIN Access_Point_Nas_Device ap_nas ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
+	LEFT JOIN NAS_Device nas ON 
 		nas.Organization_ID = hist.Organization_ID AND
 		nas.VLAN_Range_Start <= hist.VLAN AND 
 		nas.VLAN_Range_End >= hist.VLAN AND
 		(nas.ID = ap_nas.Nas_Device_ID OR
 		 nas.Radius_NAS_ID = hist.NAS_Identifier OR
 		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
-	LEFT JOIN NAS_Device_Type nas_type WITH (NOLOCK) ON nas_type.ID = nas.NAS_Device_Type_ID
+	LEFT JOIN NAS_Device_Type nas_type ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE 
-	stop.ID >= {0} AND hist.Date_UTC > '{2}'
+	stop.ID >= {0} AND stop.ID < ({0} + {1}) AND hist.Date_UTC > '{2}'
 ORDER BY 
 	stop.ID ASC
 """
