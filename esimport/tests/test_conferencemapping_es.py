@@ -79,10 +79,12 @@ class TestConferenceMappingElasticSearch(TestCase):
             conference_es_list.append(conf['_source'])
         conference_es_list.sort(key=itemgetter('ID'))
 
-        self.assertEqual(conference_list[0]['Code'], conference_es_list[0]['Code'])
-        self.assertEqual(conference_list[1]['Code'], conference_es_list[1]['Code'])
-        self.assertEqual(conference_list[2]['Code'], conference_es_list[2]['Code'])
-        self.assertEqual(conference_list[3]['Code'], conference_es_list[3]['Code'])
+        for i in range(0,len(conference_list)):
+            for key in conference_list[i].items():
+                if key[0] == 'UpdateTime':
+                    continue
+                self.assertEqual(conference_list[i][key[0]], conference_es_list[i][key[0]])
+
 
     def tearDown(self):
         self.cm.model.execute("""
