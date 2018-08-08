@@ -36,7 +36,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         start = self.max_id() + 1
         logger.debug("Get Sessions from {0} to {1} since {2}"
               .format(start, start+self.step_size, start_date))
-        for session in self.model.get_sessions(start, 10000, start_date):
+        for session in self.model.get_sessions(start, self.db_record_limit, start_date):
             count += 1
 
             _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))

@@ -26,9 +26,9 @@ class Session(BaseModel):
         return Session._type
 
 
-    def get_sessions(self, start, limit, start_date='1900-01-01'):
+    def get_sessions(self, start_id, limit, start_date='1900-01-01'):
         dt_columns = ['LogoutTime', 'LoginTime']
-        q = self.query_one(start_date, start, limit)
+        q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             if 'LogoutTime' in row and 'SessionLength' in row:
@@ -41,9 +41,9 @@ class Session(BaseModel):
 
 
     @staticmethod
-    def query_one(start_date, start_rad_id, limit):
+    def query_one(start_id, start_date, limit):
         q = """
-SELECT DISTINCT TOP ({1}) 
+SELECT DISTINCT TOP ({2}) 
 	stop.ID AS ID,
 	org.Number AS ServiceArea,
 	val.Value AS ZoneType,
@@ -79,9 +79,9 @@ FROM
 		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
 	LEFT JOIN NAS_Device_Type nas_type ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE 
-	stop.ID >= {0} AND stop.ID < ({0} + {1}) AND hist.Date_UTC > '{2}'
+	stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
 ORDER BY 
 	stop.ID ASC
 """
-        q = q.format(start_rad_id, limit, start_date)
+        q = q.format(start_id, start_date, limit)
         return q
