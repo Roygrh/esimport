@@ -31,12 +31,12 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     """
     Find Sessions in SQL and add them to ElasticSearch
     """
-    def add_sessions(self, start_date):
-        count = 0
+    def add_sessions(self, start_date, limit):
+        count = 0        
         start = self.max_id() + 1
         logger.debug("Get Sessions from {0} to {1} since {2}"
-              .format(start, start+self.step_size, start_date))
-        for session in self.model.get_sessions(start, self.db_record_limit, start_date):
+              .format(start, start+limit, start_date))
+        for session in self.model.get_sessions(start, limit, start_date):
             count += 1
 
             _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
@@ -60,12 +60,21 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
+        return count
+
     """
     Loop to continuously find new Sessions and add them
     """
     def sync(self, start_date):
+        limit = self.db_record_limit
+
         while True:
-            self.add_sessions(start_date)
+            count = self.add_sessions(start_date, limit)
+
+            if count > 0:
+                limit = self.db_record_limit
+            else:
+                limit *= 2  # increase limit if no sessions were processed
 
 
     """
