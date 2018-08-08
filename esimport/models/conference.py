@@ -31,8 +31,10 @@ class Conference(BaseModel):
         q1 = self.query_one(start_date, start, limit)
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
-              'Code', 'MemberID', 'SSID', 'StartDateUTC', 'EndDateUTC', 'UserCount',
-              'TotalInputBytes', 'TotalOutputBytes', 'TotalSessionTime']
+              'Code', 'MemberID', 'SSID', 'StartDateUTC', 'EndDateUTC',
+	      'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
+              'TotalOutputBytes', 'TotalSessionTime']
+
         for rec1 in list(self.fetch(q1, h1)):
 
             rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
@@ -44,8 +46,10 @@ class Conference(BaseModel):
             rec1['UpdateTime'] = datetime.utcnow().isoformat()
 
             q2 = self.query_two(rec1['ID'])
+
             code_list = []
             member_number_list = []
+
             for rec2 in list(self.fetch(q2, None)):
                 code_list.append(rec2.Name)
                 member_number_list.append(rec2.MemberNumber)
@@ -68,6 +72,9 @@ Member.Number AS MemberNumber,
 Network_Configuration.SsidName AS SSID,
 Network_Access_Limits.Start_Date_UTC AS StartDateUTC,
 Network_Access_Limits.End_Date_UTC AS EndDateUTC,
+Network_Access_Limits.Connection_Limit AS ConnectionLimit,
+Network_Access_Limits.Down_kbs AS DownKbs,
+Network_Access_Limits.Up_kbs AS UpKbs,
 Scheduled_Access.Actual_User_Count AS UserCount,
 Scheduled_Access.Total_Input_Bytes AS TotalInputBytes,
 Scheduled_Access.Total_Output_Bytes AS TotalOutputBytes,

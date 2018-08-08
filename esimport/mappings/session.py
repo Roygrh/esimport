@@ -35,7 +35,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         count = 0
         start = self.max_id() + 1
         logger.debug("Get Sessions from {0} to {1} since {2}"
-              .format(start, start+self.step_size, start_date))
+              .format(start, start+self.db_record_limit, start_date))
         for session in self.model.get_sessions(start, self.db_record_limit, start_date):
             count += 1
 
