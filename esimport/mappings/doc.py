@@ -84,7 +84,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        helpers.bulk(es, actions, request_timeout=timeout)
+        return helpers.bulk(es, actions, request_timeout=timeout)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
@@ -106,5 +106,7 @@ class DocumentMapping(object):
         items_count = len(self._items)
         if items_count > 0 and items_count >= limit:
             logger.info("Adding/Updating {0} records".format(items_count))
-            self.bulk_add_or_update(self.es, self._items)
+            result = self.bulk_add_or_update(self.es, self._items)
             self._items = []
+            return result[0]
+        return 0
