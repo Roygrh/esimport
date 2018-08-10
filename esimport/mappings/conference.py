@@ -8,10 +8,12 @@
 
 import time
 import logging
+import requests
 
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.conference import Conference
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,14 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     def setup(self):  # pragma: no cover
         super(ConferenceMapping, self).setup()
         self.model = Conference(self.conn)
+
+    """
+    Overriden method to send HC ping
+    """
+    def add(self, item, limit):
+        r = super().add(item, limit)
+        if r > 0:
+            requests.get(settings.CONFERENCE_MAPPING_PING)
 
     """
     Find Conference in SQL and add them to ElasticSearch
