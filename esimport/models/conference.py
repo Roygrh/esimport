@@ -31,7 +31,7 @@ class Conference(BaseModel):
         q1 = self.query_one(start_date, start, limit)
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
-              'Code', 'MemberID', 'SSID', 'StartDateUTC', 'EndDateUTC',
+              'Code', 'MemberID', 'MemberNumber', 'SSID', 'StartDateUTC', 'EndDateUTC',
 	      'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
               'TotalOutputBytes', 'TotalSessionTime']
 
