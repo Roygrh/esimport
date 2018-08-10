@@ -144,7 +144,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start_zpa_id))
         records = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(),
-                                 sort="ID:asc", size=limit,
+                                 size=limit,
                                  q="ID:[{0} TO *]".format(start_zpa_id))
         for record in records['hits']['hits']:
             yield record.get('_source')

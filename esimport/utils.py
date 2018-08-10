@@ -5,15 +5,15 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
-import six
+import logging
 import time
+from datetime import datetime
+
+import six
+from dateutil import tz
 
 from extensions import sentry_client
 
-from datetime import datetime
-from dateutil import tz
-
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -81,4 +81,3 @@ def convert_pacific_to_utc(time):
         except TypeError:
             return
     return
-

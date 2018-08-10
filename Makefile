@@ -8,6 +8,10 @@ fixwindows:
 	# chcp 850
 
 
+shell:
+	docker-compose build esimport
+	docker-compose run --rm --service-ports esimport
+
 start-environment:
 	# add -d to make these run in the background
 	docker-compose up redis mssql elasticsearch
