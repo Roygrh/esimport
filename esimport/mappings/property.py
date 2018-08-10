@@ -9,6 +9,7 @@
 import time
 import pprint
 import logging
+import requests
 
 from elasticsearch import Elasticsearch
 from elasticsearch import exceptions
@@ -42,9 +43,16 @@ class PropertyMapping(DocumentMapping):
         self.cache_client = CacheClient()
 
     """
+    Overriden method to send HC ping
+    """
+    def add(self, item, limit):
+        r = super().add(item, limit)
+        if r > 0:
+            requests.get(settings.PROPERTY_MAPPING_PING)
+
+    """
     Add Properties from SQL into ElasticSearch
     """
-
     def sync(self):
         while True:
             count = 0
