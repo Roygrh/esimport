@@ -104,3 +104,6 @@ tempDSN
 
 # vscode
 .vscode/
+
+# S3 config files
+.config/
