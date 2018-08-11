@@ -32,7 +32,7 @@ class Conference(BaseModel):
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
               'Code', 'MemberID', 'MemberNumber', 'SSID', 'StartDateUTC', 'EndDateUTC',
-	      'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
+	          'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
               'TotalOutputBytes', 'TotalSessionTime']
 
         for rec1 in list(self.fetch(q1, h1)):
@@ -47,8 +47,11 @@ class Conference(BaseModel):
 
             q2 = self.query_two(rec1['ID'])
 
-            code_list = []
-            member_number_list = []
+            # Update the CodeList with the main Code first
+            code_list = [rec1.get('Code')]
+            
+            # Update the MemberNumberList with the main MumberNumber first
+            member_number_list = [rec1.get('MemberNumber')]
 
             for rec2 in list(self.fetch(q2, None)):
                 code_list.append(rec2.Name)
