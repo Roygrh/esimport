@@ -27,7 +27,8 @@ setup(
         'PyYAML==3.12',
         'raven==6.5.0',
         'redis==2.10.6',
-        'six==1.11.0'
+        'six==1.11.0',
+        'requests==2.19.1'
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']
