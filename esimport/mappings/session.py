@@ -8,7 +8,6 @@
 
 import time
 import logging
-import requests
 
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
@@ -29,14 +28,6 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     def setup(self):  # pragma: no cover
         super(SessionMapping, self).setup()
         self.model = Session(self.conn)
-
-    """
-    Overriden method to send HC ping
-    """
-    def add(self, item, limit):
-        r = super().add(item, limit)
-        if r > 0:
-            requests.get(settings.SESSION_MAPPING_PING)
 
     """
     Find Sessions in SQL and add them to ElasticSearch

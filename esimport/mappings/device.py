@@ -8,7 +8,6 @@
 
 import time
 import logging
-import requests
 
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.device import Device
@@ -30,14 +29,6 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
     def setup(self):  # pragma: no cover
         super(DeviceMapping, self).setup()
         self.model = Device(self.conn)
-
-    """
-    Overriden method to send HC ping
-    """
-    def add(self, item, limit):
-        r = super().add(item, limit)
-        if r > 0:
-            requests.get(settings.DEVICE_MAPPING_PING)
 
     """
     Find Devices in SQL and add them to ElasticSearch

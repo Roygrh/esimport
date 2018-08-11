@@ -11,7 +11,6 @@ import traceback
 import time
 import logging
 import threading
-import requests
 from datetime import datetime, timedelta
 from dateutil import parser
 from operator import itemgetter
@@ -45,14 +44,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def setup(self):  # pragma: no cover
         super(AccountMapping, self).setup()
         self.model = Account(self.conn)
-
-    """
-    Overriden method to send HC ping
-    """
-    def add(self, item, limit):
-        r = super().add(item, limit)
-        if r > 0:
-            requests.get(settings.ACCOUNT_MAPPING_PING)
 
     """
     Loop to continuous add/update accounts
