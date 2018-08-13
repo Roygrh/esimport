@@ -50,7 +50,7 @@ class Conference(BaseModel):
             # Update the CodeList with the main Code first
             code_list = [rec1.get('Code')]
             
-            # Update the MemberNumberList with the main MumberNumber first
+            # Update the MemberNumberList with the main MemberNumber first
             member_number_list = [rec1.get('MemberNumber')]
 
             for rec2 in list(self.fetch(q2, None)):
