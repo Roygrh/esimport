@@ -50,6 +50,8 @@ Client_Device_Type.Name AS Device,
 Platform_Type.Name AS Platform,
 Browser_Type.Name AS Browser,
 Member.Display_Name AS Username,
+Member.ID as MemberID,
+Member.Number as MemberNumber,
 Organization.Number AS ServiceArea,
 Org_Value.Value AS ZoneType
 FROM Client_Tracking WITH (NOLOCK)
