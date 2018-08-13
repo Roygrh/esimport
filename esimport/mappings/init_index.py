@@ -107,6 +107,8 @@ class new_index(object):
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MemberID": {"type": "long"},
+                "MemberNumber": {"type": "keyword"},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "Region": {"type": "keyword", "ignore_above": 64},
