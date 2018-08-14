@@ -32,7 +32,7 @@ class PropertyMapping(DocumentMapping):
         super(PropertyMapping, self).__init__()
 
     def setup(self):
-        super().setup(heartbeat_ping=settings.PROPERTY_MAPPING_PING)
+        super(PropertyMapping, self).setup(heartbeat_ping=settings.PROPERTY_MAPPING_PING)
         logger.info("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Property(conn)
