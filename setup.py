@@ -28,7 +28,8 @@ setup(
         'raven==6.5.0',
         'redis==2.10.6',
         'six==1.11.0',
-        'requests==2.19.1'
+        'requests==2.19.1',
+        'urllib3==1.23'
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']
