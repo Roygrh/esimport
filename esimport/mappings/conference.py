@@ -27,7 +27,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(ConferenceMapping, self).setup()
+        super(ConferenceMapping, self).setup(heartbeat_ping=settings.CONFERENCE_MAPPING_PING)
         self.model = Conference(self.conn)
 
     """
