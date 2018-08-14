@@ -33,11 +33,11 @@ class PropertyMapping(DocumentMapping):
 
     def setup(self):
         super().setup(heartbeat_ping=settings.PROPERTY_MAPPING_PING)
-        logger.debug("Setting up DB connection")
+        logger.info("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Property(conn)
 
-        logger.debug("Setting up ES connection")
+        logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.cache_client = CacheClient()
