@@ -12,6 +12,7 @@ import logging
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.device import Device
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         super(DeviceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(DeviceMapping, self).setup()
+        super(DeviceMapping, self).setup(heartbeat_ping=settings.DEVICE_MAPPING_PING)
         self.model = Device(self.conn)
 
     """

@@ -32,6 +32,7 @@ class PropertyMapping(DocumentMapping):
         super(PropertyMapping, self).__init__()
 
     def setup(self):
+        super().setup(heartbeat_ping=settings.PROPERTY_MAPPING_PING)
         logger.debug("Setting up DB connection")
         conn = MsSQLConnector()
         self.model = Property(conn)
@@ -44,7 +45,6 @@ class PropertyMapping(DocumentMapping):
     """
     Add Properties from SQL into ElasticSearch
     """
-
     def sync(self):
         while True:
             count = 0

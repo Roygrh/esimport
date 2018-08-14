@@ -64,6 +64,14 @@ SQL_SERVER = ''
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 
+# HC Ping URL
+ACCOUNT_MAPPING_PING = ''
+SESSION_MAPPING_PING = ''
+PROPERTY_MAPPING_PING = ''
+DEVICE_MAPPING_PING = ''
+CONFERENCE_MAPPING_PING = ''
+
+
 try:
     from local_settings import *
 except:

@@ -12,6 +12,7 @@ import logging
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.conference import Conference
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(ConferenceMapping, self).setup()
+        super(ConferenceMapping, self).setup(heartbeat_ping=settings.CONFERENCE_MAPPING_PING)
         self.model = Conference(self.conn)
 
     """

@@ -40,8 +40,8 @@ class PropertyAppendedDocumentMapping(DocumentMapping):
     def __init__(self):
         super(PropertyAppendedDocumentMapping, self).__init__()
 
-    def setup(self):  # pragma: no cover
-        DocumentMapping.setup(self)
+    def setup(self, heartbeat_ping=None):  # pragma: no cover
+        DocumentMapping.setup(self, heartbeat_ping)
         # ARRET! possible cycle calls in future
         self.pm = PropertyMapping()
         self.pm.setup()

@@ -42,7 +42,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         super(AccountMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(AccountMapping, self).setup()
+        super(AccountMapping, self).setup(heartbeat_ping=settings.ACCOUNT_MAPPING_PING)
         self.model = Account(self.conn)
 
     """
