@@ -26,5 +26,8 @@ COPY . /esimport
 # upgrade pip, install cython (required by mssql)
 RUN pip-3.6 install -r dev-requirements.txt
 
+# set up esimport
+RUN pip-3.6 install -e .
+
 ENTRYPOINT ["esimport"]
 CMD ["sync"]
