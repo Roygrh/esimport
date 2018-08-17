@@ -46,7 +46,7 @@ class TestConferenceMappingElasticSearch(TestCase):
                 inp_b = inp.read()
                 the_encoding = chardet.detect(inp_b)['encoding']
                 inp = inp_b.decode(the_encoding).replace('GO', '')
-                self.cm.model.execute(inp).commit()
+                self.cm.model.execute(inp)
 
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
@@ -103,7 +103,7 @@ ORDER BY c.[type];
 SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
 FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
-EXEC SP_EXECUTESQL @sql;""").commit()
+EXEC SP_EXECUTESQL @sql;""")
 
         es = self.cm.es
         if es.indices.exists(index=settings.ES_INDEX):

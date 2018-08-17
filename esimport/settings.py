@@ -25,6 +25,9 @@ ES_RETRIES = 5
 ES_RETRIES_WAIT = 5
 ES_BULK_LIMIT = 10
 
+# Are we inside Docker?
+INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
+
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
 
