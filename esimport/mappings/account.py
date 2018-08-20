@@ -234,8 +234,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         self.add(None, min(len(self._items), self.step_size))
 
     """
-    Get the most recent account record from elsasticsearch. And sends the time difference (in seconds)
-    between utc now and date of the recent record to datadog.
+    Get the most recent account record from elsasticsearch. And sends the time difference (in minutes)
+    between utc now and date of the recent record to datadog
     """
     def esdatacheck(self):
         initialize(**settings.DATADOG_OPTIONS)
@@ -244,5 +244,5 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             if recent_date is not None:
                 now = datetime.utcnow()
                 point = (now - recent_date).total_seconds()
-                api.Metric.send(metric=settings.ACCOUNT_METRIC, points=point)
+                api.Metric.send(metric=settings.ACCOUNT_METRIC, points=point/60)
             time.sleep(60)
