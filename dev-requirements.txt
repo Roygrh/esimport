@@ -1,5 +1,6 @@
 click==6.7
 chardet==3.0.4
+datadog==0.22.0
 elasticsearch==5.2.0
 hiredis==0.2.0
 pyodbc==4.0.22
