@@ -240,5 +240,5 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             now = time.time()
             timestamp_point = now - recent_date.timestamp()
             if (timestamp_point) // 60 >= 5:
-                api.Metric.send(metric='account.latest', points=timestamp_point//60)
+                api.Metric.send(metric=settings.ACCOUNT_METRIC, points=timestamp_point//60)
             time.sleep(60)

@@ -79,6 +79,7 @@ DATADOG_OPTIONS = {
     'api_key': '',
     'app_key': ''
 }
+ACCOUNT_METRIC = ''
 
 try:
     from local_settings import *
