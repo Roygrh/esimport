@@ -237,8 +237,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         initialize(**settings.DATADOG_OPTIONS)
         while True:
             recent_date = self.get_most_recent_date('DateModifiedUTC')
-            now = time.time()
-            timestamp_point = now - recent_date.timestamp()
-            if (timestamp_point) // 60 >= 5:
-                api.Metric.send(metric=settings.ACCOUNT_METRIC, points=timestamp_point//60)
-            time.sleep(60)
+            now = datetime.now()
+            point = now - recent_date
+            if point.seconds >= settings.DD_ACCOUNT_THRESHOLD:
+                api.Metric.send(metric=settings.ACCOUNT_METRIC, points=point.seconds//60)
+            time.sleep(5)

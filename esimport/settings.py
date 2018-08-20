@@ -80,6 +80,7 @@ DATADOG_OPTIONS = {
     'app_key': ''
 }
 ACCOUNT_METRIC = ''
+DD_ACCOUNT_THRESHOLD = 300 # seconds
 
 try:
     from local_settings import *
