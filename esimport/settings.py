@@ -74,6 +74,13 @@ DEVICE_MAPPING_PING = 'https://hc-ping.com/d015b52d-895e-4720-a117-1f6b1ec3ef5f'
 PROPERTY_MAPPING_PING = 'https://hc-ping.com/0601edd9-05a4-4652-b159-412a81defc6a'
 SESSION_MAPPING_PING = 'https://hc-ping.com/165df5ca-8517-4e6c-aca2-be158fe8118b'
 
+# Datadog
+DATADOG_OPTIONS = {
+    'api_key': '',
+    'app_key': ''
+}
+ACCOUNT_METRIC = ''
+
 try:
     from local_settings import *
 except:
