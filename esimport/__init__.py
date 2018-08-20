@@ -99,6 +99,16 @@ def update(mapping_name, start_date):
         cm.setup()
         cm.update(start_date)
 
+
+@cli.command()
+@click.argument('mapping_name')
+def esdatacheck(mapping_name):
+    mapping_name = mapping_name.lower()
+    if mapping_name == 'account':
+        am = AccountMapping()
+        am.setup()
+        am.esdatacheck()
+
 @cli.command()
 def create():
         ni = new_index()
