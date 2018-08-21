@@ -75,11 +75,8 @@ PROPERTY_MAPPING_PING = 'https://hc-ping.com/0601edd9-05a4-4652-b159-412a81defc6
 SESSION_MAPPING_PING = 'https://hc-ping.com/165df5ca-8517-4e6c-aca2-be158fe8118b'
 
 # Datadog
-DATADOG_OPTIONS = {
-    'api_key': '',
-    'app_key': ''
-}
-ACCOUNT_METRIC = ''
+DATADOG_API_KEY = ''
+DATADOG_ACCOUNT_METRIC = 'esimport.account.minutes_behind'
 
 try:
     from local_settings import *
