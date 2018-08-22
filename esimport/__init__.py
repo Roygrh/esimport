@@ -14,6 +14,7 @@ from operator import itemgetter
 from elasticsearch import Elasticsearch
 
 from esimport import settings
+from esimport.mappings.doc import DocumentMapping
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
@@ -105,9 +106,9 @@ def update(mapping_name, start_date):
 def esdatacheck(mapping_name):
     mapping_name = mapping_name.lower()
     if mapping_name == 'account':
-        am = AccountMapping()
-        am.setup()
-        am.esdatacheck()
+        dm = DocumentMapping()
+        dm.setup()
+        dm.esdatacheck()
 
 @cli.command()
 def create():

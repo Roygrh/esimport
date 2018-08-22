@@ -12,7 +12,9 @@ import pprint
 import logging
 import traceback
 import requests
+from datetime import datetime
 from dateutil import parser
+from datadog import initialize, api
 
 from elasticsearch import Elasticsearch
 
@@ -22,6 +24,7 @@ from elasticsearch import exceptions
 from esimport import settings
 from esimport.utils import retry
 from esimport.connectors.mssql import MsSQLConnector
+from esimport.models.account import Account
 
 from extensions import sentry_client
 
@@ -144,3 +147,29 @@ class DocumentMapping(object):
             sentry_client.captureException()
 
         return initial_time
+
+    """
+    Gets the most recent account record from Elasticsearch and sends the time difference (in minutes)
+    between utc now and date of the recent record to datadog
+    """
+    def esdatacheck(self):
+        if not settings.DATADOG_API_KEY:
+            logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
+            return
+
+        initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
+
+        while True:
+            recent_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type())
+            if recent_date is not None:
+                now = datetime.utcnow()
+                minutes_behind = (now - recent_date).total_seconds() / 60
+                api.Metric.send(metric=settings.DATADOG_ACCOUNT_METRIC, points=minutes_behind)
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                                 settings.DATADOG_ACCOUNT_METRIC, 
+                                                                                                                 minutes_behind, 
+                                                                                                                 now))
+            else:
+                logger.error('ESDataCheck - Unable to determine the most recent account record by DateModifiedUTC')
+            
+            time.sleep(15)
