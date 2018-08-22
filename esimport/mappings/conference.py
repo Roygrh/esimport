@@ -91,13 +91,13 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                 self.add(dict(conference.es()), self.step_size)
                 start = conference.record.get('ID')+1
 
-            # no further conferences with ID >= start
-            if count == 0:
-                start = 0
-                time.sleep(self.db_wait * 4)
-
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
 
             # always wait between DB calls
             time.sleep(self.db_wait)
+
+            # no further conferences with ID >= start
+            if count == 0:
+                start = 0
+                time.sleep(self.db_wait * 4)
