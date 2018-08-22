@@ -12,6 +12,7 @@ import pprint
 import logging
 import traceback
 import requests
+from dateutil import parser
 
 from elasticsearch import Elasticsearch
 
@@ -112,3 +113,34 @@ class DocumentMapping(object):
             logger.info("Adding/Updating {0} records".format(items_count))
             self.bulk_add_or_update(self.es, self._items)
             self._items = []
+
+    """
+    Get the most recent date requested from elasticsearch
+    """
+    def get_most_recent_date(self, date_field, doc_type):
+        q = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort":[
+                    {
+                        str(date_field): {
+                            "order": "desc",
+                            "missing": "_last",
+                            "unmapped_type": "date"
+                        }
+                    }
+                ],
+                "size": 1
+        }
+
+        try:
+            hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q)['hits']['hits']
+            initial_time = parser.parse(hits[0]['_source'][date_field])
+        except Exception as err:
+            initial_time = None
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
+
+        return initial_time

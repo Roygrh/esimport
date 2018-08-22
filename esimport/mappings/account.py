@@ -54,8 +54,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = parser.parse(start_date)
         else:
             # otherwise, get the most recent starting point from data in Elasticsearch
-            modified_date = self.get_most_recent_date('DateModifiedUTC') 
-            start_date = modified_date if modified_date is not None else self.get_most_recent_date('Created')
+            modified_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type()) 
+            start_date = modified_date if modified_date is not None else self.get_most_recent_date('Created', Account.get_type())
 
             # if ES read fails, default to now
             start_date = start_date or datetime.utcnow()
@@ -92,37 +92,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.utcnow())
 
-
-    """
-    Get the most recent date requested from elasticsearch
-    """
-    def get_most_recent_date(self, date_field):
-        q = {
-                "query": {
-                    "match_all": {}
-                },
-                "sort":[
-                    {
-                        str(date_field): {
-                            "order": "desc",
-                            "missing": "_last",
-                            "unmapped_type": "date"
-                        }
-                    }
-                ],
-                "size": 1
-        }
-
-        try:
-            hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']
-            initial_time = parser.parse(hits[0]['_source'][date_field])
-        except Exception as err:
-            initial_time = None
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-            sentry_client.captureException()
-
-        return initial_time
 
     """
     Append site values to account record
@@ -240,7 +209,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def esdatacheck(self):
         initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
         while True:
-            recent_date = self.get_most_recent_date('DateModifiedUTC')
+            recent_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type())
             if recent_date is not None:
                 now = datetime.utcnow()
                 minutes_behind = (now - recent_date).total_seconds() / 60
