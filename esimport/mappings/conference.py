@@ -12,6 +12,7 @@ import logging
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.conference import Conference
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(ConferenceMapping, self).setup()
+        super(ConferenceMapping, self).setup(heartbeat_ping=settings.CONFERENCE_MAPPING_PING)
         self.model = Conference(self.conn)
 
     """
@@ -88,15 +89,15 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
 
                 conference.update(_action)
                 self.add(dict(conference.es()), self.step_size)
-                start = conference.record.get('ID')
+                start = conference.record.get('ID')+1
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-            #start += count
 
             # always wait between DB calls
             time.sleep(self.db_wait)
 
-            if count <= 0:
+            # no further conferences with ID >= start
+            if count == 0:
                 start = 0
                 time.sleep(self.db_wait * 4)

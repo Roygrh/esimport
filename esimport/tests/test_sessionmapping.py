@@ -28,7 +28,8 @@ class TestSessionMappingElasticsearch(TestCase):
                 for line in inp:
                     if 'GO' not in line:
                         sqlQuery = sqlQuery + line
-                self.sm.model.execute(sqlQuery).commit()
+                self.sm.model.execute(sqlQuery)
+                self.sm.model.conn.close()
             inp.close()
             self.sm.model.conn.reset()
 
@@ -100,7 +101,7 @@ ORDER BY c.[type];
 SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
 FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
-EXEC SP_EXECUTESQL @sql;""").commit()
+EXEC SP_EXECUTESQL @sql;""")
 
         if self.es.indices.exists(index=settings.ES_INDEX):
             self.es.indices.delete(index=settings.ES_INDEX, ignore=400)

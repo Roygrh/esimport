@@ -25,6 +25,9 @@ ES_RETRIES = 5
 ES_RETRIES_WAIT = 5
 ES_BULK_LIMIT = 10
 
+# Are we inside Docker?
+INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
+
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
 
@@ -63,6 +66,17 @@ SQL_SERVER = ''
 # Redis
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
+
+# HC Ping URL
+ACCOUNT_MAPPING_PING = 'https://hc-ping.com/c08ad006-3670-4415-8d3f-1c7c86d20cf1'
+CONFERENCE_MAPPING_PING = 'https://hc-ping.com/725a6180-5674-4bfd-8447-f777543420a7'
+DEVICE_MAPPING_PING = 'https://hc-ping.com/d015b52d-895e-4720-a117-1f6b1ec3ef5f'
+PROPERTY_MAPPING_PING = 'https://hc-ping.com/0601edd9-05a4-4652-b159-412a81defc6a'
+SESSION_MAPPING_PING = 'https://hc-ping.com/165df5ca-8517-4e6c-aca2-be158fe8118b'
+
+# Datadog
+DATADOG_API_KEY = ''
+DATADOG_ACCOUNT_METRIC = 'esimport.account.minutes_behind'
 
 try:
     from local_settings import *

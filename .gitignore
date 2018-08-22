@@ -94,7 +94,7 @@ ENV/
 .idea
 
 config.yml
-odbc.ini
+/odbc.ini
 tempDSN
 
 # Elastic Beanstalk Files

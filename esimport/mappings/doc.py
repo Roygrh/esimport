@@ -11,6 +11,7 @@ import time
 import pprint
 import logging
 import traceback
+import requests
 
 from elasticsearch import Elasticsearch
 
@@ -47,11 +48,12 @@ class DocumentMapping(object):
         self.db_wait = settings.DATABASE_CALLS_WAIT
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
-    def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
+    def setup(self, heartbeat_ping=None):  # pragma: no cover
+        logger.info("Setting up DB connection")
         self.conn = MsSQLConnector()
+        self.heartbeat_ping = heartbeat_ping
 
-        logger.debug("Setting up ES connection")
+        logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
@@ -84,7 +86,9 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        helpers.bulk(es, actions, request_timeout=timeout)
+        result = helpers.bulk(es, actions, request_timeout=timeout)
+        if self.heartbeat_ping and result[0] > 0:
+            requests.get(self.heartbeat_ping)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
