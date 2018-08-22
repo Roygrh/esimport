@@ -238,7 +238,12 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     between utc now and date of the recent record to datadog
     """
     def esdatacheck(self):
+        if not settings.DATADOG_API_KEY:
+            logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
+            return
+
         initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
+
         while True:
             recent_date = self.get_most_recent_date('DateModifiedUTC')
             if recent_date is not None:
