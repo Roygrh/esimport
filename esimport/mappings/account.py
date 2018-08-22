@@ -245,7 +245,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 now = datetime.utcnow()
                 minutes_behind = (now - recent_date).total_seconds() / 60
                 api.Metric.send(metric=settings.DATADOG_ACCOUNT_METRIC, points=minutes_behind)
-                logger.debug('ESDataCheck - Metric: {0} - Minutes Behind: {1:.2f} - Now: {2}'.format(settings.DATADOG_ACCOUNT_METRIC, minutes_behind, now))
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                                 settings.DATADOG_ACCOUNT_METRIC, 
+                                                                                                                 minutes_behind, 
+                                                                                                                 now))
             else:
                 logger.error('ESDataCheck - Unable to determine the most recent account record by DateModifiedUTC')
             
