@@ -24,11 +24,6 @@ from esimport.mappings.conference import ConferenceMapping
 from esimport.models.account import Account
 from esimport.models.base import BaseModel
 from esimport.connectors.mssql import MsSQLConnector
-from esimport.models.account import Account
-from esimport.models.conference import Conference
-from esimport.models.device import Device
-from esimport.models.property import Property
-from esimport.models.session import Session
 
 
 def setup_logging():
@@ -106,22 +101,11 @@ def update(mapping_name, start_date):
 
 
 @cli.command()
-@click.argument('mapping_name')
-def esdatacheck(mapping_name):
-    mapping_name = mapping_name.lower()
+def esdatacheck():
     dm = DocumentMapping()
     dm.setup()
-    if mapping_name == 'account':
-        dm.esdatacheck(Account.get_type(), 'DateModifiedUTC', settings.DATADOG_ACCOUNT_METRIC)
-    elif mapping_name == 'conference':
-        dm.esdatacheck(Conference.get_type(), 'UpdateTime', settings.DATADOG_CONFERENCE_METRIC)
-    elif mapping_name == 'device':
-        dm.esdatacheck(Device.get_type(), 'DateUTC', settings.DATADOG_DEVICE_METRIC)
-    elif mapping_name == 'property':
-        dm.esdatacheck(Property.get_type(), 'UpdateTime', settings.DATADOG_PROPERTY_METRIC)
-    elif mapping_name == 'session':
-        dm.esdatacheck(Session.get_type(), 'LogoutTime', settings.DATADOG_SESSION_METRIC)
-        
+    dm.esdatacheck()
+
 
 @cli.command()
 def create():

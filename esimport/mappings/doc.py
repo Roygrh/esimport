@@ -25,6 +25,10 @@ from esimport import settings
 from esimport.utils import retry
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.models.account import Account
+from esimport.models.conference import Conference
+from esimport.models.device import Device
+from esimport.models.property import Property
+from esimport.models.session import Session
 
 from extensions import sentry_client
 
@@ -152,24 +156,33 @@ class DocumentMapping(object):
     Gets the most recent account record from Elasticsearch and sends the time difference (in minutes)
     between utc now and date of the recent record to datadog
     """
-    def esdatacheck(self, doc_type, date_field, metric):
+    def esdatacheck(self):
         if not settings.DATADOG_API_KEY:
             logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
             return
 
+        doc_types = {
+            Account.get_type(): ['DateModifiedUTC', settings.DATADOG_ACCOUNT_METRIC],
+            Conference.get_type(): ['UpdateTime', settings.DATADOG_CONFERENCE_METRIC],
+            Device.get_type(): ['DateUTC', settings.DATADOG_DEVICE_METRIC],
+            Property.get_type(): ['UpdateTime', settings.DATADOG_PROPERTY_METRIC],
+            Session.get_type(): ['LogoutTime', settings.DATADOG_SESSION_METRIC]
+        }
+
         initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
 
         while True:
-            recent_date = self.get_most_recent_date(date_field, doc_type)
-            if recent_date is not None:
-                now = datetime.utcnow()
-                minutes_behind = (now - recent_date).total_seconds() / 60
-                api.Metric.send(metric=metric, points=minutes_behind)
-                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
-                                                                                                                 metric, 
-                                                                                                                 minutes_behind, 
-                                                                                                                 now))
-            else:
-                logger.error('ESDataCheck - Unable to determine the most recent account record by {}'.format(doc_type))
+            for doc_type, date_field_settings in doc_types.items():
+                recent_date = self.get_most_recent_date(date_field_settings[0], doc_type)
+                if recent_date is not None:
+                    now = datetime.utcnow()
+                    minutes_behind = (now - recent_date).total_seconds() / 60
+                    api.Metric.send(metric=date_field_settings[1], points=minutes_behind)
+                    logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                                    date_field_settings[1], 
+                                                                                                                    minutes_behind, 
+                                                                                                                    now))
+                else:
+                    logger.error('ESDataCheck - Unable to determine the most recent account record by {}'.format(doc_type))
             
             time.sleep(15)
