@@ -18,10 +18,15 @@ logger = logging.getLogger(__name__)
 
 class Conference(BaseModel):
     _type = "conference"
+    _date_field = "UpdateTime"
 
     @staticmethod
     def get_type():
         return Conference._type
+
+    @staticmethod
+    def get_key_date_field():
+        return Conference._date_field
 
     def get_conferences(self, start, limit, start_date='1900-01-01'):
         logger.debug("Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"

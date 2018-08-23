@@ -101,13 +101,17 @@ def update(mapping_name, start_date):
 
 
 @cli.command()
-def esdatacheck():
-    # dm = DocumentMapping()
-    # dm.setup()
-    # dm.esdatacheck()
-    am = AccountMapping()
-    am.setup()
-    am.monitor_metric()
+@click.argument('mapping_name')
+def esdatacheck(mapping_name):
+    mapping_name = mapping_name.lower()
+    if mapping_name == 'account':
+        am = AccountMapping()
+        am.setup()
+        am.monitor_metric()
+    elif mapping_name == 'conference':
+        cm = ConferenceMapping()
+        cm.setup()
+        cm.monitor_metric()
 
 @cli.command()
 def create():
