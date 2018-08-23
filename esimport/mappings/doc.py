@@ -172,5 +172,5 @@ class DocumentMapping(object):
                                                                                                             minutes_behind, 
                                                                                                             now))
         else:
-            logger.error('ESDataCheck - Unable to determine the most recent account record by {}'.format(doc_type))
+            logger.error('ESDataCheck - Unable to determine the most recent {0} record by {1}'.format(doc_type, date_field))
         
