@@ -19,30 +19,35 @@ logger = logging.getLogger(__name__)
 
 class Session(BaseModel):
 
+	_type = "session"
+	_date_field = "LogoutTime"
 
-    _type = "session"
-    @staticmethod
-    def get_type():
-        return Session._type
+	@staticmethod
+	def get_type():
+		return Session._type
 
-
-    def get_sessions(self, start_id, limit, start_date='1900-01-01'):
-        dt_columns = ['LogoutTime', 'LoginTime']
-        q = self.query_one(start_id, start_date, limit)
-        for row in self.fetch_dict(q):
-            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
-            if 'LogoutTime' in row and 'SessionLength' in row:
-                row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
-            yield ESRecord(row, self.get_type())
+	@staticmethod
+	def get_key_date_field():
+		return Session._date_field
 
 
-    @staticmethod
-    def query_one(start_id, start_date, limit):
-        q = """
+	def get_sessions(self, start_id, limit, start_date='1900-01-01'):
+		dt_columns = ['LogoutTime', 'LoginTime']
+		q = self.query_one(start_id, start_date, limit)
+		for row in self.fetch_dict(q):
+			row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+			if 'LogoutTime' in row and 'SessionLength' in row:
+				row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
+			# convert datetime to string
+			for dt_column in dt_columns:
+				if dt_column in row and isinstance(row[dt_column], datetime):
+					row[dt_column] = row[dt_column].isoformat()
+			yield ESRecord(row, self.get_type())
+
+
+	@staticmethod
+	def query_one(start_id, start_date, limit):
+		q = """
 SELECT DISTINCT TOP ({2}) 
 	stop.ID AS ID,
 	org.Number AS ServiceArea,
@@ -83,5 +88,5 @@ WHERE
 ORDER BY 
 	stop.ID ASC
 """
-        q = q.format(start_id, start_date, limit)
-        return q
+		q = q.format(start_id, start_date, limit)
+		return q

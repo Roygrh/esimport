@@ -119,6 +119,10 @@ def esdatacheck():
         pm = PropertyMapping()
         pm.setup()
         pm.monitor_metric()
+        # Session
+        sm = SessionMapping()
+        sm.setup()
+        sm.monitor_metric()
 
         time.sleep(15)
 
