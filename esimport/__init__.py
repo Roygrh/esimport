@@ -102,10 +102,12 @@ def update(mapping_name, start_date):
 
 @cli.command()
 def esdatacheck():
-    dm = DocumentMapping()
-    dm.setup()
-    dm.esdatacheck()
-
+    # dm = DocumentMapping()
+    # dm.setup()
+    # dm.esdatacheck()
+    am = AccountMapping()
+    am.setup()
+    am.monitor_metric()
 
 @cli.command()
 def create():

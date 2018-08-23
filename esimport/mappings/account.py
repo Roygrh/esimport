@@ -45,6 +45,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         super(AccountMapping, self).setup(heartbeat_ping=settings.ACCOUNT_MAPPING_PING)
         self.model = Account(self.conn)
 
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_ACCOUNT_METRIC
+
     """
     Loop to continuous add/update accounts
     """
