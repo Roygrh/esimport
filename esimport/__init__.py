@@ -102,28 +102,28 @@ def update(mapping_name, start_date):
 
 @cli.command()
 def esdatacheck():
-    while True:
-        # Account 
-        am = AccountMapping()
-        am.setup()
-        am.monitor_metric()
-        # Conference
-        cm = ConferenceMapping()
-        cm.setup()
-        cm.monitor_metric()
-        # Device
-        dm = DeviceMapping()
-        dm.setup()
-        dm.monitor_metric()
-        # Property
-        pm = PropertyMapping()
-        pm.setup()
-        pm.monitor_metric()
-        # Session
-        sm = SessionMapping()
-        sm.setup()
-        sm.monitor_metric()
+    # Account
+    am = AccountMapping()
+    am.setup()
+    # Conference
+    cm = ConferenceMapping()
+    cm.setup()
+    # Device
+    dm = DeviceMapping()
+    dm.setup()
+    # Property
+    pm = PropertyMapping()
+    pm.setup()
+    # Session
+    sm = SessionMapping()
+    sm.setup()
 
+    while True:
+        am.monitor_metric()
+        cm.monitor_metric()
+        dm.monitor_metric()
+        pm.monitor_metric()
+        sm.monitor_metric()
         time.sleep(15)
 
 @cli.command()
