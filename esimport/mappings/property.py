@@ -42,6 +42,10 @@ class PropertyMapping(DocumentMapping):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.cache_client = CacheClient()
 
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_PROPERTY_METRIC
+
     """
     Add Properties from SQL into ElasticSearch
     """

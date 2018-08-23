@@ -115,7 +115,11 @@ def esdatacheck():
         dm = DeviceMapping()
         dm.setup()
         dm.monitor_metric()
-        
+        # Property
+        pm = PropertyMapping()
+        pm.setup()
+        pm.monitor_metric()
+
         time.sleep(15)
 
 @cli.command()
