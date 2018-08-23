@@ -11,7 +11,6 @@ import time
 import pprint
 import logging
 import traceback
-import requests
 from datetime import datetime
 from dateutil import parser
 from datadog import initialize, api
@@ -89,9 +88,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        result = helpers.bulk(es, actions, request_timeout=timeout)
-        if self.heartbeat_ping and result[0] > 0:
-            requests.get(self.heartbeat_ping)
+        helpers.bulk(es, actions, request_timeout=timeout)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
