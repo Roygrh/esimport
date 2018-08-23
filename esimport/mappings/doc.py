@@ -153,7 +153,7 @@ class DocumentMapping(object):
         return initial_time
 
     """
-    Gets the most recent account record from Elasticsearch and sends the time difference (in minutes)
+    Gets the most recent record from Elasticsearch and sends the time difference (in minutes)
     between utc now and date of the recent record to datadog
     """
     def monitor_metric(self):
