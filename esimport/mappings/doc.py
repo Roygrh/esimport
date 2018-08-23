@@ -24,11 +24,6 @@ from elasticsearch import exceptions
 from esimport import settings
 from esimport.utils import retry
 from esimport.connectors.mssql import MsSQLConnector
-from esimport.models.account import Account
-from esimport.models.conference import Conference
-from esimport.models.device import Device
-from esimport.models.property import Property
-from esimport.models.session import Session
 
 from extensions import sentry_client
 
