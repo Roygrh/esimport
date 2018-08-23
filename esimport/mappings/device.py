@@ -30,6 +30,10 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         super(DeviceMapping, self).setup(heartbeat_ping=settings.DEVICE_MAPPING_PING)
         self.model = Device(self.conn)
 
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_DEVICE_METRIC
+
     """
     Find Devices in SQL and add them to ElasticSearch
     """
