@@ -77,10 +77,10 @@ SESSION_MAPPING_PING = 'https://hc-ping.com/165df5ca-8517-4e6c-aca2-be158fe8118b
 # Datadog
 DATADOG_API_KEY = ''
 DATADOG_ACCOUNT_METRIC = 'esimport.account.minutes_behind'
-DATADOG_CONFERENCE_METRIC = ''
-DATADOG_DEVICE_METRIC = ''
-DATADOG_PROPERTY_METRIC = ''
-DATADOG_SESSION_METRIC = ''
+DATADOG_CONFERENCE_METRIC = 'esimport.conference.minutes_behind'
+DATADOG_DEVICE_METRIC = 'esimport.device.minutes_behind'
+DATADOG_PROPERTY_METRIC = 'esimport.property.minutes_behind'
+DATADOG_SESSION_METRIC = 'esimport.session.minutes_behind'
 
 try:
     from local_settings import *
