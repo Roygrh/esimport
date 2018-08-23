@@ -175,18 +175,17 @@ class DocumentMapping(object):
         date_field = self.model.get_key_date_field()
         metric_setting = self.get_monitoring_metric()
 
-        while True:
+        # while True:
             # for doc_type, date_field_settings in doc_types.items():
-            recent_date = self.get_most_recent_date(date_field, doc_type)
-            if recent_date is not None:
-                now = datetime.utcnow()
-                minutes_behind = (now - recent_date).total_seconds() / 60
-                api.Metric.send(metric=metric_setting, points=minutes_behind)
-                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
-                                                                                                                metric_setting, 
-                                                                                                                minutes_behind, 
-                                                                                                                now))
-            else:
-                logger.error('ESDataCheck - Unable to determine the most recent account record by {}'.format(doc_type))
-            
-            time.sleep(15)
+        recent_date = self.get_most_recent_date(date_field, doc_type)
+        if recent_date is not None:
+            now = datetime.utcnow()
+            minutes_behind = (now - recent_date).total_seconds() / 60
+            api.Metric.send(metric=metric_setting, points=minutes_behind)
+            logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                            metric_setting, 
+                                                                                                            minutes_behind, 
+                                                                                                            now))
+        else:
+            logger.error('ESDataCheck - Unable to determine the most recent account record by {}'.format(doc_type))
+        
