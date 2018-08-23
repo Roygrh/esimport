@@ -161,22 +161,12 @@ class DocumentMapping(object):
             logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
             return
 
-        # doc_types = {
-        #     Account.get_type(): ['DateModifiedUTC', settings.DATADOG_ACCOUNT_METRIC],
-        #     Conference.get_type(): ['UpdateTime', settings.DATADOG_CONFERENCE_METRIC],
-        #     Device.get_type(): ['DateUTC', settings.DATADOG_DEVICE_METRIC],
-        #     Property.get_type(): ['UpdateTime', settings.DATADOG_PROPERTY_METRIC],
-        #     Session.get_type(): ['LogoutTime', settings.DATADOG_SESSION_METRIC]
-        # }
-
         initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
 
         doc_type = self.model.get_type()
         date_field = self.model.get_key_date_field()
         metric_setting = self.get_monitoring_metric()
 
-        # while True:
-            # for doc_type, date_field_settings in doc_types.items():
         recent_date = self.get_most_recent_date(date_field, doc_type)
         if recent_date is not None:
             now = datetime.utcnow()
