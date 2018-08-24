@@ -11,7 +11,9 @@ import time
 import pprint
 import logging
 import traceback
-import requests
+from datetime import datetime
+from dateutil import parser
+from datadog import initialize, api
 
 from elasticsearch import Elasticsearch
 
@@ -48,14 +50,17 @@ class DocumentMapping(object):
         self.db_wait = settings.DATABASE_CALLS_WAIT
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
-    def setup(self, heartbeat_ping=None):  # pragma: no cover
+    def setup(self):  # pragma: no cover
         logger.info("Setting up DB connection")
         self.conn = MsSQLConnector()
-        self.heartbeat_ping = heartbeat_ping
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+
+    @staticmethod
+    def get_monitoring_metric():
+        return ""
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
@@ -86,9 +91,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        result = helpers.bulk(es, actions, request_timeout=timeout)
-        if self.heartbeat_ping and result[0] > 0:
-            requests.get(self.heartbeat_ping)
+        helpers.bulk(es, actions, request_timeout=timeout)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
@@ -112,3 +115,62 @@ class DocumentMapping(object):
             logger.info("Adding/Updating {0} records".format(items_count))
             self.bulk_add_or_update(self.es, self._items)
             self._items = []
+
+    """
+    Get the most recent date requested from elasticsearch
+    """
+    def get_most_recent_date(self, date_field, doc_type):
+        q = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort":[
+                    {
+                        str(date_field): {
+                            "order": "desc",
+                            "missing": "_last",
+                            "unmapped_type": "date"
+                        }
+                    }
+                ],
+                "size": 1
+        }
+
+        try:
+            hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q)['hits']['hits']
+            initial_time = parser.parse(hits[0]['_source'][date_field])
+        except Exception as err:
+            initial_time = None
+            logger.error(err)
+            traceback.print_exc(file=sys.stdout)
+            sentry_client.captureException()
+
+        return initial_time
+
+    """
+    Gets the most recent record from Elasticsearch and sends the time difference (in minutes)
+    between utc now and date of the recent record to datadog
+    """
+    def monitor_metric(self):
+        if not settings.DATADOG_API_KEY:
+            logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
+            return
+
+        initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
+
+        doc_type = self.model.get_type()
+        date_field = self.model.get_key_date_field()
+        metric_setting = self.get_monitoring_metric()
+
+        recent_date = self.get_most_recent_date(date_field, doc_type)
+        if recent_date is not None:
+            now = datetime.utcnow()
+            minutes_behind = (now - recent_date).total_seconds() / 60
+            api.Metric.send(metric=metric_setting, points=minutes_behind)
+            logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                            metric_setting, 
+                                                                                                            minutes_behind, 
+                                                                                                            now))
+        else:
+            logger.error('ESDataCheck - Unable to determine the most recent {0} record by {1}'.format(doc_type, date_field))
+        

@@ -19,11 +19,17 @@ logger = logging.getLogger(__name__)
 
 class Device(BaseModel):
 
-
     _type = "device"
+    _date_field = "DateUTC"
+
     @staticmethod
     def get_type():
         return Device._type
+
+
+    @staticmethod
+    def get_key_date_field():
+        return Device._date_field
 
 
     def get_devices(self, start, limit, start_date='1900-01-01'):

@@ -18,9 +18,15 @@ logger = logging.getLogger(__name__)
 class Property(BaseModel):
 
     _type = "property"
+    _date_field = "UpdateTime"
+
     @staticmethod
     def get_type():
         return Property._type
+
+    @staticmethod
+    def get_key_date_field():
+        return Property._date_field
 
 
     def get_properties(self, start, limit):
