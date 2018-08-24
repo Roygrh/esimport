@@ -32,10 +32,9 @@ class PropertyMapping(DocumentMapping):
         super(PropertyMapping, self).__init__()
 
     def setup(self):
-        super(PropertyMapping, self).setup(heartbeat_ping=settings.PROPERTY_MAPPING_PING)
+        super(PropertyMapping, self).setup()
         logger.info("Setting up DB connection")
-        conn = MsSQLConnector()
-        self.model = Property(conn)
+        self.model = Property(self.conn)
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200

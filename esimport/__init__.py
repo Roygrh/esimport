@@ -14,7 +14,6 @@ from operator import itemgetter
 from elasticsearch import Elasticsearch
 
 from esimport import settings
-from esimport.mappings.doc import DocumentMapping
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping

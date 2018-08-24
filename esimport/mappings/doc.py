@@ -50,14 +50,17 @@ class DocumentMapping(object):
         self.db_wait = settings.DATABASE_CALLS_WAIT
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
-    def setup(self, heartbeat_ping=None):  # pragma: no cover
+    def setup(self):  # pragma: no cover
         logger.info("Setting up DB connection")
         self.conn = MsSQLConnector()
-        self.heartbeat_ping = heartbeat_ping
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+
+    @staticmethod
+    def get_monitoring_metric():
+        return ""
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):

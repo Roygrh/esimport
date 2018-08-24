@@ -27,7 +27,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         super(DeviceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(DeviceMapping, self).setup(heartbeat_ping=settings.DEVICE_MAPPING_PING)
+        super(DeviceMapping, self).setup()
         self.model = Device(self.conn)
 
     @staticmethod
