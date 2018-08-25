@@ -25,7 +25,6 @@ from esimport.models.base import BaseModel
 from esimport.connectors.mssql import MsSQLConnector
 
 
-
 def setup_logging():
     formatter = logging.Formatter(settings.LOG_FORMAT)
 
@@ -101,13 +100,30 @@ def update(mapping_name, start_date):
 
 
 @cli.command()
-@click.argument('mapping_name')
-def esdatacheck(mapping_name):
-    mapping_name = mapping_name.lower()
-    if mapping_name == 'account':
-        am = AccountMapping()
-        am.setup()
-        am.esdatacheck()
+def esdatacheck():
+    # Account
+    am = AccountMapping()
+    am.setup()
+    # Conference
+    cm = ConferenceMapping()
+    cm.setup()
+    # Device
+    dm = DeviceMapping()
+    dm.setup()
+    # Property
+    pm = PropertyMapping()
+    pm.setup()
+    # Session
+    sm = SessionMapping()
+    sm.setup()
+
+    while True:
+        am.monitor_metric()
+        cm.monitor_metric()
+        dm.monitor_metric()
+        pm.monitor_metric()
+        sm.monitor_metric()
+        time.sleep(15)
 
 @cli.command()
 def create():

@@ -19,9 +19,15 @@ logger = logging.getLogger(__name__)
 class Account(BaseModel):
 
     _type = "account"
+    _date_field = 'DateModifiedUTC'
+
     @staticmethod
     def get_type():
         return Account._type
+
+    @staticmethod
+    def get_key_date_field():
+        return Account._date_field
 
     def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
         q = self.eleven_query(start_date, start, limit)

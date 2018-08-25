@@ -26,8 +26,12 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         super(SessionMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(SessionMapping, self).setup(heartbeat_ping=settings.SESSION_MAPPING_PING)
+        super(SessionMapping, self).setup()
         self.model = Session(self.conn)
+
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_SESSION_METRIC
 
     """
     Find Sessions in SQL and add them to ElasticSearch

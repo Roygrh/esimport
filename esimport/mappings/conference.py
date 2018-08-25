@@ -27,8 +27,12 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         super(ConferenceMapping, self).__init__()
 
     def setup(self):  # pragma: no cover
-        super(ConferenceMapping, self).setup(heartbeat_ping=settings.CONFERENCE_MAPPING_PING)
+        super(ConferenceMapping, self).setup()
         self.model = Conference(self.conn)
+
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_CONFERENCE_METRIC
 
     """
     Find Conference in SQL and add them to ElasticSearch

@@ -21,9 +21,15 @@ class Session(BaseModel):
 
 
     _type = "session"
+    _date_field = "LogoutTime"
+
     @staticmethod
     def get_type():
         return Session._type
+
+    @staticmethod
+    def get_key_date_field():
+        return Session._date_field
 
 
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
