@@ -140,7 +140,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                                                if pfik not in row]
                 # get some properties from PropertyMapping
                 _action = {}
-                for properte in self.pm.get_properties_by_service_area(row.get('ServiceArea')):
+                for properte in self.pm.get_properties_by_org_number(row.get('Number')):
                     for pfik, pfiv in new_property_fields_include:
                         _action[pfik] = properte.get(pfiv or pfik, "")
                     break
