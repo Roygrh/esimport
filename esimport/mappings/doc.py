@@ -51,12 +51,11 @@ class DocumentMapping(object):
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
     def setup(self):  # pragma: no cover
-        logger.info("Setting up DB connection")
         self.conn = MsSQLConnector()
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
 
     @staticmethod
     def get_monitoring_metric():

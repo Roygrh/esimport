@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class CacheClient(object):
     def __init__(self):
+        logger.info("Setting up cache client")
         self.client = redis.StrictRedis(host=settings.REDIS_HOST, 
                                         port=settings.REDIS_PORT,
                                         encoding='utf-8')

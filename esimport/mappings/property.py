@@ -33,12 +33,12 @@ class PropertyMapping(DocumentMapping):
 
     def setup(self):
         super(PropertyMapping, self).setup()
-        logger.info("Setting up DB connection")
         self.model = Property(self.conn)
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
+
         self.cache_client = CacheClient()
 
     @staticmethod
