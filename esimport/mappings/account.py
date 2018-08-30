@@ -57,7 +57,11 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = parser.parse(start_date)
         else:
             # otherwise, get the most recent starting point from data in Elasticsearch (use Created to prevent gaps in data)
-            start_date = self.get_most_recent_date('Created', Account.get_type()) 
+            start_date = self.get_most_recent_date('Created', Account.get_type())
+            logger.info("Data Check - Created: {0}".format(start_date))
+
+            modified_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type()) 
+            logger.info("Data Check - DateModifiedUTC: {0}".format(modified_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
 
