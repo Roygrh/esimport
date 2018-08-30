@@ -136,7 +136,7 @@ class DocumentMapping(object):
         }
 
         try:
-            hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q)['hits']['hits']
+            hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)['hits']['hits']
             initial_time = parser.parse(hits[0]['_source'][date_field])
         except Exception as err:
             initial_time = None
