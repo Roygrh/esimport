@@ -74,7 +74,8 @@ class PropertyMapping(DocumentMapping):
                      .format(limit, start))
         records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                  sort="ID:asc", size=limit,
-                                 q="ID:[{0} TO *]".format(start))
+                                 q="ID:[{0} TO *]".format(start), 
+                                 request_timeout=60)
         for record in records['hits']['hits']:
             yield record.get('_source')
 
