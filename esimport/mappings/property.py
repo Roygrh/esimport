@@ -175,7 +175,7 @@ class PropertyMapping(DocumentMapping):
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop)
 
-                start = prop.get('ID')
+                start = prop.get('ID') + 1
 
             # always wait between ES calls
             logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
