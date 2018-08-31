@@ -120,7 +120,7 @@ def esdatacheck(mapping_name):
 
         while True:
             mapping_instance.monitor_metric()
-            time.sleep(15)
+            time.sleep(30)
 
 
 @cli.command()
