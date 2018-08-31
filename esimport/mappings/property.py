@@ -97,7 +97,7 @@ class PropertyMapping(DocumentMapping):
                     self.cache_client.set(service_area, prop.record)
 
                 self.add(dict(prop.es()), self.step_size)
-                start = prop.record.get('ID')+1
+                start = prop.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
@@ -124,7 +124,7 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetched record from cache for Organization Number: {0}.".format(org_number))
             yield record
         else:
-            logger.debug("Fetching records from ES where Organization Number: {0} exists." \
+            logger.info("Fetching records from ES where Organization Number: {0} exists." \
                         .format(org_number))
             records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                      body={
