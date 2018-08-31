@@ -90,11 +90,14 @@ class PropertyMapping(DocumentMapping):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
 
+                # add both Property/Organization Number and Service Areas to the cache
+                self.cache_client.set(prop.get('Number'), prop.record)
+
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop.record)
 
                 self.add(dict(prop.es()), self.step_size)
-                start = prop.record.get('ID')
+                start = prop.record.get('ID')+1
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
@@ -107,36 +110,47 @@ class PropertyMapping(DocumentMapping):
                 time.sleep(self.db_wait * 4)
 
     """
-    Use ElasticSearch Property data to find the site associated with a service area
+    Use ElasticSearch Property data to find the site associated with a organization number
     """
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
-    def get_properties_by_service_area(self, service_area):
+    def get_properties_by_org_number(self, org_number):
         try:
-            record = self.cache_client.get(service_area)
+            record = self.cache_client.get(org_number)
         except Exception:
             record = None
             sentry_client.captureException()
 
         if record is not None:
-            logger.debug("Fetched record from cache for Service Area: {0}.".format(service_area))
+            logger.debug("Fetched record from cache for Organization Number: {0}.".format(org_number))
             yield record
         else:
-            logger.debug("Fetching records from ES where Service Area: {0} exists." \
-                        .format(service_area))
+            logger.debug("Fetching records from ES where Organization Number: {0} exists." \
+                        .format(org_number))
             records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                     body={
-                                        "query": {
-                                            "match": {
-                                                "ServiceAreas": service_area
-                                            }
-                                        }
+					    "query": {
+						"bool": {
+						"should": [
+						    {
+						    "match": {
+							"Number": org_number
+						    }
+						    },
+						    {
+						    "match": {
+							"ServiceAreas": org_number
+						    }
+						    }
+						]
+						}
+					    }
                                     })
             for record in records['hits']['hits']:
                 yield record.get('_source')
 
-        logger.warning("Property Service Area match not found for {0}".format(
-            service_area))
+        logger.warning("Property Organization Number match not found for {0}".format(
+            org_number))
 
 
     def backload(self):
