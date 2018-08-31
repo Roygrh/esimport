@@ -68,7 +68,6 @@ class PropertyMapping(DocumentMapping):
     """
     Find existing property records in ElasticSearch
     """
-
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start))
@@ -81,7 +80,6 @@ class PropertyMapping(DocumentMapping):
     """
     Continuously update ElasticSearch to have the latest Property data
     """
-
     def update(self):
         start = 0
         while True:
@@ -161,3 +159,27 @@ class PropertyMapping(DocumentMapping):
 
             # for cases when all/remaining items count were less than limit
         self.add(None, min(len(self._items), self.step_size))
+
+    def loadCache(self):
+        start = 0
+        while True:
+            count = 0
+            for prop in self.get_existing_properties(start, self.step_size):
+                count += 1
+                logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
+
+                # add both Property/Organization Number and Service Areas to the cache
+                self.cache_client.set(prop.get('Number'), prop)
+
+                for service_area in prop.get('ServiceAreas'):
+                    self.cache_client.set(service_area, prop)
+
+                start = prop.get('ID')
+
+            # always wait between ES calls
+            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            time.sleep(self.db_wait)
+
+            if count == 0:
+                logger.info("All properties have been loaded into cache")
+                break
