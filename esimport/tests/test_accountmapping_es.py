@@ -84,7 +84,7 @@ class TestAccountMappingElasticSearch(TestCase):
         # self.properties = tests._mocked_sql('esimport_properties.csv')
 
         # self.pm = PropertyMapping()
-        # self.pm.get_properties_by_org_number = MagicMock(return_value=self.properties)
+        # self.pm.get_property_by_org_number = MagicMock(return_value=self.properties)
         # self.am.pm = self.pm
 
         # needs ES_HOME set to where elastic search is downloaded
@@ -329,7 +329,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
         properties = tests._mocked_sql('esimport_properties.csv')
         pm = PropertyMapping()
-        pm.get_properties_by_org_number = MagicMock(return_value=properties)
+        pm.get_property_by_org_number = MagicMock(return_value=properties)
         am.pm = pm
 
         # setup ES
@@ -528,7 +528,7 @@ class TestAccountMappingElasticSearch(TestCase):
             self.pm.cache_client.set(service_area, res)
         
         for service_area in service_areas:
-            records = self.pm.get_properties_by_org_number(service_area)
+            records = self.pm.get_property_by_org_number(service_area)
             for rec in records:
                 self.assertTrue(rec['cache'])
 

@@ -112,9 +112,8 @@ class PropertyMapping(DocumentMapping):
     """
     Use ElasticSearch Property data to find the site associated with a organization number
     """
-
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
-    def get_properties_by_org_number(self, org_number):
+    def get_property_by_org_number(self, org_number):
         try:
             record = self.cache_client.get(org_number)
         except Exception:
@@ -128,23 +127,23 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetching records from ES where Organization Number: {0} exists." \
                         .format(org_number))
             records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
-                                    body={
-					    "query": {
-						"bool": {
-						"should": [
-						    {
-						    "match": {
-							"Number": org_number
-						    }
-						    },
-						    {
-						    "match": {
-							"ServiceAreas": org_number
-						    }
-						    }
-						]
-						}
-					    }
+                                     body={
+                                        "query": {
+                                            "bool": {
+                                                "should": [
+                                                    {
+                                                        "match": {
+                                                            "Number": org_number
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "ServiceAreas": org_number
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
                                     })
             for record in records['hits']['hits']:
                 yield record.get('_source')
