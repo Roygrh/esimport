@@ -51,12 +51,11 @@ class DocumentMapping(object):
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
     def setup(self):  # pragma: no cover
-        logger.info("Setting up DB connection")
         self.conn = MsSQLConnector()
 
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
 
     @staticmethod
     def get_monitoring_metric():
@@ -119,6 +118,7 @@ class DocumentMapping(object):
     """
     Get the most recent date requested from elasticsearch
     """
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_most_recent_date(self, date_field, doc_type):
         q = {
                 "query": {
@@ -136,16 +136,8 @@ class DocumentMapping(object):
                 "size": 1
         }
 
-        try:
-            hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q)['hits']['hits']
-            initial_time = parser.parse(hits[0]['_source'][date_field])
-        except Exception as err:
-            initial_time = None
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-            sentry_client.captureException()
-
-        return initial_time
+        hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)['hits']['hits']
+        return parser.parse(hits[0]['_source'][date_field])
 
     """
     Gets the most recent record from Elasticsearch and sends the time difference (in minutes)

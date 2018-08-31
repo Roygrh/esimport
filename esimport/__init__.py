@@ -100,30 +100,28 @@ def update(mapping_name, start_date):
 
 
 @cli.command()
-def esdatacheck():
-    # Account
-    am = AccountMapping()
-    am.setup()
-    # Conference
-    cm = ConferenceMapping()
-    cm.setup()
-    # Device
-    dm = DeviceMapping()
-    dm.setup()
-    # Property
-    pm = PropertyMapping()
-    pm.setup()
-    # Session
-    sm = SessionMapping()
-    sm.setup()
+@click.argument('mapping_name')
+def esdatacheck(mapping_name):
+    mapping_name = mapping_name.lower()
 
-    while True:
-        am.monitor_metric()
-        cm.monitor_metric()
-        dm.monitor_metric()
-        pm.monitor_metric()
-        sm.monitor_metric()
-        time.sleep(15)
+    _classes = {
+            'account': AccountMapping,
+            'conference': ConferenceMapping,
+            'device': DeviceMapping,
+            'property': PropertyMapping,
+            'session': SessionMapping
+        }
+
+    mapping_class = _classes.get(mapping_name)
+
+    if mapping_class:
+        mapping_instance = mapping_class()
+        mapping_instance.setup()
+
+        while True:
+            mapping_instance.monitor_metric()
+            time.sleep(30)
+
 
 @cli.command()
 def create():
