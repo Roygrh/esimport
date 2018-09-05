@@ -121,23 +121,20 @@ class DocumentMapping(object):
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_most_recent_date(self, date_field, doc_type):
         q = {
-                "query": {
-                    "match_all": {}
-                },
-                "sort":[
-                    {
-                        str(date_field): {
-                            "order": "desc",
-                            "missing": "_last",
-                            "unmapped_type": "date"
+                "aggs": {
+                    "most_recent_date": {
+                        "max": {
+                            "field": str(date_field)
                         }
                     }
-                ],
-                "size": 1
-        }
+                },
+                "size": 0
+            }
 
-        hits = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)['hits']['hits']
-        return parser.parse(hits[0]['_source'][date_field])
+        response = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)
+        most_recent_date = parser.parse(response['aggregations']['most_recent_date']['value_as_string'])
+        return most_recent_date.replace(tzinfo=None)
+
 
     """
     Gets the most recent record from Elasticsearch and sends the time difference (in minutes)
@@ -154,15 +151,17 @@ class DocumentMapping(object):
         date_field = self.model.get_key_date_field()
         metric_setting = self.get_monitoring_metric()
 
-        recent_date = self.get_most_recent_date(date_field, doc_type)
-        if recent_date is not None:
-            now = datetime.utcnow()
-            minutes_behind = (now - recent_date).total_seconds() / 60
-            api.Metric.send(metric=metric_setting, points=minutes_behind)
-            logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
-                                                                                                            metric_setting, 
-                                                                                                            minutes_behind, 
-                                                                                                            now))
-        else:
-            logger.error('ESDataCheck - Unable to determine the most recent {0} record by {1}'.format(doc_type, date_field))
+        while True:
+            recent_date = self.get_most_recent_date(date_field, doc_type)
+            if recent_date is not None:
+                now = datetime.utcnow()
+                minutes_behind = (now - recent_date).total_seconds() / 60
+                api.Metric.send(metric=metric_setting, points=minutes_behind)
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                                metric_setting, 
+                                                                                                                minutes_behind, 
+                                                                                                                now))
+            else:
+                logger.error('ESDataCheck - Unable to determine the most recent {0} record by {1}'.format(doc_type, date_field))
+            time.sleep(30)
         
