@@ -22,6 +22,7 @@ from elasticsearch import exceptions
 
 from esimport import settings
 from esimport.utils import retry
+from esimport.cache import CacheClient
 from esimport.connectors.mssql import MsSQLConnector
 
 from extensions import sentry_client
@@ -37,6 +38,7 @@ class DocumentMapping(object):
     model = None
     es = None
 
+    cache_client = None
     conn = None
     _items = None
 
@@ -56,6 +58,8 @@ class DocumentMapping(object):
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
+
+        self.cache_client = CacheClient()
 
     @staticmethod
     def get_monitoring_metric():
@@ -90,7 +94,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        helpers.bulk(es, actions, request_timeout=timeout)
+        return helpers.bulk(es, actions, request_timeout=timeout)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
@@ -106,14 +110,16 @@ class DocumentMapping(object):
             sentry_client.captureException()
         return 0
 
-    def add(self, item, limit):
+    def add(self, item, limit, metric_value=None):
         if item:
             self._items.append(item)
         items_count = len(self._items)
         if items_count > 0 and items_count >= limit:
             logger.info("Adding/Updating {0} records".format(items_count))
-            self.bulk_add_or_update(self.es, self._items)
+            result = self.bulk_add_or_update(self.es, self._items)
             self._items = []
+            if result[0] > 0:
+                self.cache_client.set(self.get_monitoring_metric(), metric_value)
 
     """
     Get the most recent date requested from elasticsearch
@@ -148,13 +154,13 @@ class DocumentMapping(object):
         initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
 
         doc_type = self.model.get_type()
-        date_field = self.model.get_key_date_field()
         metric_setting = self.get_monitoring_metric()
 
         while True:
-            recent_date = self.get_most_recent_date(date_field, doc_type)
+            recent_date = self.cache_client.get(metric_setting)
             if recent_date is not None:
                 now = datetime.utcnow()
+                recent_date = parser.parse(recent_date, ignoretz=True)
                 minutes_behind = (now - recent_date).total_seconds() / 60
                 api.Metric.send(metric=metric_setting, points=minutes_behind)
                 logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
@@ -162,6 +168,6 @@ class DocumentMapping(object):
                                                                                                                 minutes_behind, 
                                                                                                                 now))
             else:
-                logger.error('ESDataCheck - Unable to determine the most recent {0} record by {1}'.format(doc_type, date_field))
-            time.sleep(30)
-        
+                logger.error('ESDataCheck - {0} metric does not exist in cache.'.format(doc_type))
+
+            time.sleep(15)

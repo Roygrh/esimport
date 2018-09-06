@@ -39,6 +39,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     def add_sessions(self, start_date):
         count = 0
         start = self.max_id() + 1
+        metric_value = None
         logger.debug("Get Sessions from {0} to {1} since {2}"
               .format(start, start+self.db_record_limit, start_date))
         for session in self.model.get_sessions(start, self.db_record_limit, start_date):
@@ -51,13 +52,13 @@ class SessionMapping(PropertyAppendedDocumentMapping):
                     _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
 
             session.update(_action)
+            metric_value = session.get(self.model.get_key_date_field())
 
-            rec = session.es()
             logger.debug("Record found: {0}".format(session.get('ID')))
-            self.add(rec, self.step_size)
+            self.add(session.es(), self.step_size, metric_value)
 
         # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
+        self.add(None, 0, metric_value)
 
         # only wait between DB calls when there is no delay from ES (HTTP requests)
         if count <= 0:
