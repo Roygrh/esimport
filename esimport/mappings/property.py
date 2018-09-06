@@ -124,8 +124,19 @@ class PropertyMapping(DocumentMapping):
             records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                      body={
                                         "query": {
-                                            "match": {
-                                                "ServiceAreas": org_number
+                                            "bool": {
+                                                "should": [
+                                                    {
+                                                        "match": {
+                                                            "Number": org_number
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "ServiceAreas": org_number
+                                                        }
+                                                    }
+                                                ]
                                             }
                                         }
                                     })
