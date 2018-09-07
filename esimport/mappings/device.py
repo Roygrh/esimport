@@ -41,6 +41,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
     def add_devices(self, start_date):
         count = 0
         start = self.max_id() + 1
+        metric_value = None
         logger.debug("Get Devices from {0} to {1} since {2}"
               .format(start, start+self.step_size, start_date))
         for device in self.model.get_devices(start, self.step_size, start_date):
@@ -57,13 +58,13 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
                     _action[pfiv] = convert_utc_to_local_time(_action[pfik], _action['TimeZone'])
 
             device.update(_action)
+            metric_value = device.get(self.model.get_key_date_field())
 
-            rec = device.es()
             logger.debug("Record found: {0}".format(device.get('ID')))
-            self.add(rec, self.step_size)
+            self.add(device.es(), self.step_size, metric_value)
 
         # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
+        self.add(None, 0, metric_value)
 
         # only wait between DB calls when there is no delay from ES (HTTP requests)
         if count <= 0:

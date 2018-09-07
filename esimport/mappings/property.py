@@ -10,7 +10,6 @@ import time
 import pprint
 import logging
 
-from elasticsearch import Elasticsearch
 from elasticsearch import exceptions
 
 from esimport.utils import retry
@@ -18,7 +17,6 @@ from esimport import settings
 from esimport.models.property import Property
 from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.doc import DocumentMapping
-from esimport.cache import CacheClient
 from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
@@ -26,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 class PropertyMapping(DocumentMapping):
     model = None
-    es = None
 
     def __init__(self):
         super(PropertyMapping, self).__init__()
@@ -34,12 +31,6 @@ class PropertyMapping(DocumentMapping):
     def setup(self):
         super(PropertyMapping, self).setup()
         self.model = Property(self.conn)
-
-        logger.info("Setting up ES connection")
-        # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
-
-        self.cache_client = CacheClient()
 
     @staticmethod
     def get_monitoring_metric():
@@ -68,12 +59,14 @@ class PropertyMapping(DocumentMapping):
     """
     Find existing property records in ElasticSearch
     """
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start))
         records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
                                  sort="ID:asc", size=limit,
-                                 q="ID:[{0} TO *]".format(start))
+                                 q="ID:[{0} TO *]".format(start), 
+                                 request_timeout=60)
         for record in records['hits']['hits']:
             yield record.get('_source')
 
@@ -84,6 +77,7 @@ class PropertyMapping(DocumentMapping):
         start = 0
         while True:
             count = 0
+            metric_value = None
             for prop in self.model.get_properties(start, self.step_size):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
@@ -94,16 +88,19 @@ class PropertyMapping(DocumentMapping):
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop.record)
 
-                self.add(dict(prop.es()), self.step_size)
+                metric_value = prop.get(self.model.get_key_date_field())
+
+                self.add(prop.es(), self.step_size, metric_value)
                 start = prop.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None, 0, metric_value)
 
             # always wait between DB calls
             time.sleep(self.db_wait)
 
-            if count <= 0:
+            if count == 0:
+                self.model.conn.reset()
                 start = 0
                 time.sleep(self.db_wait * 4)
 
@@ -174,10 +171,10 @@ class PropertyMapping(DocumentMapping):
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop)
 
-                start = prop.get('ID')
+                start = prop.get('ID') + 1
 
             # always wait between ES calls
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
+            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
             if count == 0:

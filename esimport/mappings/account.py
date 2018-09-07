@@ -76,14 +76,15 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 count += 1
                 self.append_site_values(account)
                 logger.debug("Record found: {0}".format(account.get('ID')))
-                self.add(account.es(), self.step_size)
 
                 # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
                 start_date = parser.parse(account.get('DateModifiedUTC'))
                 logger.debug("New Start Date: {0}".format(start_date))
 
+                self.add(account.es(), self.step_size, start_date)
+
             # send the remainder of accounts to elasticsearch 
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None, 0, start_date)
 
             logger.info("Processed a total of {0} accounts".format(count))
             logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))

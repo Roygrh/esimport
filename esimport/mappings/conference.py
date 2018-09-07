@@ -79,12 +79,12 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         start = 0
         while True:
             count = 0
+            metric_value = None
             for conference in self.model.get_conferences(start, self.step_size, start_date):
                 count += 1
                 logger.debug("Record found: {0}".format(conference.get('ID')))
 
                 # get some properties from PropertyMapping
-                _action = {}
                 _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
                 if 'TimeZone' in _action:
@@ -92,16 +92,20 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                         _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
 
                 conference.update(_action)
-                self.add(dict(conference.es()), self.step_size)
-                start = conference.record.get('ID')+1
+
+                metric_value = conference.get(self.model.get_key_date_field())
+
+                self.add(conference.es(), self.step_size, metric_value)
+                start = conference.record.get('ID') + 1
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None, 0, metric_value)
 
             # always wait between DB calls
             time.sleep(self.db_wait)
 
             # no further conferences with ID >= start
             if count == 0:
+                self.model.conn.reset()
                 start = 0
                 time.sleep(self.db_wait * 4)

@@ -118,10 +118,7 @@ def esdatacheck(mapping_name):
     if mapping_class:
         mapping_instance = mapping_class()
         mapping_instance.setup()
-
-        while True:
-            mapping_instance.monitor_metric()
-            time.sleep(30)
+        mapping_instance.monitor_metric()
 
 
 @cli.command()
