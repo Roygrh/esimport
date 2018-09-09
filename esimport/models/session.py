@@ -58,7 +58,6 @@ SELECT DISTINCT TOP ({2})
 	mem.Number AS MemberNumber,
 	hist.NAS_Identifier AS NasIdentifier,
 	hist.Called_Station_Id AS CalledStation,
-	nas_type.Name AS NetworkDeviceType,
 	hist.VLAN AS VLAN,
 	hist.Calling_Station_Id AS MacAddress,
 	hist.Date_UTC AS LogoutTime,
@@ -83,7 +82,6 @@ FROM
 		(nas.ID = ap_nas.Nas_Device_ID OR
 		 nas.Radius_NAS_ID = hist.NAS_Identifier OR
 		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
-	LEFT JOIN NAS_Device_Type nas_type ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE 
 	stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
 ORDER BY 
