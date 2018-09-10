@@ -2,7 +2,17 @@ import boto3
 import requests
 from requests_aws4auth import AWS4Auth
 
+S3_BUCKET_NAME = 'esimport-snapshot-demo'
+ES_SNAPSHOT_ROLE = 'esimport-trsut-relationship-demo'
 
+# Get snapshot role arn
+client = boto3.client('iam')
+snapshot_role = client.get_role(
+    RoleName=ES_SNAPSHOT_ROLE
+)
+role_arn = snapshot_role['Role']['Arn']
+
+# Change host to es cluster endpoint
 host = 'https://search-esimport-test-7t44eh5b3x5x7a63eqkrtw7vfy.us-west-2.es.amazonaws.com/'
 region = 'us-west-2'
 service = 'es'
@@ -16,22 +26,26 @@ awsauth = AWS4Auth(
     session_token=credentials.token
 )
 
-path = '_snapshot/my-snapshot-repo' # the Elasticsearch API endpoint
+path = '_snapshot/my-snapshot-repo' # my-snapshot-repo is the name of snapshot repository
 url = host + path 
 
 payload = {
   "type": "s3",
   "settings": {
-    "bucket": "esimport-snapshot-demo",
-    "region": "us-west-2",
-    "role_arn": "arn:aws:iam::278533050534:role/esimport-trsut-relationship-demo"
+    "bucket": S3_BUCKET_NAME,
+    "region": region,
+    "role_arn": role_arn
   }
 }
 
 headers = {"Content-Type": "application/json"}
 
-r = requests.put(url, auth=awsauth, json=payload, headers=headers)
+r = requests.put(
+  url, 
+  auth=awsauth, 
+  json=payload, 
+  headers=headers
+)
 
 print(r.status_code)
 print(r.text)
-
