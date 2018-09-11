@@ -1,10 +1,7 @@
 import requests
 import boto3
 from requests_aws4auth import AWS4Auth
-
-S3_BUCKET_NAME = 'esimport-snapshot-demo'
-ES_SNAPSHOT_ROLE = 'esimport-trsut-relationship-demo'
-ES_INDEX_NAME = 'esrecord'
+import settings
 
 # Change it to target (encryption at rest enabled) es cluster endpoint
 host = 'https://search-esimport-test-ear-rtldagkp6iu5ohy2h2f6rzmcky.us-west-2.es.amazonaws.com/'
@@ -23,7 +20,7 @@ awsauth = AWS4Auth(
 # Get snapshot role arn
 client = boto3.client('iam')
 snapshot_role = client.get_role(
-    RoleName=ES_SNAPSHOT_ROLE
+    RoleName=settings.ES_SNAPSHOT_ROLE
 )
 role_arn = snapshot_role['Role']['Arn']
 
@@ -33,7 +30,7 @@ url = host + path
 payload = {
   "type": "s3",
   "settings": {
-    "bucket": S3_BUCKET_NAME,
+    "bucket": settings.S3_BUCKET_NAME,
     "region": region,
     "role_arn": role_arn
   }
@@ -53,10 +50,10 @@ print(r.text)
 
 ### Restore snapshot
 
-restore_path = '_snapshot/my-snapshot-repo/esimport-snapshot-demo/_restore'
+restore_path = '_snapshot/{}/{}/_restore'.format(settings.ES_SNAPSHOT_REPO, settings.ES_SNAPSHOT_NAME)
 url = host+restore_path
 
-payload = {"indices": ES_INDEX_NAME}
+payload = {"indices": settings.ES_INDEX_NAME}
 
 r = requests.post(url, auth=awsauth, json=payload, headers=headers)
 

@@ -1,13 +1,6 @@
 import boto3
 import json
-
-# Create a s3 bucket to store manual snapshot and use it's arn
-S3_BUCKET = "arn:aws:s3:::esimport-snapshot-demo"
-
-ES_SNAPSHOT_ROLE = 'esimport-trsut-relationship-demo'
-ES_SNAPSHOT_POLICY = 'esimport-snapshot-policy'
-
-
+import settings
 # The role to create snapshot of existing es cluster
 trust_relationship_role = {
     "Version": "2012-10-17",
@@ -33,7 +26,7 @@ es_snapshot_policy = {
             ],
             "Effect":"Allow",
             "Resource":[
-                S3_BUCKET
+                settings.S3_BUCKET_ARN
             ]
         },
         {
@@ -45,7 +38,7 @@ es_snapshot_policy = {
             ],
             "Effect":"Allow",
             "Resource":[
-                S3_BUCKET + "/*"
+                settings.S3_BUCKET_ARN + "/*"
             ]
         }
     ]
@@ -55,15 +48,19 @@ client = boto3.client('iam')
 
 # Create snapshot role
 role_response = client.create_role(
-    RoleName=ES_SNAPSHOT_ROLE,
+    RoleName=settings.ES_SNAPSHOT_ROLE,
     AssumeRolePolicyDocument=json.dumps(trust_relationship_role)
 )
 
+print("Role creation complete.")
+
 # Create snapshot policy
 policy_respone = client.create_policy(
-    PolicyName=ES_SNAPSHOT_POLICY,
+    PolicyName=settings.ES_SNAPSHOT_POLICY,
     PolicyDocument=json.dumps(es_snapshot_policy)
 )
+
+print("Policy creation complete.")
 
 # snapshot_role = client.get_role(
 #     RoleName=ES_SNAPSHOT_ROLE
@@ -74,12 +71,8 @@ policy_arn = policy_respone['Policy']['Arn']
 
 # Attach policy to snapshot role
 attach_policy_response = client.attach_role_policy(
-    RoleName=ES_SNAPSHOT_ROLE,
+    RoleName=settings.ES_SNAPSHOT_ROLE,
     PolicyArn=policy_arn
 )
 
-# # To delete role and policy
-# delete_role = client.delete_role(RoleName=ES_SNAPSHOT_ROLE)
-# delete_policy = client.delete_policy(
-#     PolicyArn=policy_respone['Policy']['Arn']
-# )
+print("Policy attached to Role.")

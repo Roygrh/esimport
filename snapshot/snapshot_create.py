@@ -1,14 +1,12 @@
 import boto3
 import requests
 from requests_aws4auth import AWS4Auth
-
-S3_BUCKET_NAME = 'esimport-snapshot-demo'
-ES_SNAPSHOT_ROLE = 'esimport-trsut-relationship-demo'
+import settings
 
 # Get snapshot role arn
 client = boto3.client('iam')
 snapshot_role = client.get_role(
-    RoleName=ES_SNAPSHOT_ROLE
+    RoleName=settings.ES_SNAPSHOT_ROLE
 )
 role_arn = snapshot_role['Role']['Arn']
 
@@ -26,13 +24,13 @@ awsauth = AWS4Auth(
     session_token=credentials.token
 )
 
-path = '_snapshot/my-snapshot-repo' # my-snapshot-repo is the name of snapshot repository
+path = '_snapshot/' + settings.ES_SNAPSHOT_REPO # my-snapshot-repo is the name of snapshot repository
 url = host + path 
 
 payload = {
   "type": "s3",
   "settings": {
-    "bucket": S3_BUCKET_NAME,
+    "bucket": settings.S3_BUCKET_NAME,
     "region": region,
     "role_arn": role_arn
   }
@@ -49,3 +47,17 @@ r = requests.put(
 
 print(r.status_code)
 print(r.text)
+print("Repo registration done.")
+
+path = '_snapshot/{}/{}'.format(settings.ES_SNAPSHOT_REPO, settings.ES_SNAPSHOT_NAME)
+url = host + path
+
+r = requests.put(
+  url,
+  auth=awsauth
+)
+
+print(r.status_code)
+print(r.text)
+print("Snapshot done!")
+
