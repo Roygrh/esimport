@@ -46,7 +46,7 @@ production_west_deploy:
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - apk add --update --no-cache python py-pip git
-    - pip --no-cache-dir install awsebcli==3.14.4 awscli==1.15.83 urllib3==1.22
+    - pip --no-cache-dir install awsebcli awscli
     - mkdir ~/.aws/
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
