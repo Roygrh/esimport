@@ -51,6 +51,7 @@ class DocumentMapping(object):
         self.esRetry = settings.ES_RETRIES
         self.db_wait = settings.DATABASE_CALLS_WAIT
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
+        self.db_reset_interval = settings.DATABASE_CONN_RESET_INTERVAL
 
     def setup(self):  # pragma: no cover
         self.conn = MsSQLConnector()
