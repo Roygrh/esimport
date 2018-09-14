@@ -68,6 +68,8 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             # for cases when all/remaining items count were less than limit
             self.add(None, 0, metric_value)
 
+            logger.info("Count: {0}, Elapsed Seconds: {1}, DB Reset Interval: {2}".format(count, (time.time() - conn_reset_time), self.db_reset_interval))
+
             # if we didn't process any records or if the connection reset time has elapsed, then reset the connection and sleep
             if (count == 0) or (time.time() - conn_reset_time > self.db_reset_interval):
                 conn_reset_time = time.time()
