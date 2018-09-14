@@ -40,7 +40,6 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     def sync(self, start_date):
 
         start = self.max_id() + 1
-        conn_reset_time = time.time()
 
         while True:
             count = 0
@@ -68,15 +67,13 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             # for cases when all/remaining items count were less than limit
             self.add(None, 0, metric_value)
 
-            logger.info("Count: {0}, Elapsed Seconds: {1}, DB Reset Interval: {2}".format(count, (time.time() - conn_reset_time), self.db_reset_interval))
-
-            # if we didn't process any records or if the connection reset time has elapsed, then reset the connection and sleep
-            if (count == 0) or (time.time() - conn_reset_time > self.db_reset_interval):
-                conn_reset_time = time.time()
-                logger.info("Resetting SQL connection")
+            # only wait between DB calls when there is no delay from ES (HTTP requests)
+            if count == 0:
+                wait = self.db_wait * 2     # noticing the process hanging without error from time to time; might need more sleep between calls
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
-                logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
+                time.sleep(wait)
+
 
 
     """
