@@ -1,6 +1,7 @@
 import boto3
 import json
 import settings
+
 # The role to create snapshot of existing es cluster
 trust_relationship_role = {
     "Version": "2012-10-17",

@@ -11,8 +11,8 @@ snapshot_role = client.get_role(
 role_arn = snapshot_role['Role']['Arn']
 
 # Change host to es cluster endpoint
-host = 'https://search-esimport-test-7t44eh5b3x5x7a63eqkrtw7vfy.us-west-2.es.amazonaws.com/'
-region = 'us-west-2'
+host = settings.ES_HOST_SOURCE
+region = settings.S3_BUCKET_REGION
 service = 'es'
 session = boto3.Session()
 credentials = session.get_credentials()
@@ -24,9 +24,10 @@ awsauth = AWS4Auth(
     session_token=credentials.token
 )
 
-path = '_snapshot/' + settings.ES_SNAPSHOT_REPO # my-snapshot-repo is the name of snapshot repository
+path = '_snapshot/' + settings.ES_SNAPSHOT_REPO
 url = host + path 
 
+# TODO: How should we address this issue?  From AWS ... If the S3 bucket is in the us-east-1 region, you need to use "endpoint": "s3.amazonaws.com" instead of "region": "us-east-1". 
 payload = {
   "type": "s3",
   "settings": {

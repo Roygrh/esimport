@@ -22,3 +22,4 @@ Steps to create snapshots
 4. Update index name in setting.py.
 
 
+# This page can be helpful to review: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html

@@ -4,8 +4,8 @@ from requests_aws4auth import AWS4Auth
 import settings
 
 # Change it to target (encryption at rest enabled) es cluster endpoint
-host = 'https://search-esimport-test-ear-rtldagkp6iu5ohy2h2f6rzmcky.us-west-2.es.amazonaws.com/'
-region = 'us-west-2'
+host = settings.ES_HOST_DESTINATION
+region = settings.S3_BUCKET_REGION
 service = 'es'
 session = boto3.Session()
 credentials = session.get_credentials()
@@ -24,7 +24,7 @@ snapshot_role = client.get_role(
 )
 role_arn = snapshot_role['Role']['Arn']
 
-path = '_snapshot/my-snapshot-repo' # my-snapshot-repo is the name of previously taken snapshot repository
+path = '_snapshot/' + settings.ES_SNAPSHOT_REPO
 url = host + path 
 
 payload = {
