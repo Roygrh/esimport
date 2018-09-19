@@ -12,4 +12,4 @@ ES_SNAPSHOT_NAME = 'es-snapshot'
 ES_HOST_SOURCE = 'https://search-elevenapi-staging-wcpgd2s6avtogdhz5nkey4vroq.us-east-1.es.amazonaws.com/'
 ES_HOST_DESTINATION = 'https://search-elevenapi-staging-encrypted-tcudtqjbw4a7otqmoc2wni53zu.us-east-1.es.amazonaws.com/'
 
-ES_INDEX_NAME = 'esrecord'
+ES_INDEX_NAME = 'elevenos-esimport'
