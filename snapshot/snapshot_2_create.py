@@ -27,15 +27,18 @@ awsauth = AWS4Auth(
 path = '_snapshot/' + settings.ES_SNAPSHOT_REPO
 url = host + path 
 
-# TODO: How should we address this issue?  From AWS ... If the S3 bucket is in the us-east-1 region, you need to use "endpoint": "s3.amazonaws.com" instead of "region": "us-east-1". 
 payload = {
   "type": "s3",
   "settings": {
     "bucket": settings.S3_BUCKET_NAME,
-    "region": region,
     "role_arn": role_arn
   }
 }
+
+if region == 'us-east-1':
+  payload['settings'].update({'endpoint': 's3.amazonaws.com'})
+else:
+  payload['settings'].update({'region': region})
 
 headers = {"Content-Type": "application/json"}
 
@@ -60,5 +63,5 @@ r = requests.put(
 
 print(r.status_code)
 print(r.text)
-print("Snapshot done!")
+print("Snapshot process has started!")
 

@@ -57,10 +57,15 @@ print(r.text)
 restore_path = '_snapshot/{}/{}/_restore'.format(settings.ES_SNAPSHOT_REPO, settings.ES_SNAPSHOT_NAME)
 url = host+restore_path
 
-payload = {"indices": settings.ES_INDEX_NAME}
+payload = {
+  "indices": settings.ES_INDEX_NAME,
+  "ignore_unavailable": True,
+  "include_global_state": True,
+  "rename_pattern": ".kibana",
+  "rename_replacement": "restored_.kibana"
+}
 
 r = requests.post(url, auth=awsauth, json=payload, headers=headers)
 
 print(r.status_code)
 print(r.text)
-
