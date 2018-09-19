@@ -31,10 +31,14 @@ payload = {
   "type": "s3",
   "settings": {
     "bucket": settings.S3_BUCKET_NAME,
-    "region": region,
     "role_arn": role_arn
   }
 }
+
+if region == 'us-east-1':
+  payload['settings'].update({'endpoint': 's3.amazonaws.com'})
+else:
+  payload['settings'].update({'region': region})
 
 headers = {"Content-Type": "application/json"}
 
