@@ -14,7 +14,7 @@ ES_SNAPSHOT_REPO = 'es-snapshot-repo'
 ES_SNAPSHOT_NAME = 'es-snapshot'
 
 ES_HOST_SOURCE = 'https://search-elevenapi-umjus7tn4tv246xajqgflsivou.us-west-2.es.amazonaws.com/'
-ES_HOST_DESTINATION = 'https://search-elevenapi-staging-encrypted-tcudtqjbw4a7otqmoc2wni53zu.us-east-1.es.amazonaws.com/'
+ES_HOST_DESTINATION = 'https://search-elevenapi-west-dhoralah2afgwov7iyu7hd74u4.us-west-2.es.amazonaws.com/'
 
 ES_INDEX_NAME = '*'
 
