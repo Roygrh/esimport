@@ -68,10 +68,12 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             self.add(None, 0, metric_value)
 
             # only wait between DB calls when there is no delay from ES (HTTP requests)
-            if count <= 0:
+            if count == 0:
+                wait = self.db_wait * 2     # noticing the process hanging without error from time to time; might need more sleep between calls
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
-                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
+                time.sleep(wait)
+
 
 
     """

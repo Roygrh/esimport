@@ -35,7 +35,8 @@ DATABASE_CALLS_RETRIES = 10
 DATABASE_CALLS_RETRIES_WAIT = 5
 DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = True
 
-DATABASE_RECORD_LIMIT = 10000   # the number of records to return from sql queries where TOP X is used.
+# the number of records to return from sql queries where TOP X is used.
+DATABASE_RECORD_LIMIT = 10000   
 
 DATABASES = {
     'default': {
