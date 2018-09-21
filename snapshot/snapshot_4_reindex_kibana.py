@@ -2,6 +2,7 @@ import requests
 import boto3
 from requests_aws4auth import AWS4Auth
 import settings
+from helpers import check_errors
 
 # Reindex restored_.kibana to .kibana
 
@@ -34,5 +35,4 @@ payload = {
 
 r = requests.post(url, auth=awsauth, json=payload, headers=headers)
 
-print(r.status_code)
-print(r.text)
+check_errors(r)

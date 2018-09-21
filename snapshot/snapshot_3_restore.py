@@ -2,6 +2,7 @@ import requests
 import boto3
 from requests_aws4auth import AWS4Auth
 import settings
+from helpers import check_errors
 
 # Change it to target (encryption at rest enabled) es cluster endpoint
 host = settings.ES_HOST_DESTINATION
@@ -49,8 +50,7 @@ r = requests.put(
   headers=headers
 )
 
-print(r.status_code)
-print(r.text)
+check_errors(r)
 
 ### Restore snapshot
 
@@ -67,5 +67,4 @@ payload = {
 
 r = requests.post(url, auth=awsauth, json=payload, headers=headers)
 
-print(r.status_code)
-print(r.text)
+check_errors(r)
