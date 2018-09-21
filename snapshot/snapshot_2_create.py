@@ -1,7 +1,9 @@
+import sys
 import boto3
 import requests
 from requests_aws4auth import AWS4Auth
 import settings
+from helpers import check_errors
 
 # Get snapshot role arn
 client = boto3.client('iam')
@@ -49,8 +51,7 @@ r = requests.put(
   headers=headers
 )
 
-print(r.status_code)
-print(r.text)
+check_errors(r)
 print("Repo registration done.")
 
 path = '_snapshot/{}/{}'.format(settings.ES_SNAPSHOT_REPO, settings.ES_SNAPSHOT_NAME)
@@ -61,7 +62,5 @@ r = requests.put(
   auth=awsauth
 )
 
-print(r.status_code)
-print(r.text)
+check_errors(r)
 print("Snapshot process has started!")
-
