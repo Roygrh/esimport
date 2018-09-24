@@ -25,6 +25,9 @@ Steps to create snapshots
 
 1. Run snapshot_4_reindex_kibana.py
 
+# Cleanup
+
+1. To cleanup role and policy created during the process of creating snapshot run `snapshot_5_cleanup.py`.
 
 # This page can be helpful to review: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html
 
