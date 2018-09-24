@@ -7,12 +7,12 @@ client = boto3.client('iam')
 policy_arn = ''
 
 policies = client.list_policies(OnlyAttached=True)
-for policy in policies['Policies']:
+for policy in policies.get('Policies', []):
     if policy['PolicyName'] == settings.ES_SNAPSHOT_POLICY:
         policy_arn = policy['Arn']
 
 if not policy_arn:
-    sys.exit("Policy Arn not found.")
+    sys.exit("Unexpected error: Policy Arn not found.")
 
 try:
     client.detach_role_policy(RoleName=settings.ES_SNAPSHOT_ROLE, PolicyArn=policy_arn)
