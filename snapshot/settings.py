@@ -1,6 +1,6 @@
-####################
-# PRODUCTION - WEST
-####################
+#############
+# PRODUCTION 
+#############
 
 # Create a s3 bucket to store manual snapshot and use it's arn
 S3_BUCKET_ARN = 'arn:aws:s3:::dataservices.elasticsearch.production-east'
@@ -14,7 +14,7 @@ ES_SNAPSHOT_REPO = 'es-snapshot-repo'
 ES_SNAPSHOT_NAME = 'es-snapshot'
 
 ES_HOST_SOURCE = 'https://search-elevenapi-h7oymtphstzaz6r4hgf7togpaa.us-east-1.es.amazonaws.com/'
-ES_HOST_DESTINATION = ''
+ES_HOST_DESTINATION = 'https://search-eleven-api-east-kn2a56xnhn5l7t5swx4hfkwl34.us-east-1.es.amazonaws.com/'
 
 ES_INDEX_NAME = '*'
 
