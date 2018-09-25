@@ -38,9 +38,8 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     Loop to continuously find new Sessions and add them to Elasticsearch
     """
     def sync(self, start_date):
-
         start = self.max_id() + 1
-
+        start_time = time.time()
         while True:
             count = 0
             metric_value = None
@@ -67,14 +66,15 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             # for cases when all/remaining items count were less than limit
             self.add(None, 0, metric_value)
 
-            # only wait between DB calls when there is no delay from ES (HTTP requests)
-            if count == 0:
-                wait = self.db_wait * 2     # noticing the process hanging without error from time to time; might need more sleep between calls
+            elapsed_time = int(time.time() - start_time)
+
+            # habitually reset mssql connection.
+            if count == 0 or elapsed_time >= self.db_conn_reset_limit:
+                wait = self.db_wait * 2  # noticing the process hanging without error from time to time; might need more sleep between calls
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
                 time.sleep(wait)
-
-
+                start_time=time.time() # reset timer
 
     """
     NON FUNCTIONAL. Needs to be implemented.
