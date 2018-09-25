@@ -98,6 +98,7 @@ class PropertyMapping(DocumentMapping):
             self.add(None, 0, metric_value)
 
             # always wait between DB calls
+            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
             time.sleep(self.db_wait)
 
             elapsed_time = int(time.time() - timer_start)
