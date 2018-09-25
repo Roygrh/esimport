@@ -31,6 +31,10 @@ INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
 
+# Reset database connection (seconds) giving esimport a chance to
+# pickup any DNS changes that have propagated since the last connection
+DATABASE_CONNECTION_RESET_LIMIT = 300
+
 DATABASE_CALLS_RETRIES = 10
 DATABASE_CALLS_RETRIES_WAIT = 5
 DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = True
