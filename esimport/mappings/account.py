@@ -65,7 +65,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
 
-        time_delta_window = timedelta(hours=1)
+        time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window
 
         while True:
