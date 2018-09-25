@@ -38,7 +38,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
     Find Devices in SQL and add them to ElasticSearch
     """
 
-    def add_devices(self, start_date):
+    def add_devices(self, start_date, start_time):
         count = 0
         start = self.max_id() + 1
         metric_value = None
@@ -66,15 +66,20 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         # for cases when all/remaining items count were less than limit
         self.add(None, 0, metric_value)
 
-        # only wait between DB calls when there is no delay from ES (HTTP requests)
-        if count <= 0:
+        elapsed_time = int(time.time() - start_time)
+
+        # habitually reset mssql connection.
+        if count == 0 or elapsed_time >= self.db_conn_reset_limit:
+            wait = self.db_wait * 2     # noticing the process hanging without error from time to time; might need more sleep between calls
+            logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
             self.model.conn.reset()
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
+            time.sleep(wait)
+            start_time=time.time() # reset timer
 
     """
     Loop to continuously find new Devices and add them
     """
     def sync(self, start_date):
+        start_time = time.time()
         while True:
-            self.add_devices(start_date)
+            self.add_devices(start_date, start_time)

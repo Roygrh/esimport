@@ -50,6 +50,7 @@ class DocumentMapping(object):
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
         self.db_wait = settings.DATABASE_CALLS_WAIT
+        self.db_conn_reset_limit = settings.DATABASE_CONNECTION_RESET_LIMIT
         self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
     def setup(self):  # pragma: no cover
