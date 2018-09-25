@@ -1,0 +1,42 @@
+Steps to create snapshots
+````````````````````````````
+
+# Ensure prerequisite steps. This part is involved with `snapshot_1_prerequisites.py`.
+
+1. Create an S3 bucket with AES-256 encryption enabled and copy the bucket arn.
+2. In `snapshot/settings.py` update S3_BUCKET_NAME and S3_BUCKET_ARN with previously created S3 bucket's name and arn.
+3. In `snapshot/settings.py` update `ES_SNAPSHOT_ROLE` and `ES_SNAPSHOT_POLICY`.
+4. Run snapshot_1_prerequisites.py. It will create the role and policy, and attach the policy to the role.
+
+# Create Snapshot of ES cluster. This part is involved with `snapshot_2_create.py`.
+
+1. Update ES_SNAPSHOT_REPO in `snapshot/settings.py`.
+2. Change ES_HOST_SOURCE in `snapshot/settings.py`.
+3. Run snapshot_2_create.py. It will create a manual snapshot in S3.
+
+# Restore snapshot to a encryption at rest enabled ES domain.
+
+1. Create a KMS key in IAM.
+2. Create a ES domain with encryption at rest enabled.
+3. Update host in settings.py with newly created ES domain's endpoint.
+4. Update index name in setting.py.
+
+# After the snapshot has been restored, reindex the kibana index.
+
+1. Run snapshot_4_reindex_kibana.py
+
+# Cleanup
+
+1. To cleanup role and policy created during the process of creating snapshot run `snapshot_5_cleanup.py`.
+
+# This page can be helpful to review: https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html
+
+
+Troubleshooting
+`````````````````
+1) If you receive this error message: "botocore.exceptions.NoCredentialsError: Unable to locate credentials", then add the ~/.aws/credentials file
+   (or C:\Users\<User>\.aws\credentials for Windows) containing the following:
+
+    [default]
+    aws_access_key_id=XXXXXXXXXXXXXX
+    aws_secret_access_key=YYYYYYYYYYYYYYYYYYYYYYYYYYY
