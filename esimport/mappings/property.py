@@ -104,7 +104,7 @@ class PropertyMapping(DocumentMapping):
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
-                wait = self.db_wait * 2 # noticing the process hanging without error from time to time; might need more sleep between calls
+                wait = self.db_wait * 2
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
                 time.sleep(wait)

@@ -89,16 +89,14 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             self.add(None, 0, start_date)
 
             logger.info("Processed a total of {0} accounts".format(count))
-            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
 
             elapsed_time = int(time.time() - start_time)
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
-                wait = self.db_wait  # noticing the process hanging without error from time to time; might need more sleep between calls
-                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(self.db_wait))
                 self.model.conn.reset()
-                time.sleep(wait)
+                time.sleep(self.db_wait)
                 start_time=time.time() # reset timer
 
             # advance start date but never beyond the last end date
