@@ -68,7 +68,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window
 
-        start_time=time.time()
+        timer_start=time.time()
 
         while True:
             count = 0
@@ -90,14 +90,14 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             logger.info("Processed a total of {0} accounts".format(count))
 
-            elapsed_time = int(time.time() - start_time)
+            elapsed_time = int(time.time() - timer_start)
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(self.db_wait))
                 self.model.conn.reset()
                 time.sleep(self.db_wait)
-                start_time=time.time() # reset timer
+                timer_start=time.time() # reset timer
 
             # advance start date but never beyond the last end date
             start_date = min(start_date, end_date)

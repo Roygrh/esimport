@@ -75,7 +75,7 @@ class PropertyMapping(DocumentMapping):
     """
     def update(self):
         start = 0
-        start_time=time.time()
+        timer_start=time.time()
         while True:
             count = 0
             metric_value = None
@@ -100,7 +100,7 @@ class PropertyMapping(DocumentMapping):
             # always wait between DB calls
             time.sleep(self.db_wait)
 
-            elapsed_time = int(time.time() - start_time)
+            elapsed_time = int(time.time() - timer_start)
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
@@ -108,7 +108,7 @@ class PropertyMapping(DocumentMapping):
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
                 time.sleep(wait)
-                start_time=time.time() # reset timer
+                timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
                     start = 0

@@ -39,7 +39,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     """
     def sync(self, start_date):
         start = self.max_id() + 1
-        start_time = time.time()
+        timer_start = time.time()
         while True:
             count = 0
             metric_value = None
@@ -66,7 +66,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             # for cases when all/remaining items count were less than limit
             self.add(None, 0, metric_value)
 
-            elapsed_time = int(time.time() - start_time)
+            elapsed_time = int(time.time() - timer_start)
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
@@ -74,7 +74,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
                 time.sleep(wait)
-                start_time=time.time() # reset timer
+                timer_start=time.time() # reset timer
 
     """
     NON FUNCTIONAL. Needs to be implemented.
