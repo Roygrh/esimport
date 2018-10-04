@@ -45,6 +45,10 @@ REDIS_HOST = 'localhost' if not INSIDE_DOCKER else 'redis'
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
 
+# Reset database connection (seconds) giving esimport a chance to
+# pickup any DNS changes that have propagated since the last connection
+DATABASE_CONNECTION_RESET_LIMIT = 300
+
 DATABASE_CALLS_RETRIES = 1
 DATABASE_CALLS_RETRIES_WAIT = 1
 DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = False

@@ -77,6 +77,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     """
     def update(self, start_date):
         start = 0
+        timer_start = time.time()
         while True:
             count = 0
             metric_value = None
@@ -104,8 +105,15 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             # always wait between DB calls
             time.sleep(self.db_wait)
 
-            # no further conferences with ID >= start
-            if count == 0:
+            elapsed_time = int(time.time() - timer_start)
+
+            # habitually reset mssql connections.
+            if count == 0 or elapsed_time >= self.db_conn_reset_limit:
+                wait = self.db_wait * 4
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
-                start = 0
-                time.sleep(self.db_wait * 4)
+                time.sleep(wait)
+                timer_start=time.time() # reset timer
+                # start over again when all records have been processed
+                if count == 0:
+                    start = 0
