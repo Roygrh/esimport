@@ -119,43 +119,50 @@ class PropertyMapping(DocumentMapping):
     """
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_property_by_org_number(self, org_number):
-        try:
-            record = self.cache_client.get(org_number)
-        except Exception:
-            record = None
-            sentry_client.captureException()
 
-        if record is not None:
-            logger.debug("Fetched record from cache for Organization Number: {0}.".format(org_number))
-            yield record
+        if self.cache_client.exists(org_number):
+            logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
+            return self.cache_client.get(org_number)
         else:
-            logger.info("Fetching records from ES where Organization Number: {0} exists." \
-                        .format(org_number))
-            records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
-                                     body={
-                                        "query": {
-                                            "bool": {
-                                                "should": [
-                                                    {
-                                                        "match": {
-                                                            "Number": org_number
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "ServiceAreas": org_number
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    })
-            for record in records['hits']['hits']:
-                yield record.get('_source')
+            es_property_query = {
+                "query": {
+                    "bool": {
+                        "should": [
+                            {
+                                "match": {
+                                    "Number": org_number
+                                }
+                            },
+                            {
+                                "match": {
+                                    "ServiceAreas": org_number
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
 
-        logger.warning("Property Organization Number match not found for {0}".format(
-            org_number))
+            logger.info("Fetching record from ES for Org Number: {0}.".format(org_number))
+            record = None
+            records = self.es.search(index=settings.ES_INDEX, 
+                                     doc_type=Property.get_type(), 
+                                     size=1, 
+                                     body=es_property_query)
 
+            for rec in records['hits']['hits']:
+                record = rec.get('_source')
+
+            if record is None:
+                msg = "Property not found for Org Number: {0}.  Updating cache with a null object"
+                logger.warning(msg.format(org_number))
+
+            # set the property in the cache.  If the object is null, then this will create a key
+            # for this org number and this will be how we know not to continually go back to ES
+            # for data that doesn't exist.  The ESImport process for properties will overwrite
+            # this cache entry with the correct object.
+            self.cache_client.set(org_number, record)
+            return record
 
     def backload(self):
         start = 0
