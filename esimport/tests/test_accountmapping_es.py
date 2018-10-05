@@ -518,7 +518,7 @@ class TestAccountMappingElasticSearch(TestCase):
             for service_area in prop['ServiceAreas']:
                 service_areas.append(service_area)
         for service_area in service_areas:
-            self.assertTrue(self.pm.cache_client.client.exists(service_area))
+            self.assertTrue(self.pm.cache_client.exists(service_area))
 
         # check records are returning from redis rather than elasticsearch
         for service_area in service_areas:
@@ -528,9 +528,9 @@ class TestAccountMappingElasticSearch(TestCase):
             self.pm.cache_client.set(service_area, res)
         
         for service_area in service_areas:
-            records = self.pm.get_property_by_org_number(service_area)
-            for rec in records:
-                self.assertTrue(rec['cache'])
+            record = self.pm.get_property_by_org_number(service_area)
+            if record:
+                self.assertTrue(record['cache'])
 
     def tearDown(self):
         self.am.model.execute("""
