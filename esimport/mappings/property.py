@@ -129,9 +129,9 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetched record from cache for Organization Number: {0}.".format(org_number))
             yield record
         else:
-            logger.info("Fetching records from ES where Organization Number: {0} exists." \
-                        .format(org_number))
-            records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+            logger.info("Fetching record from ES where Organization Number: {0} exists.".format(org_number))
+
+            records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(), size=1,
                                      body={
                                         "query": {
                                             "bool": {
@@ -150,12 +150,25 @@ class PropertyMapping(DocumentMapping):
                                             }
                                         }
                                     })
-            for record in records['hits']['hits']:
-                yield record.get('_source')
 
-        logger.warning("Property Organization Number match not found for {0}".format(
-            org_number))
+            for rec in records['hits']['hits']:
+                record = rec.get('_source')
 
+            if record is None:
+                logger.warning("Property not found for Organization Number: {0}.  '\
+                                Updating cache with an empty property object".format(org_number))
+
+                # since we just went to ES for this property record but didn't find it, 
+                # put an empty property object in the cache so we don't continually go 
+                # to ES for data we know doesn't exist.  If this is a brand new property, 
+                # then the ESImport process for properties will overwrite this cache entry
+                # with the correct data.
+                record = {}
+
+            # set the property in the cache since we didn't find it there before
+            self.cache_client.set(org_number, record)
+
+            yield record
 
     def backload(self):
         start = 0
