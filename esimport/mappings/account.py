@@ -143,10 +143,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                                                if pfik not in row]
                 # get some properties from PropertyMapping
                 _action = {}
-                for properte in self.pm.get_property_by_org_number(row.get('ServiceArea')):
+                prop = self.pm.get_property_by_org_number(row.get('ServiceArea'))
+                if prop:
                     for pfik, pfiv in new_property_fields_include:
-                        _action[pfik] = properte.get(pfiv or pfik, "")
-                    break
+                        _action[pfik] = prop.get(pfiv or pfik, "")
                 row.update(_action)
             es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
             if not isinstance(es_records, list):
