@@ -63,7 +63,19 @@ class new_index(object):
                 "GoLiveUTC": {"type": "date"},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "Provider": {"type": "keyword", "ignore_above": 128},
-                "ServiceAreas": {"type": "keyword"},
+                "ServiceAreas": {
+                    "Number": {"type": "keyword"},
+                    "Name": {"type": "keyword"},
+                    "ZoneType": {"type": "keyword"},                                                      
+                    "Hosts": {
+                        "NASID": {"type": "keyword"},
+                        "RadiusNASID": {"type": "keyword"},                                               
+                        "HostType": {"type": "keyword"},                                                  
+                        "VLANRangeStart": {"type": "keyword"},
+                        "VLANRangeEnd": {"type": "keyword"},
+                        "NetIP": {"type": "keyword"},
+                    }
+                },
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Brand": {"type": "keyword", "ignore_above": 64},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
