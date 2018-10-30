@@ -64,6 +64,7 @@ class new_index(object):
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "ServiceAreas": {"type": "keyword"},
+                "ServiceAreaObjects": {"type": "nested", "ignore_above": 128},
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Brand": {"type": "keyword", "ignore_above": 64},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},

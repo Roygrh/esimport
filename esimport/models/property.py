@@ -50,11 +50,24 @@ class Property(BaseModel):
                 rec1['Provider'] = rec3.Provider
 
             q4 = self.query_four(rec1['ID'])
+
+            sa_nums = []
             sa_list = []
             for rec4 in list(self.fetch(q4, None)):
-                sa_list.append(rec4.Service_Area_Number)
 
-            rec1['ServiceAreas'] = sa_list
+                q5 = self.query_get_service_area_device(rec4.ID)
+
+                hosts_list = []
+                for rec5 in list(self.fetch(q5, None)):
+                    host_dic = {"NASID":rec5.NASID, "RadiusNASID":rec5.RadiusNASID, "HostType":rec5.HostType, "VLANRangeStart":rec5.VLANRangeStart, "VLANRangeEnd":rec5.VLANRangeEnd, "NetIP":rec5.NetIP}
+                    hosts_list.append(host_dic)
+
+                sa_nums.append(rec4.Number)
+                sa_dic = {"Number":rec4.Number, "Name":rec4.Name, "ZoneType":rec4.ZoneType, "Hosts":hosts_list}
+                sa_list.append(sa_dic)
+
+            rec1['ServiceAreas'] = sa_nums
+            rec1['ServiceAreaObjects'] = sa_list
 
             q = self.query_get_active_counts()
             row = self.execute(q, rec1['ID']).fetchone()
@@ -117,8 +130,24 @@ WHERE Child_Org_ID = {0}
         q = """SELECT Organization.Number as Service_Area_Number
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
-WHERE Parent_Org_ID = {0}
-    AND Organization.Org_Category_Type_ID = 4"""
+LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Name='ZoneType'
+AND Organization.ID = Org_Value.Organization_ID
+WHERE Org_Relation_Cache.Parent_Org_ID = {0}
+AND Organization.Org_Category_Type_ID = 4"""
+        q = q.format(org_id)
+        return q
+
+    @staticmethod
+    def query_get_service_area_device(org_id):
+        q = """SELECT NAS_Device.NASID as NASID,
+                      NAS_Device.RadiusNASID as RadiusNASID,
+                      NAS_Device_Type.Name as HostType,
+                      NAS_Device.VLAN_Range_Start as VLANRangeStart,
+                      NAS_Device.VLAN_Range_End as VLANRangeEnd,
+                      NAS_Device.Net_IP as NetIP
+FROM NAS_Device WITH (NOLOCK)
+LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
+WHERE Organization_ID = {0}"""
         q = q.format(org_id)
         return q
 

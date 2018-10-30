@@ -84,9 +84,6 @@ class PropertyMapping(DocumentMapping):
                 logger.debug("Record found: {0}".format(prop.get('ID')))
 
                 # add both Property/Organization Number and Service Areas to the cache
-                self.cache_client.set(prop.get('Number'), prop.record)
-
-                # REVIEW: This logic won't work after the other ServiceArea changes.  Please maintain this functionality.
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop.record)
 
@@ -125,7 +122,7 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
             return self.cache_client.get(org_number)
         else:
-            # REVIEW: I think this query will need to change based on the other ServiceArea changes.
+            # TODO: Fix the query to work with a ServiceAreas array
             es_property_query = {
                 "query": {
                     "bool": {
@@ -185,9 +182,6 @@ class PropertyMapping(DocumentMapping):
                 logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
 
                 # add both Property/Organization Number and Service Areas to the cache
-                self.cache_client.set(prop.get('Number'), prop)
-
-                # REVIEW: This logic won't work after the other ServiceArea changes.  Please maintain this functionality.
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop)
 
