@@ -511,7 +511,6 @@ class TestAccountMappingElasticSearch(TestCase):
         # time to catch up
         time.sleep(1)
         
-        # REVIEW: Does this test still pass with the ServiceArea changes?
         service_areas = []
         # check if property records are in redis    
         property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]

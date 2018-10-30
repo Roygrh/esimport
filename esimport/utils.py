@@ -11,7 +11,6 @@ from datetime import datetime
 
 import six
 from dateutil import tz
-from dateutil.parser import parse
 
 from extensions import sentry_client
 
@@ -60,30 +59,25 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
 
 
 def convert_utc_to_local_time(time, timezone):
-    try:
-        utc_datetime = parse(time)
-    except (ValueError, TypeError):
-        return 
-    
-    # Make sure to consider the received datetime object as UTC
-    # before doing that, remove any already-set tzinfo
-    utc_datetime = utc_datetime.replace(tzinfo=tz.gettz("UTC"))
-    # Do the convertion
-    local_datetime = utc_datetime.astimezone(tz.gettz(timezone))
-    # Return the new date is ISO 8601 format
-    return local_datetime.replace(tzinfo=tz.gettz(timezone)).isoformat()
-    
+    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+        try:
+            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('UTC'))
+            local = time_dt.astimezone(tz.gettz(timezone))
+            return local.replace(tzinfo=None).isoformat()
+        except ValueError:
+            pass
+        except TypeError:
+            return
+    return
 
 def convert_pacific_to_utc(time):
-    try:
-        pacific_datetime = parse(time)
-    except (ValueError, TypeError):
-        return 
-    
-    # Make sure to consider the received datetime object as Pacific
-    # before doing that, remove any already-set tzinfo
-    pacific_datetime = pacific_datetime.replace(tzinfo=tz.gettz('PST8PDT'))
-    # Do the convertion
-    utc_datetime = pacific_datetime.astimezone(tz.gettz('UTC'))
-    # Return the new UTC date is ISO 8601 format
-    return utc_datetime.replace(tzinfo=tz.gettz('UTC')).isoformat()
+    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+        try:
+            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('PST8PDT'))
+            utc = time_dt.astimezone(tz.gettz('UTC'))
+            return utc.replace(tzinfo=None).isoformat()
+        except ValueError:
+            pass
+        except TypeError:
+            return
+    return

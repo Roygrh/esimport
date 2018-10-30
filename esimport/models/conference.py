@@ -8,7 +8,7 @@
 import six
 import logging
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
@@ -46,11 +46,9 @@ class Conference(BaseModel):
             # convert datetime to string
             for dt_column in dt_columns:
                 if dt_column in rec1 and isinstance(rec1[dt_column], datetime):
-                    # do not use isoformat() on naive datetime objects, the absense of tzinfo
-                    # will result in a not totally ISO 8601 format (especially: no +00:00 or Z for UTC)
-                    rec1[dt_column] = rec1[dt_column].replace(tzinfo=timezone.utc).isoformat()
+                    rec1[dt_column] = rec1[dt_column].isoformat()
 
-            rec1['UpdateTime'] = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
+            rec1['UpdateTime'] = datetime.utcnow().isoformat()
 
             q2 = self.query_two(rec1['ID'])
 
