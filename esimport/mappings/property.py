@@ -84,6 +84,7 @@ class PropertyMapping(DocumentMapping):
                 logger.debug("Record found: {0}".format(prop.get('ID')))
 
                 # add both Property/Organization Number and Service Areas to the cache
+                # only support's the ServiceAreas array for now
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop.record)
 
@@ -182,6 +183,7 @@ class PropertyMapping(DocumentMapping):
                 logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
 
                 # add both Property/Organization Number and Service Areas to the cache
+                # only support's the ServiceAreas array for now
                 for service_area in prop.get('ServiceAreas'):
                     self.cache_client.set(service_area, prop)
 
