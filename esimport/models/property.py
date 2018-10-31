@@ -127,7 +127,10 @@ WHERE Child_Org_ID = {0}
 
     @staticmethod
     def query_four(org_id):
-        q = """SELECT Organization.Number as Service_Area_Number
+        q = """SELECT Organization.ID as ID,
+                       Organization.Number as Number,
+                       Organization.Display_Name as Name,
+                       Org_Value.Value as ZoneType
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Name='ZoneType'
