@@ -124,6 +124,7 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
             return self.cache_client.get(org_number)
         else:
+            # REVIEW: Fix the query to work with a ServiceAreas array
             es_property_query = {
                 "query": {
                     "bool": {
