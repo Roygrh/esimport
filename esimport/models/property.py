@@ -49,7 +49,7 @@ class Property(BaseModel):
             for rec3 in list(self.fetch(q3, None)):
                 rec1['Provider'] = rec3.Provider
 
-            q4 = self.query_four(rec1['ID'])
+            q4 = self.query_get_service_area(rec1['ID'])
 
             sa_nums = []
             sa_list = []
@@ -59,11 +59,24 @@ class Property(BaseModel):
 
                 hosts_list = []
                 for rec5 in list(self.fetch(q5, None)):
-                    host_dic = {"NASID":rec5.NASID, "RadiusNASID":rec5.RadiusNASID, "HostType":rec5.HostType, "VLANRangeStart":rec5.VLANRangeStart, "VLANRangeEnd":rec5.VLANRangeEnd, "NetIP":rec5.NetIP}
+                    host_dic = {
+                        "NASID": rec5.NASID, 
+                        "RadiusNASID": rec5.RadiusNASID, 
+                        "HostType": rec5.HostType, 
+                        "VLANRangeStart": rec5.VLANRangeStart, 
+                        "VLANRangeEnd": rec5.VLANRangeEnd, 
+                        "NetIP":rec5.NetIP
+                    }
                     hosts_list.append(host_dic)
 
+                sa_dic = {
+                    "Number": rec4.Number, 
+                    "Name": rec4.Name, 
+                    "ZoneType": rec4.ZoneType, 
+                    "Hosts": hosts_list
+                }
+
                 sa_nums.append(rec4.Number)
-                sa_dic = {"Number":rec4.Number, "Name":rec4.Name, "ZoneType":rec4.ZoneType, "Hosts":hosts_list}
                 sa_list.append(sa_dic)
 
             rec1['ServiceAreas'] = sa_nums
@@ -103,7 +116,6 @@ ORDER BY Organization.ID ASC"""
         q = q.format(limit, start)
         return q
 
-
     @staticmethod
     def query_two(org_id):
         q = """SELECT Name, Value
@@ -112,7 +124,6 @@ WHERE Org_Value.Organization_ID = {0}
     AND Name NOT IN ('EradApiKey')"""
         q = q.format(org_id)
         return q
-
 
     @staticmethod
     def query_three(org_id):
@@ -124,26 +135,24 @@ WHERE Child_Org_ID = {0}
         q = q.format(org_id)
         return q
 
-
     @staticmethod
-    def query_four(org_id):
+    def query_get_service_area(org_id):
         q = """SELECT Organization.ID as ID,
                        Organization.Number as Number,
                        Organization.Display_Name as Name,
                        Org_Value.Value as ZoneType
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
-LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Name='ZoneType'
-AND Organization.ID = Org_Value.Organization_ID
+LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Org_Relation_Cache.Parent_Org_ID = {0}
-AND Organization.Org_Category_Type_ID = 4"""
+  AND Organization.Org_Category_Type_ID = 4"""
         q = q.format(org_id)
         return q
 
     @staticmethod
     def query_get_service_area_device(org_id):
-        q = """SELECT NAS_Device.NASID as NASID,
-                      NAS_Device.RadiusNASID as RadiusNASID,
+        q = """SELECT NAS_Device.NAS_ID as NASID,
+                      NAS_Device.Radius_NAS_ID as RadiusNASID,
                       NAS_Device_Type.Name as HostType,
                       NAS_Device.VLAN_Range_Start as VLANRangeStart,
                       NAS_Device.VLAN_Range_End as VLANRangeEnd,
@@ -153,7 +162,6 @@ LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_D
 WHERE Organization_ID = {0}"""
         q = q.format(org_id)
         return q
-
 
     @staticmethod
     def query_get_active_counts():

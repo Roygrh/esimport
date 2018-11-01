@@ -67,13 +67,13 @@ class new_index(object):
                 "ServiceAreaObjects": {"type": "nested",
                             "properties": {
                                     "Number": {"type": "keyword" },
-                                    "Name": {"type": "keyword" },
+                                    "Name": {"type": "text" },
                                     "ZoneType": {"type": "keyword" },
                                     "Hosts": {"type": "nested",
                                            "properties": {
                                                   "NASID": {"type": "keyword" },
-                                                  "RadiusNASID": {"type": "keyword" },
-                                                  "HostType": {"type": "keyword" },
+                                                  "RadiusNASID": {"type": "text" },
+                                                  "HostType": {"type": "text" },
                                                   "VLANRangeStart": {"type": "integer" },
                                                   "VLANRangeEnd": {"type": "integer" },
                                                   "NetIP": {"type": "keyword" }
