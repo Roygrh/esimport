@@ -64,6 +64,23 @@ class new_index(object):
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "ServiceAreas": {"type": "keyword"},
+                "ServiceAreaObjects": {"type": "nested",
+                            "properties": {
+                                    "Number": {"type": "keyword" },
+                                    "Name": {"type": "text" },
+                                    "ZoneType": {"type": "keyword" },
+                                    "Hosts": {"type": "nested",
+                                           "properties": {
+                                                  "NASID": {"type": "keyword" },
+                                                  "RadiusNASID": {"type": "text" },
+                                                  "HostType": {"type": "text" },
+                                                  "VLANRangeStart": {"type": "integer" },
+                                                  "VLANRangeEnd": {"type": "integer" },
+                                                  "NetIP": {"type": "keyword" }
+                                           }
+                                    }
+                            }
+                },
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Brand": {"type": "keyword", "ignore_above": 64},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},

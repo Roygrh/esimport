@@ -39,4 +39,6 @@ INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
 	VALUES(3, 1)
 INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
 	VALUES(4, 2)
+INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
+	VALUES(3, 5)
 GO

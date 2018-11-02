@@ -56,3 +56,6 @@ class TestPropertyMapping(TestCase):
         for i in range(10):
             pm6.add(None, 10)
         self.assertFalse(pm6.bulk_add_or_update.called)
+
+
+# REVIEW: Please add some tests to test the new ServiceArea functionality.
