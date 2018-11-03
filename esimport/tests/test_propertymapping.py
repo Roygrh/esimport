@@ -41,7 +41,7 @@ class TestPropertyMapping(TestCase):
                     if 'GO' not in line:
                         sqlQuery = sqlQuery + line
                 self.pm.model.execute(sqlQuery)
-                # self.pm.model.conn.close()
+                self.pm.model.conn.reset()
             inp.close()
             self.pm.model.conn.reset()
 
@@ -51,6 +51,12 @@ class TestPropertyMapping(TestCase):
         ni = new_index()
         ni.setup()
         ni.setupindex()
+
+        pm = PropertyMapping()
+        pm.setup()
+        sync = lambda _pm: _pm.sync()
+        t = threading.Thread(target=sync, args=(pm,), daemon=True)
+        t.start()
 
     def get_poperties(self):
         q = """Select Organization.ID as ID,
@@ -62,15 +68,7 @@ ORDER BY Organization.ID ASC"""
         s = self.pm.model.execute(q).fetchall()
         return s
 
-    def start_sync(self):
-        pm = PropertyMapping()
-        pm.setup()
-        sync = lambda _pm: _pm.sync()
-        t = threading.Thread(target=sync, args=(pm,), daemon=True)
-        t.start()
-
     def test_property_data_in_es(self):
-        self.start_sync()
         time.sleep(2)
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
@@ -83,13 +81,12 @@ ORDER BY Organization.ID ASC"""
         self.assertEqual(property_id_es, property_id_es)
 
     def test_address_as_nested(self):
-        self.start_sync()
         time.sleep(2)
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
 
-        addresses = res[0]['_source']['Adderss']
+        addresses = res[0]['_source']['Address']
 
         address_keys = ['AddressLine1', 'AddressLine2', 'City', 'Area',
                         'PostalCode', 'CountryID', 'CountryName']
@@ -97,7 +94,6 @@ ORDER BY Organization.ID ASC"""
         self.assertEqual(set(address_keys), set(addresses.keys()))
 
     def test_property_address(self):
-        self.start_sync()
         time.sleep(2)
 
         properties = self.get_poperties()
