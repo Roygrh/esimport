@@ -82,6 +82,23 @@ class new_index(object):
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "ServiceAreas": {"type": "keyword"},
+                "ServiceAreaObjects": {"type": "nested",
+                            "properties": {
+                                    "Number": {"type": "keyword" },
+                                    "Name": {"type": "text" },
+                                    "ZoneType": {"type": "keyword" },
+                                    "Hosts": {"type": "nested",
+                                           "properties": {
+                                                  "NASID": {"type": "keyword" },
+                                                  "RadiusNASID": {"type": "text" },
+                                                  "HostType": {"type": "text" },
+                                                  "VLANRangeStart": {"type": "integer" },
+                                                  "VLANRangeEnd": {"type": "integer" },
+                                                  "NetIP": {"type": "keyword" }
+                                           }
+                                    }
+                            }
+                },
                 "Status": {"type": "keyword", "ignore_above": 16},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
                 "TaxRate": {"type": "float"},
