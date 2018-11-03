@@ -125,7 +125,6 @@ Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID"""
                 'CountryID': res[5], 
                 'CountryName': res[6]
             }
-        print(addresses)
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
 
