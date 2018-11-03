@@ -64,11 +64,11 @@ class Property(BaseModel):
             rec1['ActiveDevices'] = row.ActiveDevices if row else 0
             
             rec1['UpdateTime'] = datetime.utcnow().isoformat()
-            
+
             if rec1.get('ContactID'):
                 address_query = self.query_address(rec1['ContactID'])
                 address = next(self.fetch(address_query, None))
-                rec1['Adderss'] = {
+                rec1['Address'] = {
                     'AddressLine1': address[0],
                     'AddressLine2': address[1],
                     'City': address[2],
