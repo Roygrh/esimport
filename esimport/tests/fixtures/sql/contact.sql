@@ -29,6 +29,7 @@ VALUES
 	('Dorree', 'Grogor', 2),
 	('Philippine', 'Elvins', 3),
 	('Jerrie', 'Chinnock', 4)
+GO
 
 -- ALTER TABLE [dbo].[Contact]  WITH NOCHECK ADD  CONSTRAINT [FK_Contact_Contact_Type] FOREIGN KEY([Contact_Type_ID])
 -- REFERENCES [dbo].[Contact_Type] ([ID])

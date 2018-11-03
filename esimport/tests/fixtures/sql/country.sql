@@ -18,6 +18,7 @@ INSERT INTO [dbo].[Country]
 VALUES 
 	('USA'),
 	('Canada')
+GO
 --  CONSTRAINT [UQ_Country_Alpha_2] UNIQUE NONCLUSTERED 
 -- (
 -- 	[Alpha_2] ASC

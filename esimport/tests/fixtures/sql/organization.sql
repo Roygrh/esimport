@@ -36,7 +36,7 @@ GO
 INSERT INTO [dbo].[Organization](Number, Name, Display_Name, Guest_Room_Count, Meeting_Room_Count, Is_Lite, Pan_Enabled, Date_Added_UTC, Org_Status_ID, Time_Zone_ID, Org_Category_Type_ID, Contact_ID)
 	VALUES
 	('FF-471-20', 'somename1', 'some display name 1', 1, 1, 0, 0, '2014-01-04 07:38:24.370', 1, 1, 4, 1),
-	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 4, 1),
-	('FF-471-20', 'somename1', 'some display name 1', 1, 1, 0, 0, '2014-01-04 07:38:24.370', 1, 1, 3, 1),
-	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 3, 1)
+	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 4, 2),
+	('FF-471-20', 'somename1', 'some display name 1', 1, 1, 0, 0, '2014-01-04 07:38:24.370', 1, 1, 3, 3),
+	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 3, 4)
 GO

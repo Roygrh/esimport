@@ -23,9 +23,10 @@ GO
 INSERT INTO [dbo].[Contact_Address]
 VALUES 
 	(1,1),
-	(1,2),
-	(2,1),
-	(2,2)
+	(2,2),
+	(3,3),
+	(4,4)
+GO
 -- ALTER TABLE [dbo].[Contact_Address]  WITH CHECK ADD  CONSTRAINT [FK_Contact_Address_Address] FOREIGN KEY([Address_ID])
 -- REFERENCES [dbo].[Address] ([ID])
 -- GO
