@@ -34,7 +34,8 @@ class Property(BaseModel):
                 .format(start, limit))
 
         h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
-              'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
+              'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone',
+              'ContactID']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, h1)):
 
@@ -63,6 +64,21 @@ class Property(BaseModel):
             rec1['ActiveDevices'] = row.ActiveDevices if row else 0
             
             rec1['UpdateTime'] = datetime.utcnow().isoformat()
+            
+            if rec1.get('ContactID'):
+                address_query = self.query_address(rec1['ContactID'])
+                address = next(self.fetch(address_query, None))
+                rec1['Adderss'] = {
+                    'AddressLine1': address[0],
+                    'AddressLine2': address[1],
+                    'City': address[2],
+                    'Area': address[3],
+                    'PostalCode': address[4],
+                    'CountryID': address[5],
+                    'CountryName': address[6]
+                }
+            
+            del rec1['ContactID']
 
             yield ESRecord(rec1, self.get_type())
 
@@ -76,6 +92,7 @@ Organization.Guest_Room_Count as GuestRooms,
 Organization.Meeting_Room_Count as MeetingRooms,
 Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
+Organization.Contact_ID as ContactID,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
@@ -122,6 +139,21 @@ WHERE Parent_Org_ID = {0}
         q = q.format(org_id)
         return q
 
+    @staticmethod
+    def query_address(contact_id):
+        q = """SELECT Address.Address_1 as AddressLine1,
+Address.Address_2 as AddressLine2,
+Address.City,
+Address.Area,
+Address.Postal_Code as PostalCode,
+Address.Country_ID as CountryID,
+Country.Name as CountryName
+FROM Organization
+Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = {0}
+Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
+Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID"""
+        q = q.format(contact_id)
+        return q
 
     @staticmethod
     def query_get_active_counts():
