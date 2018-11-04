@@ -41,7 +41,7 @@ class TestPropertyMapping(TestCase):
                     if 'GO' not in line:
                         sqlQuery = sqlQuery + line
                 self.pm.model.execute(sqlQuery)
-                self.pm.model.conn.reset()
+                # self.pm.model.conn.reset()
             inp.close()
             self.pm.model.conn.reset()
 

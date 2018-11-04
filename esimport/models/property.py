@@ -95,13 +95,13 @@ class Property(BaseModel):
                 address_query = self.query_address(rec1['ContactID'])
                 address = next(self.fetch(address_query, None))
                 rec1['Address'] = {
-                    'AddressLine1': address[0],
-                    'AddressLine2': address[1],
-                    'City': address[2],
-                    'Area': address[3],
-                    'PostalCode': address[4],
-                    'CountryID': address[5],
-                    'CountryName': address[6]
+                    'AddressLine1': address.AddressLine1,
+                    'AddressLine2': address.AddressLine2,
+                    'City': address.City,
+                    'Area': address.Area,
+                    'PostalCode': address.PostalCode,
+                    'CountryID': address.CountryID,
+                    'CountryName': address.CountryName
                 }
             
             del rec1['ContactID']
