@@ -511,13 +511,12 @@ class TestAccountMappingElasticSearch(TestCase):
         # time to catch up
         time.sleep(1)
         
-        # REVIEW: Does this test still pass with the ServiceArea changes?
         service_areas = []
         # check if property records are in redis    
         property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]
         for prop in property_list:
-            for service_area in prop['ServiceAreas']:
-                service_areas.append(service_area)
+            for service_area_obj in prop['ServiceAreaObjects']:
+                service_areas.append(service_area_obj['Number'])
         for service_area in service_areas:
             self.assertTrue(self.pm.cache_client.exists(service_area))
 
