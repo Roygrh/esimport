@@ -28,29 +28,40 @@ class Property(BaseModel):
     def get_key_date_field():
         return Property._date_field
 
-
     def get_properties(self, start, limit):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
-              'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone',
-              'ContactID']
+        # h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
+        #       'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
         q1 = self.query_one(start, limit)
-        for rec1 in list(self.fetch(q1, h1)):
-
-            q2 = self.query_two(rec1['ID'])
+        for rec1 in list(self.fetch(q1, None)):
+            print(rec1)
+            rec = {
+                "ID": rec1.ID,
+                "Number": rec1.Number,
+                "Name": rec1.Name,
+                "GuestRooms": rec1.GuestRooms,
+                "MeetingRooms": rec1.MeetingRooms,
+                "Lite": rec1.Lite,
+                "Pan": rec1.Pan,
+                "CreatedUTC": rec1.CreatedUTC,
+                "GoLiveUTC": rec1.GoLiveUTC,
+                "Status": rec1.Status,
+                "TimeZone": rec1.TimeZone
+            }
+            q2 = self.query_two(rec1.ID)
             for rec2 in list(self.fetch(q2, None)):
                 if rec2.Name == "TaxRate":
-                    rec1[rec2.Name] = float(rec2.Value)
+                    rec[rec2.Name] = float(rec2.Value)
                 else:
-                    rec1[rec2.Name] = rec2.Value
+                    rec[rec2.Name] = rec2.Value
 
-            q3 = self.query_three(rec1['ID'])
+            q3 = self.query_three(rec1.ID)
             for rec3 in list(self.fetch(q3, None)):
-                rec1['Provider'] = rec3.Provider
+                rec['Provider'] = rec3.Provider
 
-            q4 = self.query_get_service_area(rec1['ID'])
+            q4 = self.query_get_service_area(rec1.ID)
 
             sa_nums = []
             sa_list = []
@@ -80,34 +91,28 @@ class Property(BaseModel):
                 sa_nums.append(rec4.Number)
                 sa_list.append(sa_dic)
 
-            rec1['ServiceAreas'] = sa_nums
-            rec1['ServiceAreaObjects'] = sa_list
+            rec['ServiceAreas'] = sa_nums
+            rec['ServiceAreaObjects'] = sa_list
 
             q = self.query_get_active_counts()
-            row = self.execute(q, rec1['ID']).fetchone()
+            row = self.execute(q, rec1.ID).fetchone()
 
-            rec1['ActiveMembers'] = row.ActiveMembers if row else 0
-            rec1['ActiveDevices'] = row.ActiveDevices if row else 0
+            rec['ActiveMembers'] = row.ActiveMembers if row else 0
+            rec['ActiveDevices'] = row.ActiveDevices if row else 0
             
-            rec1['UpdateTime'] = datetime.utcnow().isoformat()
+            rec['UpdateTime'] = datetime.utcnow().isoformat()
 
-            if rec1.get('ContactID'):
-                address_query = self.query_address(rec1['ContactID'])
-                address = next(self.fetch(address_query, None))
-                rec1['Address'] = {
-                    'AddressLine1': address.AddressLine1,
-                    'AddressLine2': address.AddressLine2,
-                    'City': address.City,
-                    'Area': address.Area,
-                    'PostalCode': address.PostalCode,
-                    'CountryID': address.CountryID,
-                    'CountryName': address.CountryName
-                }
-            
-            del rec1['ContactID']
+            rec['Address'] = {
+                'AddressLine1': rec1.AddressLine1,
+                'AddressLine2': rec1.AddressLine2,
+                'City': rec1.City,
+                'Area': rec1.Area,
+                'PostalCode': rec1.PostalCode,
+                'CountryID': rec1.CountryID,
+                'CountryName': rec1.CountryName
+            }
 
-            yield ESRecord(rec1, self.get_type())
-
+            yield ESRecord(rec, self.get_type())
 
     @staticmethod
     def query_one(start, limit):
@@ -122,11 +127,21 @@ Organization.Contact_ID as ContactID,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
-Time_Zone.Tzid as TimeZone
+Time_Zone.Tzid as TimeZone,
+Address.Address_1 as AddressLine1,
+Address.Address_2 as AddressLine2,
+Address.City,
+Address.Area,
+Address.Postal_Code as PostalCode,
+Address.Country_ID as CountryID,
+Country.Name as CountryName
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
 Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organization.Contact_ID
+Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
+Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
 Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
@@ -164,22 +179,6 @@ LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID
 WHERE Org_Relation_Cache.Parent_Org_ID = {0}
   AND Organization.Org_Category_Type_ID = 4"""
         q = q.format(org_id)
-        return q
-
-    @staticmethod
-    def query_address(contact_id):
-        q = """SELECT Address.Address_1 as AddressLine1,
-Address.Address_2 as AddressLine2,
-Address.City,
-Address.Area,
-Address.Postal_Code as PostalCode,
-Address.Country_ID as CountryID,
-Country.Name as CountryName
-FROM Organization
-Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = {0}
-Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
-Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID"""
-        q = q.format(contact_id)
         return q
 
     @staticmethod
