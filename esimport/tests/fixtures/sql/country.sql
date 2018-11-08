@@ -14,10 +14,10 @@ CREATE TABLE [dbo].[Country](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-INSERT INTO [dbo].[Country]
+INSERT INTO [dbo].[Country] (ID, Name)
 VALUES 
-	('USA'),
-	('Canada')
+	(1, 'USA'),
+	(2, 'Canada')
 GO
 --  CONSTRAINT [UQ_Country_Alpha_2] UNIQUE NONCLUSTERED 
 -- (
