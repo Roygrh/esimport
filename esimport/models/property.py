@@ -36,7 +36,6 @@ class Property(BaseModel):
         #       'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
         q1 = self.query_one(start, limit)
         for rec1 in list(self.fetch(q1, None)):
-            print(rec1)
             rec = {
                 "ID": rec1.ID,
                 "Number": rec1.Number,

@@ -41,11 +41,9 @@ class TestPropertyMapping(TestCase):
                     if 'GO' not in line:
                         sqlQuery = sqlQuery + line
                 self.pm.model.execute(sqlQuery)
-                # self.pm.model.conn.reset()
             inp.close()
             self.pm.model.conn.reset()
 
-        # self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.es = self.pm.es
 
         ni = new_index()
@@ -58,16 +56,6 @@ class TestPropertyMapping(TestCase):
         t = threading.Thread(target=sync, args=(pm,), daemon=True)
         t.start()
 
-    def get_poperties(self):
-        q = """Select Organization.ID as ID,
-Organization.Contact_ID as ContactID
-From Organization WITH (NOLOCK)
-Where Organization.Org_Category_Type_ID = 3
-    AND Organization.ID > 0
-ORDER BY Organization.ID ASC"""
-        s = self.pm.model.execute(q).fetchall()
-        return s
-
     def test_property_data_in_es(self):
         time.sleep(2)
 
@@ -76,9 +64,10 @@ ORDER BY Organization.ID ASC"""
         property_id_es = [property['_source']['ID'] for property in res]
         property_id_es.sort()
 
-        property_ids = [property_id[0] for property_id in self.get_poperties()].sort()
-
-        self.assertEqual(property_id_es, property_id_es)
+        properties = self.pm.model.fetch(self.pm.model.query_one(0,10))
+        property_ids = [prop.ID for prop in properties]
+        property_ids.sort()
+        self.assertEqual(property_ids, property_id_es)
 
     def test_address_as_nested(self):
         time.sleep(2)
@@ -96,30 +85,18 @@ ORDER BY Organization.ID ASC"""
     def test_property_address(self):
         time.sleep(2)
 
-        properties = self.get_poperties()
+        properties = self.pm.model.fetch(self.pm.model.query_one(0,10))
 
-        q = """SELECT Address.Address_1 as AddressLine1,
-Address.Address_2 as AddressLine2,
-Address.City,
-Address.Area,
-Address.Postal_Code as PostalCode,
-Address.Country_ID as CountryID,
-Country.Name as CountryName
-FROM Organization
-Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = {0}
-Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
-Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID"""
         addresses = {}
         for prop in properties:
-            res = self.pm.model.execute(q.format(prop[1])).fetchone()
-            addresses[str(prop[0])] = {
-                'AddressLine1': res[0],
-                'AddressLine2': res[1],
-                'City': res[2], 
-                'Area': res[3],
-                'PostalCode': res[4], 
-                'CountryID': res[5], 
-                'CountryName': res[6]
+            addresses[str(prop.ID)] = {
+                'AddressLine1': prop.AddressLine1,
+                'AddressLine2': prop.AddressLine2,
+                'City': prop.City, 
+                'Area': prop.Area,
+                'PostalCode': prop.PostalCode, 
+                'CountryID': prop.CountryID, 
+                'CountryName': prop.CountryName
             }
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
@@ -165,23 +142,23 @@ Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID"""
     #     self.assertFalse(pm6.bulk_add_or_update.called)
 
     def tearDown(self):
-        self.pm.model.execute("""
-DECLARE @sql NVARCHAR(MAX);
-SET @sql = N'';
-SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
-  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
-  + QUOTENAME(c.name) + ';'
-FROM sys.objects AS c
-INNER JOIN sys.tables AS t
-ON c.parent_object_id = t.[object_id]
-INNER JOIN sys.schemas AS s 
-ON t.[schema_id] = s.[schema_id]
-WHERE c.[type] = 'F'
-ORDER BY c.[type];
-SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
-FROM [INFORMATION_SCHEMA].[TABLES]
-WHERE [TABLE_TYPE] = 'BASE TABLE';
-EXEC SP_EXECUTESQL @sql;""")
+#         self.pm.model.execute("""
+# DECLARE @sql NVARCHAR(MAX);
+# SET @sql = N'';
+# SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+#   + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+#   + QUOTENAME(c.name) + ';'
+# FROM sys.objects AS c
+# INNER JOIN sys.tables AS t
+# ON c.parent_object_id = t.[object_id]
+# INNER JOIN sys.schemas AS s 
+# ON t.[schema_id] = s.[schema_id]
+# WHERE c.[type] = 'F'
+# ORDER BY c.[type];
+# SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+# FROM [INFORMATION_SCHEMA].[TABLES]
+# WHERE [TABLE_TYPE] = 'BASE TABLE';
+# EXEC SP_EXECUTESQL @sql;""")
 
         es = self.pm.es
         if es.indices.exists(index=settings.ES_INDEX):
