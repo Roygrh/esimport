@@ -32,44 +32,29 @@ class Property(BaseModel):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        # h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
-        #       'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
-        q1 = self.query_one(start, limit)
-        for rec1 in list(self.fetch(q1, None)):
-            rec = {
-                "ID": rec1.ID,
-                "Number": rec1.Number,
-                "Name": rec1.Name,
-                "GuestRooms": rec1.GuestRooms,
-                "MeetingRooms": rec1.MeetingRooms,
-                "Lite": rec1.Lite,
-                "Pan": rec1.Pan,
-                "CreatedUTC": rec1.CreatedUTC,
-                "GoLiveUTC": rec1.GoLiveUTC,
-                "Status": rec1.Status,
-                "TimeZone": rec1.TimeZone
-            }
-            q2 = self.query_two(rec1.ID)
-            for rec2 in list(self.fetch(q2, None)):
+        q1 = self.query_get_properties(start, limit)
+        for rec in list(self.fetch_dict(q1)):
+
+            q2 = self.query_get_property_org_values(rec["ID"])
+            for rec2 in list(self.fetch(q2)):
                 if rec2.Name == "TaxRate":
                     rec[rec2.Name] = float(rec2.Value)
                 else:
                     rec[rec2.Name] = rec2.Value
 
-            q3 = self.query_three(rec1.ID)
-            for rec3 in list(self.fetch(q3, None)):
-                rec['Provider'] = rec3.Provider
-
-            q4 = self.query_get_service_area(rec1.ID)
+            q3 = self.query_get_provider()
+            rec["Provider"] = self.execute(q3, rec["ID"]).fetchval()
 
             sa_nums = []
             sa_list = []
-            for rec4 in list(self.fetch(q4, None)):
+
+            q4 = self.query_get_service_area(rec["ID"])
+            for rec4 in list(self.fetch(q4)):
 
                 q5 = self.query_get_service_area_device(rec4.ID)
 
                 hosts_list = []
-                for rec5 in list(self.fetch(q5, None)):
+                for rec5 in list(self.fetch(q5)):
                     host_dic = {
                         "NASID": rec5.NASID, 
                         "RadiusNASID": rec5.RadiusNASID, 
@@ -90,31 +75,30 @@ class Property(BaseModel):
                 sa_nums.append(rec4.Number)
                 sa_list.append(sa_dic)
 
-            rec['ServiceAreas'] = sa_nums
-            rec['ServiceAreaObjects'] = sa_list
+            rec["ServiceAreas"] = sa_nums
+            rec["ServiceAreaObjects"] = sa_list
 
-            q = self.query_get_active_counts()
-            row = self.execute(q, rec1.ID).fetchone()
+            q6 = self.query_get_active_counts()
+            row = self.execute(q6, rec["ID"]).fetchone()
 
-            rec['ActiveMembers'] = row.ActiveMembers if row else 0
-            rec['ActiveDevices'] = row.ActiveDevices if row else 0
-            
-            rec['UpdateTime'] = datetime.utcnow().isoformat()
+            rec["ActiveMembers"] = row.ActiveMembers if row else 0
+            rec["ActiveDevices"] = row.ActiveDevices if row else 0
 
-            rec['Address'] = {
-                'AddressLine1': rec1.AddressLine1,
-                'AddressLine2': rec1.AddressLine2,
-                'City': rec1.City,
-                'Area': rec1.Area,
-                'PostalCode': rec1.PostalCode,
-                'CountryID': rec1.CountryID,
-                'CountryName': rec1.CountryName
+            rec["Address"] = {
+                "AddressLine1": rec.pop("AddressLine1"),
+                "AddressLine2": rec.pop("AddressLine2"),
+                "City": rec.pop("City"),
+                "Area": rec.pop("Area"),
+                "PostalCode": rec.pop("PostalCode"),
+                "CountryName": rec.pop("CountryName")
             }
+
+            rec["UpdateTime"] = datetime.utcnow().isoformat()
 
             yield ESRecord(rec, self.get_type())
 
     @staticmethod
-    def query_one(start, limit):
+    def query_get_properties(start, limit):
         q = """Select TOP {0} Organization.ID as ID,
 Organization.Number as Number,
 Organization.Display_Name as Name,
@@ -122,7 +106,6 @@ Organization.Guest_Room_Count as GuestRooms,
 Organization.Meeting_Room_Count as MeetingRooms,
 Organization.Is_Lite as Lite,
 Organization.Pan_Enabled as Pan,
-Organization.Contact_ID as ContactID,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
@@ -132,7 +115,6 @@ Address.Address_2 as AddressLine2,
 Address.City,
 Address.Area,
 Address.Postal_Code as PostalCode,
-Address.Country_ID as CountryID,
 Country.Name as CountryName
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
@@ -148,7 +130,7 @@ ORDER BY Organization.ID ASC"""
         return q
 
     @staticmethod
-    def query_two(org_id):
+    def query_get_property_org_values(org_id):
         q = """SELECT Name, Value
 FROM Org_Value WITH (NOLOCK)
 WHERE Org_Value.Organization_ID = {0}
@@ -157,14 +139,12 @@ WHERE Org_Value.Organization_ID = {0}
         return q
 
     @staticmethod
-    def query_three(org_id):
-        q = """SELECT Organization.Display_Name as Provider
-FROM Org_Relation_Cache WITH (NOLOCK)
-JOIN Organization ON Organization.ID = Parent_Org_ID
-WHERE Child_Org_ID = {0}
-    AND Organization.Org_Category_Type_ID = 2"""
-        q = q.format(org_id)
-        return q
+    def query_get_provider():
+        return """SELECT Organization.Display_Name as Provider
+                  FROM Org_Relation_Cache WITH (NOLOCK)
+                  JOIN Organization ON Organization.ID = Parent_Org_ID
+                  WHERE Child_Org_ID = ?
+                    AND Organization.Org_Category_Type_ID = 2"""
 
     @staticmethod
     def query_get_service_area(org_id):

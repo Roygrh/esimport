@@ -1,5 +1,15 @@
 USE [Eleven_OS]
 GO
+
+IF (EXISTS (SELECT * 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = 'dbo' 
+            AND  TABLE_NAME = 'Country'))
+BEGIN
+DROP TABLE [dbo].[Country]
+END
+GO
+
 /****** Object:  Table [dbo].[Country]    Script Date: 4/26/2018 12:32:16 PM ******/
 SET ANSI_NULLS ON
 GO
@@ -14,6 +24,9 @@ CREATE TABLE [dbo].[Country](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
+
+SET IDENTITY_INSERT [dbo].[Country] ON;
+
 INSERT INTO [dbo].[Country] (ID, Name)
 VALUES 
 	(1, 'USA'),
