@@ -61,7 +61,7 @@ class new_index(object):
                         "City": {"type": "keyword"},
                         "Area": {"type": "keyword"},
                         "PostalCode": {"type": "keyword"},
-                        "CountryName": {"type": "keyword"}
+                        "CountryName": {"type": "text"}
                     }
                 },
                 "Brand": {"type": "keyword", "ignore_above": 64},
