@@ -78,7 +78,7 @@ class TestPropertyMapping(TestCase):
         addresses = res[0]['_source']['Address']
 
         address_keys = ['AddressLine1', 'AddressLine2', 'City', 'Area',
-                        'PostalCode', 'CountryID', 'CountryName']
+                        'PostalCode', 'CountryName']
 
         self.assertEqual(set(address_keys), set(addresses.keys()))
 
@@ -95,7 +95,6 @@ class TestPropertyMapping(TestCase):
                 'City': prop.City, 
                 'Area': prop.Area,
                 'PostalCode': prop.PostalCode, 
-                'CountryID': prop.CountryID, 
                 'CountryName': prop.CountryName
             }
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
