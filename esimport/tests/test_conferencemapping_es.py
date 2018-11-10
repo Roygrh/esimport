@@ -50,11 +50,11 @@ class TestConferenceMappingElasticSearch(TestCase):
 
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-
-    def test_conference_update_in_elasticsearch(self):
         # create index
         self.es.indices.create(index=settings.ES_INDEX, ignore=400)
 
+
+    def test_conference_update_in_elasticsearch(self):
         cm = ConferenceMapping()
         cm.setup()
 
@@ -84,6 +84,34 @@ class TestConferenceMappingElasticSearch(TestCase):
                 if key[0] == 'UpdateTime':
                     continue
                 self.assertEqual(conference_list[i][key[0]], conference_es_list[i][key[0]])
+
+
+    def test_conference_data_has_access_codes_nested_objects(self):
+        cm = ConferenceMapping()
+        cm.setup()
+
+        conference_update = lambda _cm: _cm.update('2018-05-01')
+        t = threading.Thread(target=conference_update, args=(cm,), daemon=True)
+        t.start()
+
+        # time to catch up
+        time.sleep(5)
+
+       # get all property from elasticsearch
+        conference_es_list = []
+        query = {'query': {'term': {'_type': 'conference'}}}
+        conference_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        for conference in conference_es:
+            conference_data = conference['_source']
+            # Make sure AccessCodes exists
+            # and is a list of at least one element
+            access_codes = conference_data.get('AccessCodes')
+            assert access_codes and isinstance(access_codes, list)
+            assert len(access_codes) >= 1
+            # Make sure it contains Code, MemberNumber and MemberID
+            should_contain = ['Code', 'MemberNumber', 'MemberID']
+            for key in access_codes[0].keys():
+                assert key in should_contain
 
 
     def tearDown(self):
