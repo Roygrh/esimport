@@ -66,10 +66,10 @@ class Conference(BaseModel):
             }]
 
             for rec2 in list(self.fetch(q2, None)):
-                code_list.append(rec2.Name)
+                code_list.append(rec2.Code)
                 member_number_list.append(rec2.MemberNumber)
                 access_codes_list.append({
-                    "Code": rec2.Name,
+                    "Code": rec2.Code,
                     "MemberNumber": rec2.MemberNumber,
                     "MemberID": rec2.MemberID
                 })
@@ -114,7 +114,7 @@ ORDER BY Scheduled_Access.ID ASC
 
     @staticmethod
     def query_two(sa_id):
-        q = """SELECT Display_Name AS Name,
+        q = """SELECT Display_Name AS Code,
 Number AS MemberNumber,
 Member.ID AS MemberID
 FROM Member WITH (NOLOCK)
