@@ -305,7 +305,7 @@ class new_index(object):
                     "properties": {
                         "Code": {"type": "keyword"},
                         "MemberNumber": {"type": "keyword"},
-                        "MemberID": {"type": "keyword"}
+                        "MemberID": {"type": "long"}
                     }
                 },
                 "UpdateTime": {"type": "date"},
