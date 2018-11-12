@@ -51,18 +51,35 @@ class new_index(object):
 
         property_mapping = {
             "properties": {
-                "UpdateTime": {"type": "date"},
+                "ActiveDevices": {"type": "integer"},
+                "ActiveMembers": {"type": "integer"},
+                "Address": {
+                    "type": "nested",
+                    "properties": {
+                        "AddressLine1": {"type": "text"},
+                        "AddressLine2": {"type": "text"},
+                        "City": {"type": "keyword"},
+                        "Area": {"type": "keyword"},
+                        "PostalCode": {"type": "keyword"},
+                        "CountryName": {"type": "text"}
+                    }
+                },
+                "Brand": {"type": "keyword", "ignore_above": 64},
+                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
+                "Country": {"type": "keyword", "ignore_above": 64},
+                "CreatedUTC": {"type": "date"},
+                "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "GoLiveUTC": {"type": "date"},
+                "GuestRooms": {"type": "integer"},
+                "Lite": {"type": "boolean"},
+                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MeetingRooms": {"type": "integer"},
                 "Name": {"type": "text"},
                 "Number": {"type": "keyword", "ignore_above": 12},
-                "GuestRooms": {"type": "integer"},
-                "MeetingRooms": {"type": "integer"},
-                "Lite": {"type": "boolean"},
+                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Pan": {"type": "boolean"},
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "CreatedUTC": {"type": "date"},
-                "GoLiveUTC": {"type": "date"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "Provider": {"type": "keyword", "ignore_above": 128},
+                "Region": {"type": "keyword", "ignore_above": 64},
                 "ServiceAreas": {"type": "keyword"},
                 "ServiceAreaObjects": {"type": "nested",
                             "properties": {
@@ -81,25 +98,20 @@ class new_index(object):
                                     }
                             }
                 },
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Region": {"type": "keyword", "ignore_above": 64},
+                "Status": {"type": "keyword", "ignore_above": 16},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }
-                             }
-                             },
                 "TaxRate": {"type": "float"},
-                "ActiveMembers": {"type": "integer"},
-                "ActiveDevices": {"type": "integer"}
+                "TimeZone": {"type": "keyword", "ignore_above": 32},
+                "UpdateTime": {"type": "date"},
+                "ZoneType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
             }
         }
 
