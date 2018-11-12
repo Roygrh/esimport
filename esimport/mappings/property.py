@@ -134,8 +134,19 @@ class PropertyMapping(DocumentMapping):
                                 }
                             },
                             {
-                                "match": {
-                                    "ServiceAreaObjects.Number": org_number
+                                "nested": {
+                                    "path": "ServiceAreaObjects",
+                                    "query": {
+                                        "bool": {
+                                            "must": [
+                                                {
+                                                    "match": {
+                                                        "ServiceAreaObjects.Number": org_number
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
                                 }
                             }
                         ]
