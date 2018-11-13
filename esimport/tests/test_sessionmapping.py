@@ -38,7 +38,7 @@ class TestSessionMappingElasticsearch(TestCase):
 
         ni = new_index()
         ni.setup()
-        ni.setupindex()
+        ni.create_index()
 
     def test_session_data_in_es(self):
         # self.es.indices.create(index=settings.ES_INDEX)
