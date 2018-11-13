@@ -48,7 +48,7 @@ class TestPropertyMapping(TestCase):
 
         ni = new_index()
         ni.setup()
-        ni.setupindex()
+        ni.create_index()
 
         pm = PropertyMapping()
         pm.setup()
