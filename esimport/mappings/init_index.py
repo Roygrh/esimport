@@ -32,7 +32,7 @@ class new_index(object):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-    def setupindex(self):
+    def create_index(self, index_name=settings.ES_INDEX):
 
         if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
             create_index = {
@@ -357,10 +357,10 @@ class new_index(object):
 
         }
 
-        es.indices.create(index=settings.ES_INDEX, body=create_index)
-        es.indices.refresh(index=settings.ES_INDEX)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="property", body=property_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="device", body=device_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="account", body=account_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="session", body=session_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="conference", body=conference_mapping)
+        es.indices.create(index=index_name, body=create_index)
+        es.indices.refresh(index=index_name)
+        es.indices.put_mapping(index=index_name, doc_type="property", body=property_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)

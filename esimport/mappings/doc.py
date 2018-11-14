@@ -139,7 +139,8 @@ class DocumentMapping(object):
             }
 
         response = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)
-        most_recent_date = parser.parse(response['aggregations']['most_recent_date']['value_as_string'])
+        most_recent_date_es = response['aggregations']['most_recent_date'].get('value_as_string', None)
+        most_recent_date = parser.parse(most_recent_date_es) if most_recent_date_es else datetime.utcnow()
         return most_recent_date.replace(tzinfo=None)
 
 

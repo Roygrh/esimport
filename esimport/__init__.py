@@ -122,7 +122,8 @@ def esdatacheck(mapping_name):
 
 
 @cli.command()
-def create():
-        ni = new_index()
-        ni.setup()
-        ni.setupindex()
+@click.argument('index_name')
+def create(index_name):
+    ni = new_index()
+    ni.setup()
+    ni.create_index(index_name)
