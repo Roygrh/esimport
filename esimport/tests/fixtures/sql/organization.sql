@@ -38,6 +38,6 @@ INSERT INTO [dbo].[Organization](Number, Name, Display_Name, Guest_Room_Count, M
 	('FF-471-20', 'somename1', 'some display name 1', 1, 1, 0, 0, '2014-01-04 07:38:24.370', 1, 1, 4, 1),
 	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 4, 2),
 	('FF-471-20', 'somename1', 'some display name 1', 1, 1, 0, 0, '2014-01-04 07:38:24.370', 1, 1, 3, 3),
-	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 3, 4)
+	('DN-150-86', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 3, 4),
 	('FF-471-21', 'somename2', 'some display name 2', 1, 1, 0, 0, '2014-01-04 07:38:24.470', 2, 2, 4, 5)
 GO
