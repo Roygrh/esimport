@@ -48,9 +48,9 @@ class Conference(BaseModel):
                 if dt_column in rec1 and isinstance(rec1[dt_column], datetime):
                     # do not use isoformat() on naive datetime objects, the absense of tzinfo
                     # will result in a not totally ISO 8601 format (especially: no +00:00 or Z for UTC)
-                    rec1[dt_column] = rec1[dt_column].replace(tzinfo=timezone.utc).isoformat()
+                    rec1[dt_column] = rec1[dt_column].replace(tzinfo=timezone.utc)
 
-            rec1['UpdateTime'] = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
+            rec1['UpdateTime'] = datetime.now(timezone.utc)
 
 
             q2 = self.query_two(rec1['ID'])

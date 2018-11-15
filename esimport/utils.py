@@ -60,18 +60,14 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
 
 
 def convert_utc_to_local_time(time, timezone):
-    try:
-        utc_datetime = parse(time)
-    except (ValueError, TypeError):
-        return 
-    
     # Make sure to consider the received datetime object as UTC
     # before doing that, remove any already-set tzinfo
-    utc_datetime = utc_datetime.replace(tzinfo=tz.gettz("UTC"))
+    # utc_datetime = utc_datetime.replace(tzinfo=tz.gettz("UTC"))
     # Do the convertion
-    local_datetime = utc_datetime.astimezone(tz.gettz(timezone))
+    local_datetime = time.astimezone(tz.gettz(timezone))
     # Return the new date is ISO 8601 format
-    return local_datetime.replace(tzinfo=tz.gettz(timezone)).isoformat()
+    return local_datetime.replace(tzinfo=tz.gettz(timezone))
+
 
 def convert_pacific_to_utc(time):
     try:
