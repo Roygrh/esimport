@@ -1,3 +1,5 @@
+# Consider using https://www.elastic.co/guide/en/elasticsearch/reference/5.3/docs-update-by-query.html
+
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search # pip install elasticsearch-dsl
 import requests
