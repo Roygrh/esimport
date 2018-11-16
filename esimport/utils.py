@@ -70,10 +70,12 @@ def convert_utc_to_local_time(time, timezone):
 
 
 def convert_pacific_to_utc(time):
+    assert isinstance(time, datetime) and time.tzinfo == tz.gettz('PST8PDT'), "Time zone is not set to PST8PDT."
+    utc_datetime = time.astimezone(tz.gettz('UTC'))
+    # Return the new UTC date is ISO 8601 format
+    return utc_datetime.replace(tzinfo=tz.gettz('UTC'))
     # Make sure to consider the received datetime object as Pacific
     # before doing that, remove any already-set tzinfo
     # pacific_datetime = pacific_datetime.replace(tzinfo=tz.gettz('PST8PDT'))
     # Do the convertion
-    utc_datetime = time.astimezone(tz.gettz('UTC'))
-    # Return the new UTC date is ISO 8601 format
-    return utc_datetime.replace(tzinfo=tz.gettz('UTC'))
+    
