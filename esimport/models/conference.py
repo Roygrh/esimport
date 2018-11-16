@@ -57,13 +57,26 @@ class Conference(BaseModel):
             
             # Update the MemberNumberList with the main MemberNumber first
             member_number_list = [rec1.get('MemberNumber')]
+            
+            # Initialize AccessCodes with the main memberID and member number
+            access_codes_list = [{
+                    "Code": rec1.get('Code'),
+                    "MemberNumber": rec1.get('MemberNumber'),
+                    "MemberID": rec1.get('MemberID')
+            }]
 
             for rec2 in list(self.fetch(q2, None)):
-                code_list.append(rec2.Name)
+                code_list.append(rec2.Code)
                 member_number_list.append(rec2.MemberNumber)
+                access_codes_list.append({
+                    "Code": rec2.Code,
+                    "MemberNumber": rec2.MemberNumber,
+                    "MemberID": rec2.MemberID
+                })
 
             rec1['CodeList'] = code_list
             rec1['MemberNumberList'] = member_number_list
+            rec1['AccessCodes'] = access_codes_list
 
             yield ESRecord(rec1, self.get_type())
 
@@ -101,8 +114,9 @@ ORDER BY Scheduled_Access.ID ASC
 
     @staticmethod
     def query_two(sa_id):
-        q = """SELECT Display_Name AS Name,
-Number AS MemberNumber
+        q = """SELECT Display_Name AS Code,
+Number AS MemberNumber,
+Member.ID AS MemberID
 FROM Member WITH (NOLOCK)
 JOIN Scheduled_Access_Member ON Scheduled_Access_Member.Member_ID = Member.ID
 WHERE Scheduled_Access_Member.Scheduled_Access_ID = {0}

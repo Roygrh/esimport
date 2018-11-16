@@ -299,6 +299,14 @@ class new_index(object):
 
         conference_mapping = {
             "properties": {
+                "AccessCodes": {
+                    "type": "nested", 
+                    "properties": {
+                        "Code": {"type": "keyword"},
+                        "MemberNumber": {"type": "keyword"},
+                        "MemberID": {"type": "long"}
+                    }
+                },
                 "UpdateTime": {"type": "date"},
                 "Name": {"type": "text"},
                 "DateCreatedLocal": {"type": "date"},
