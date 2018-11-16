@@ -33,7 +33,7 @@ class Conference(BaseModel):
                      .format(start, start_date, limit))
 
         dt_columns = ['DateCreatedUTC', 'StartDateUTC', 'EndDateUTC']
-        q1 = self.query_one(start_date, start, limit)
+        q1 = self.query_get_conferences(start_date, start, limit)
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
               'Code', 'MemberID', 'MemberNumber', 'SSID', 'StartDateUTC', 'EndDateUTC',
@@ -50,7 +50,7 @@ class Conference(BaseModel):
 
             rec1['UpdateTime'] = datetime.utcnow().isoformat()
 
-            q2 = self.query_two(rec1['ID'])
+            q2 = self.query_get_additional_access_codes(rec1['ID'])
 
             # Update the CodeList with the main Code first
             code_list = [rec1.get('Code')]
@@ -81,7 +81,7 @@ class Conference(BaseModel):
             yield ESRecord(rec1, self.get_type())
 
     @staticmethod
-    def query_one(start_date, start_sa_id, limit):
+    def query_get_conferences(start_date, start_sa_id, limit):
         q = """SELECT TOP ({1})
 Scheduled_Access.ID AS ID,
 Scheduled_Access.Event_Name AS Name,
@@ -113,13 +113,12 @@ ORDER BY Scheduled_Access.ID ASC
         return q
 
     @staticmethod
-    def query_two(sa_id):
+    def query_get_additional_access_codes(sa_id):
         q = """SELECT Display_Name AS Code,
-Number AS MemberNumber,
-Member.ID AS MemberID
-FROM Member WITH (NOLOCK)
-JOIN Scheduled_Access_Member ON Scheduled_Access_Member.Member_ID = Member.ID
-WHERE Scheduled_Access_Member.Scheduled_Access_ID = {0}
-"""
+                      Member.Number AS MemberNumber,
+                      Member.ID AS MemberID
+               FROM Member WITH (NOLOCK)
+               JOIN Scheduled_Access_Member ON Scheduled_Access_Member.Member_ID = Member.ID
+               WHERE Scheduled_Access_Member.Scheduled_Access_ID = {0}"""
         q = q.format(sa_id)
         return q
