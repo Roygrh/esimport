@@ -8,6 +8,7 @@
 
 import time
 import logging
+from datetime import timezone
 
 from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
 from esimport.models.device import Device
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceMapping(PropertyAppendedDocumentMapping):
-    dates_from_pacific = (('Date', 'DateUTC'),)
+    # dates_from_pacific = (('Date', 'DateUTC'),)
 
     dates_to_localize = (
         ('DateUTC', 'DateLocal'),)
@@ -53,13 +54,11 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
 
                 _action = super(DeviceMapping, self).get_site_values(device.get('ServiceArea'))
 
-                for pfik, pfiv in self.dates_from_pacific:
-                    _action[pfiv] = convert_pacific_to_utc(device.record[pfik])
-                    del device.record[pfik]
-
                 if 'TimeZone' in _action:
                     for pfik, pfiv in self.dates_to_localize:
-                        _action[pfiv] = convert_utc_to_local_time(_action[pfik], _action['TimeZone'])
+                        _action[pfiv] = convert_utc_to_local_time(
+                                                            device.record[pfik].replace(tzinfo=timezone.utc),
+                                                            _action['TimeZone'])
 
                 device.update(_action)
                 metric_value = device.get(self.model.get_key_date_field())

@@ -8,10 +8,12 @@
 import six
 import logging
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from dateutil import tz
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +23,7 @@ class Device(BaseModel):
 
     _type = "device"
     _date_field = "DateUTC"
+    dates_from_pacific = {"Date": "DateUTC"}
 
     @staticmethod
     def get_type():
@@ -33,14 +36,23 @@ class Device(BaseModel):
 
 
     def get_devices(self, start, limit, start_date='1900-01-01'):
+        # These dates are in 'PST8PDT' format
         dt_columns = ['Date']
         q = self.query_one(start_date, start, limit)
+
+        pacific_timezone = tz.gettz('PST8PDT')
+
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
-            # convert datetime to string
+
             for dt_column in dt_columns:
                 if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
+                    if dt_column in self.dates_from_pacific:
+                        row[self.dates_from_pacific[dt_column]] = convert_pacific_to_utc(row[dt_column].replace(tzinfo=pacific_timezone))
+                        del row[dt_column]
+                    else:
+                        row[dt_column] = convert_pacific_to_utc(row[dt_column].replace(tzinfo=timezone.utc))
+
             yield ESRecord(row, self.get_type())
 
 
