@@ -253,7 +253,6 @@ class new_index(object):
                                           "type": "keyword",
                                           "ignore_above": 256
                                       }}},
-                "NetworkDeviceType": {"type": "keyword"},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
@@ -300,6 +299,14 @@ class new_index(object):
 
         conference_mapping = {
             "properties": {
+                "AccessCodes": {
+                    "type": "nested", 
+                    "properties": {
+                        "Code": {"type": "keyword"},
+                        "MemberNumber": {"type": "keyword"},
+                        "MemberID": {"type": "long"}
+                    }
+                },
                 "UpdateTime": {"type": "date"},
                 "Name": {"type": "text"},
                 "DateCreatedLocal": {"type": "date"},
