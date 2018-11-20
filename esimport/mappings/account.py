@@ -11,7 +11,7 @@ import traceback
 import time
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dateutil import parser
 from operator import itemgetter
 
@@ -64,6 +64,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             logger.info("Data Check - DateModifiedUTC: {0}".format(modified_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
+        
+        start_date = start_date.replace(tzinfo=timezone.utc)
 
         time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window
@@ -78,7 +80,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 logger.debug("Record found: {0}".format(account.get('ID')))
 
                 # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                start_date = parser.parse(account.get('DateModifiedUTC'))
+                start_date = account.get('DateModifiedUTC')
                 logger.debug("New Start Date: {0}".format(start_date))
 
                 self.add(account.es(), self.step_size, start_date)
@@ -96,7 +98,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = min(start_date, end_date)
 
             # advance end date until reaching now
-            end_date = min(end_date + time_delta_window, datetime.utcnow())
+            end_date = min(end_date + time_delta_window, datetime.now(timezone.utc))
 
 
     """
