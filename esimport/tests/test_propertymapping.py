@@ -13,6 +13,7 @@ import pytest
 from unittest import TestCase
 from elasticsearch import Elasticsearch
 
+import chardet
 from six.moves import range
 from mock import MagicMock
 
@@ -35,13 +36,12 @@ class TestPropertyMapping(TestCase):
         self.pm.setup()
 
         for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
-            with open(sql, 'r') as inp:
+            with open(sql, 'b+r') as inp:
                 sqlQuery = ''
-                for line in inp:
-                    if 'GO' not in line:
-                        sqlQuery = sqlQuery + line
-                self.pm.model.execute(sqlQuery)
-            inp.close()
+                inp_b = inp.read()
+                the_encoding = chardet.detect(inp_b)['encoding']
+                inp = inp_b.decode(the_encoding).replace('GO', '')
+                self.pm.model.execute(inp)
             self.pm.model.conn.reset()
 
         self.es = self.pm.es
@@ -86,37 +86,21 @@ class TestPropertyMapping(TestCase):
         time.sleep(2)
 
         service_area_lookup = {}
-        service_area_ids_lookup = {}
 
-        properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
+        properties = list(self.pm.model.fetch(self.pm.model.query_get_properties(0,10)))
 
-        # NOTE: Reason for having 3 loops over properties is the following error
-        # ('24000', '[24000] [FreeTDS][SQL Server]Invalid cursor state (0) (SQLExecDirectW)')
-        # It appears when fetching two queries or more in side a loop.
-        property_ids = []
         for prop in properties:
-            property_ids.append(prop.ID)
-
-        for prop_id in property_ids:
-            service_areas = self.pm.model.fetch(self.pm.model.query_get_service_area(prop_id))
+            service_areas = list(self.pm.model.fetch(self.pm.model.query_get_service_area(prop.ID)))
             service_areas_arr = []
-            service_area_ids = []
+
             for service_area in service_areas:
                 service_area_dict = {
                     'Number': service_area.Number,
                     'Name': service_area.Name,
                     'ZoneType': service_area.ZoneType,
                 }
-                service_areas_arr.append(service_area_dict)
-                service_area_ids.append(service_area.ID)
 
-            service_area_lookup[str(prop_id)] = service_areas_arr
-            service_area_ids_lookup[str(prop_id)] = service_area_ids
-
-        for prop_id in property_ids:
-            for service_area_id in service_area_ids_lookup[str(prop_id)]:
-                pos = service_area_ids_lookup[str(prop_id)].index(service_area_id)
-                hosts = self.pm.model.fetch(self.pm.model.query_get_service_area_device(service_area_id))
+                hosts = list(self.pm.model.fetch(self.pm.model.query_get_service_area_device(service_area.ID)))
                 hosts_arr = []
                 for host in hosts:
                     host_dict = {
@@ -127,8 +111,13 @@ class TestPropertyMapping(TestCase):
                         "VLANRangeEnd": host.VLANRangeEnd,
                         "NetIP":host.NetIP
                     }
+
                     hosts_arr.append(host_dict)
-                service_area_lookup[str(prop_id)][pos]['Hosts'] = hosts_arr
+
+                service_area_dict['Hosts'] = hosts_arr
+                service_areas_arr.append(service_area_dict)
+
+            service_area_lookup[str(prop.ID)] = service_areas_arr
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
@@ -136,9 +125,7 @@ class TestPropertyMapping(TestCase):
         for prop in res:
             self.assertEqual(prop['_source']['ServiceAreaObjects'], service_area_lookup[prop['_id']])
 
-
     def test_property_address(self):
-        import pdb; pdb.set_trace()
         time.sleep(2)
 
         properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
