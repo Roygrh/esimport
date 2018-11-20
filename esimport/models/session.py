@@ -49,7 +49,7 @@ class Session(BaseModel):
     @staticmethod
     def query_one(start_id, start_date, limit):
         q = """
-SELECT DISTINCT TOP ({2}) 
+SELECT TOP ({2}) 
 	stop.ID AS ID,
 	org.Number AS ServiceArea,
 	val.Value AS ZoneType,
@@ -58,7 +58,6 @@ SELECT DISTINCT TOP ({2})
 	mem.Number AS MemberNumber,
 	hist.NAS_Identifier AS NasIdentifier,
 	hist.Called_Station_Id AS CalledStation,
-	nas_type.Name AS NetworkDeviceType,
 	hist.VLAN AS VLAN,
 	hist.Calling_Station_Id AS MacAddress,
 	hist.Date_UTC AS LogoutTime,
@@ -66,7 +65,7 @@ SELECT DISTINCT TOP ({2})
 	stop.Acct_Session_Time AS SessionLength,
 	stop.Acct_Output_Octets AS BytesOut,
 	stop.Acct_Input_Octets AS BytesIn,
-	term.Name AS TerminationReason    
+	term.Name AS TerminationReason
 FROM 
 	Radius.dbo.Radius_Stop_Event stop
 	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
@@ -75,15 +74,6 @@ FROM
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
-	LEFT JOIN Access_Point_Nas_Device ap_nas ON ap_nas.Net_MAC_Address = hist.NAS_Identifier
-	LEFT JOIN NAS_Device nas ON 
-		nas.Organization_ID = hist.Organization_ID AND
-		nas.VLAN_Range_Start <= hist.VLAN AND 
-		nas.VLAN_Range_End >= hist.VLAN AND
-		(nas.ID = ap_nas.Nas_Device_ID OR
-		 nas.Radius_NAS_ID = hist.NAS_Identifier OR
-		 nas.Net_MAC_Address = CASE WHEN CHARINDEX(':', hist.Called_Station_Id) = 0 THEN hist.Called_Station_Id ELSE SUBSTRING(hist.Called_Station_Id, 1, CHARINDEX(':', hist.Called_Station_Id)-1) END)
-	LEFT JOIN NAS_Device_Type nas_type ON nas_type.ID = nas.NAS_Device_Type_ID
 WHERE 
 	stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
 ORDER BY 

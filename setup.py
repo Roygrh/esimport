@@ -25,7 +25,7 @@ setup(
         'hiredis==0.2.0',
         'pyodbc==4.0.22',
         'python-dateutil==2.6.1',
-        'PyYAML==3.12',
+        'PyYAML==3.13',
         'raven==6.5.0',
         'redis==2.10.6',
         'requests==2.19.1',
