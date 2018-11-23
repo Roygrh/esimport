@@ -42,9 +42,11 @@ class Account(BaseModel):
         return self.fetch_dict(q)
 
     def get_accounts(self, query, *args):
+        # REVIEW: Let's remove unused arrays
         dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
         for row in self.fetch_dict(query, *args):
             
+            # REVIEW: We shouldn't need to print here.  Let's remove this.
             import pprint
             pp = pprint.PrettyPrinter(indent=2)
             pp.pprint(row)

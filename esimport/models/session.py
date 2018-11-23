@@ -33,6 +33,7 @@ class Session(BaseModel):
 
 
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
+        # REVIEW: Let's remove unused arrays.
         dt_columns = ['LogoutTime', 'LoginTime']
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
@@ -40,6 +41,9 @@ class Session(BaseModel):
             if 'LogoutTime' in row and 'SessionLength' in row:
                 row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
 
+            # REVIEW: Now that I see this exact same code in multiple classes, I'm wondering if makes more sense to have 
+            # a utils.py function called set_utc_timezone() (or something similar) that we could just call from here and
+            # pass it the row.  If you don't see any problems with this, then go ahead and make this change.
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = value.replace(tzinfo=timezone.utc)

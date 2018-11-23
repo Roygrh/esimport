@@ -60,6 +60,9 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
 
 
 def convert_utc_to_local_time(time, timezone):
+
+    # REVIEW: Let's assert that the date has the UTC timezone set.
+
     # Make sure to consider the received datetime object as UTC
     # before doing that, remove any already-set tzinfo
     # utc_datetime = utc_datetime.replace(tzinfo=tz.gettz("UTC"))

@@ -10,7 +10,7 @@ import time
 import logging
 from datetime import timezone
 
-from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
+from esimport.utils import convert_utc_to_local_time
 from esimport.models.device import Device
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceMapping(PropertyAppendedDocumentMapping):
+    # REVIEW: Let's remove commented out code.
     # dates_from_pacific = (('Date', 'DateUTC'),)
 
     dates_to_localize = (

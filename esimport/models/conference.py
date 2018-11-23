@@ -32,6 +32,7 @@ class Conference(BaseModel):
         logger.debug("Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
                      .format(start, start_date, limit))
 
+        # REVIEW: Let's remove this array and just loop through all fields in the SQL resultset looking for fields of type datetime.
         dt_columns = ['DateCreatedUTC', 'StartDateUTC', 'EndDateUTC']
         q1 = self.query_get_conferences(start_date, start, limit)
 
@@ -43,6 +44,8 @@ class Conference(BaseModel):
         for rec1 in list(self.fetch(q1, h1)):
 
             rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
+            
+            # REVIEW: Let's rework this logic to look like the code in (esimport\models\account.py lines 58-60)
             # convert datetime to string
             for dt_column in dt_columns:
                 if dt_column in rec1 and isinstance(rec1[dt_column], datetime):

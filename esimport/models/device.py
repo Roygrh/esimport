@@ -23,6 +23,8 @@ class Device(BaseModel):
 
     _type = "device"
     _date_field = "DateUTC"
+
+    # These dates are in 'PST8PDT' format
     dates_from_pacific = {"Date": "DateUTC"}
 
     @staticmethod
@@ -36,15 +38,24 @@ class Device(BaseModel):
 
 
     def get_devices(self, start, limit, start_date='1900-01-01'):
-        # These dates are in 'PST8PDT' format
+        # REVIEW: dt_columns seems redundant now.  It looks like dates_from_pacific holds the date columns to convert to Pacific time.
         dt_columns = ['Date']
         q = self.query_one(start_date, start, limit)
 
+        # REVIEW: I think I told you do it this way ... to set the correct timezone on the datetime before passing it into convert_pacific_to_utc(),
+        # but in the long run, I think we'll want to change how this works.  Maybe there'll be other mappings that have pacific dates and we'll
+        # have copy this code to those mapping files and I don't want to copy the "tz.gettz('PST8PDT')" logic everywhere ... I'd rather have it
+        # in one location.  I'm thinking to create another function in the utils class like, set_pacific_timezone() and pass the naive date to it
+        # and let it set the PST8PDT timezone on it and then return it.  Then we can pass that timezone aware date to convert_pacific_to_utc()
         pacific_timezone = tz.gettz('PST8PDT')
 
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
 
+            # REVIEW: Let's rework this logic.  The code in (esimport\models\account.py lines 58-60) looks like a good
+            # model to follow.  I think should just loop through all of the fields in the row.  If the field is a datetime, 
+            # then it would check to see if it's in the dates_from_pacific dict.  If so, then call convert_pacific_to_utc(),
+            # otherwise just set the timezone to UTC.
             for dt_column in dt_columns:
                 if dt_column in row and isinstance(row[dt_column], datetime):
                     if dt_column in self.dates_from_pacific:
