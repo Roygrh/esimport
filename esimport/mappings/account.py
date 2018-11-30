@@ -11,7 +11,7 @@ import traceback
 import time
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dateutil import parser
 from operator import itemgetter
 
@@ -23,7 +23,7 @@ from esimport.connectors.mssql import MsSQLConnector
 from esimport.models.base import BaseModel
 from esimport import settings
 from esimport.utils import retry
-from esimport.utils import convert_utc_to_local_time
+from esimport.utils import convert_utc_to_local_time, set_utc_timezone
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.models.property import Property
@@ -60,10 +60,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = self.get_most_recent_date('Created', Account.get_type())
             logger.info("Data Check - Created: {0}".format(start_date))
 
-            modified_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type()) 
-            logger.info("Data Check - DateModifiedUTC: {0}".format(modified_date))
-
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
+        
+        start_date = set_utc_timezone(start_date)
 
         time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window
@@ -78,7 +77,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 logger.debug("Record found: {0}".format(account.get('ID')))
 
                 # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                start_date = parser.parse(account.get('DateModifiedUTC'))
+                start_date = account.get('DateModifiedUTC')
                 logger.debug("New Start Date: {0}".format(start_date))
 
                 self.add(account.es(), self.step_size, start_date)
@@ -96,7 +95,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = min(start_date, end_date)
 
             # advance end date until reaching now
-            end_date = min(end_date + time_delta_window, datetime.utcnow())
+            end_date = min(end_date + time_delta_window, datetime.now(timezone.utc))
 
 
     """
