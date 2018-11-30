@@ -25,7 +25,7 @@ class Device(BaseModel):
     _type = "device"
     _date_field = "DateUTC"
 
-    # These dates are in 'PST8PDT' format
+    # These dates are in 'America/Los_Angeles' format
     dates_from_pacific = {"Date": "DateUTC"}
 
     @staticmethod

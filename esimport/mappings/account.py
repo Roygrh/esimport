@@ -60,9 +60,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = self.get_most_recent_date('Created', Account.get_type())
             logger.info("Data Check - Created: {0}".format(start_date))
 
-            modified_date = self.get_most_recent_date('DateModifiedUTC', Account.get_type()) 
-            logger.info("Data Check - DateModifiedUTC: {0}".format(modified_date))
-
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
         
         start_date = set_utc_timezone(start_date)

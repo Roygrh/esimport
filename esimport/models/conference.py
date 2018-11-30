@@ -44,13 +44,12 @@ class Conference(BaseModel):
 
             rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
             
-            # convert datetime to string
+            # set all datetime objects to utc timezone
             for key, value in rec1.items():
                 if isinstance(value, datetime):
                     rec1[key] = set_utc_timezone(value)
 
             rec1['UpdateTime'] = datetime.now(timezone.utc)
-
 
             q2 = self.query_get_additional_access_codes(rec1['ID'])
 

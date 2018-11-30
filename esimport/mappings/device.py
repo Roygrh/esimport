@@ -55,9 +55,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
 
                 if 'TimeZone' in _action:
                     for pfik, pfiv in self.dates_to_localize:
-                        _action[pfiv] = convert_utc_to_local_time(
-                                                            set_utc_timezone(device.record[pfik]),
-                                                            _action['TimeZone'])
+                        _action[pfiv] = convert_utc_to_local_time(device.get(pfik), _action['TimeZone'])
 
                 device.update(_action)
                 metric_value = device.get(self.model.get_key_date_field())
