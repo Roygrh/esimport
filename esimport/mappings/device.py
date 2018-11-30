@@ -19,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceMapping(PropertyAppendedDocumentMapping):
-    # REVIEW: Let's remove commented out code.
-    # dates_from_pacific = (('Date', 'DateUTC'),)
 
     dates_to_localize = (
         ('DateUTC', 'DateLocal'),)
