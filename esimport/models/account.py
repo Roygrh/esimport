@@ -42,15 +42,7 @@ class Account(BaseModel):
         return self.fetch_dict(q)
 
     def get_accounts(self, query, *args):
-        # REVIEW: Let's remove unused arrays
-        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
         for row in self.fetch_dict(query, *args):
-            
-            # REVIEW: We shouldn't need to print here.  Let's remove this.
-            import pprint
-            pp = pprint.PrettyPrinter(indent=2)
-            pp.pprint(row)
-
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             row['Duration'] = self.find_duration(row)
 
@@ -266,4 +258,3 @@ ORDER BY
         THEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
         ELSE COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
     END"""
-
