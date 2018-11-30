@@ -7,7 +7,7 @@
 ################################################################################
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 import six
 from dateutil import tz
@@ -83,4 +83,9 @@ def convert_pacific_to_utc(time):
 
 def set_pacific_timezone(time):
     assert isinstance(time, datetime), "Object is not a datetime object."
-    return time.replace(tzinfo=tz.gettz('PST8PDT'))    
+    return time.replace(tzinfo=tz.gettz('PST8PDT'))
+
+
+def set_utc_timezone(time):
+    assert isinstance(time, datetime), "Object is not a datetime object."
+    return time.replace(tzinfo=timezone.utc)
