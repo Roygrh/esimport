@@ -60,9 +60,7 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
 
 
 def convert_utc_to_local_time(time, timezone):
-
-    # REVIEW: Let's assert that the date has the UTC timezone set.
-
+    assert isinstance(time, datetime) and time.tzinfo == tz.gettz('UTC'), "Time zone is not set to UTC."
     # Make sure to consider the received datetime object as UTC
     # before doing that, remove any already-set tzinfo
     # utc_datetime = utc_datetime.replace(tzinfo=tz.gettz("UTC"))
@@ -81,4 +79,8 @@ def convert_pacific_to_utc(time):
     # before doing that, remove any already-set tzinfo
     # pacific_datetime = pacific_datetime.replace(tzinfo=tz.gettz('PST8PDT'))
     # Do the convertion
-    
+
+
+def set_pacific_timezone(time):
+    assert isinstance(time, datetime), "Object is not a datetime object."
+    return time.replace(tzinfo=tz.gettz('PST8PDT'))    
