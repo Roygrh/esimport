@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class Account(BaseModel):
             # Set all datetime objects to utc timezone
             for key, value in row.items():
                 if isinstance(value, datetime):
-                    row[key] = value.replace(tzinfo=timezone.utc)
+                    row[key] = set_utc_timezone(value)
 
             yield ESRecord(row, self.get_type())
 

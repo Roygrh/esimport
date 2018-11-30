@@ -13,7 +13,8 @@ from dateutil import tz
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
-from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, set_pacific_timezone
+from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, \
+                            set_pacific_timezone, set_utc_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class Device(BaseModel):
                         row[self.dates_from_pacific[key]] = convert_pacific_to_utc(set_pacific_timezone(row[key]))
                         del row[key] # As there's no `Date` field in ElevenAPI's Device model
                     else:
-                        row[key] = row[key].replace(tzinfo=timezone.utc)                        
+                        row[key] = set_utc_timezone(row[key])                     
 
             yield ESRecord(row, self.get_type())
 

@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,13 @@ class Conference(BaseModel):
               'TotalOutputBytes', 'TotalSessionTime']
 
         for rec1 in list(self.fetch(q1, h1)):
-            
+
             rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
             
             # convert datetime to string
             for key, value in rec1.items():
                 if isinstance(value, datetime):
-                    rec1[key] = value.replace(tzinfo=timezone.utc)
+                    rec1[key] = set_utc_timezone(value)
 
             rec1['UpdateTime'] = datetime.now(timezone.utc)
 

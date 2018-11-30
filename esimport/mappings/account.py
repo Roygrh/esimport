@@ -23,7 +23,7 @@ from esimport.connectors.mssql import MsSQLConnector
 from esimport.models.base import BaseModel
 from esimport import settings
 from esimport.utils import retry
-from esimport.utils import convert_utc_to_local_time
+from esimport.utils import convert_utc_to_local_time, set_utc_timezone
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.models.property import Property
@@ -65,7 +65,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
         
-        start_date = start_date.replace(tzinfo=timezone.utc)
+        start_date = set_utc_timezone(start_date)
 
         time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window

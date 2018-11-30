@@ -10,7 +10,7 @@ import time
 import logging
 from datetime import timezone
 
-from esimport.utils import convert_utc_to_local_time
+from esimport.utils import convert_utc_to_local_time, set_utc_timezone
 from esimport.models.device import Device
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings
@@ -56,7 +56,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
                 if 'TimeZone' in _action:
                     for pfik, pfiv in self.dates_to_localize:
                         _action[pfiv] = convert_utc_to_local_time(
-                                                            device.record[pfik].replace(tzinfo=timezone.utc),
+                                                            set_utc_timezone(device.record[pfik]),
                                                             _action['TimeZone'])
 
                 device.update(_action)
