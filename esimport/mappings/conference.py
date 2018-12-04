@@ -9,7 +9,7 @@
 import time
 import logging
 
-from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
+from esimport.utils import convert_utc_to_local_time
 from esimport.models.conference import Conference
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings

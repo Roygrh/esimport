@@ -7,9 +7,10 @@
 ################################################################################
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,11 @@ class Property(BaseModel):
                 "CountryName": rec.pop("CountryName")
             }
 
-            rec["UpdateTime"] = datetime.utcnow().isoformat()
+            for key, value in rec.items():
+                if isinstance(value, datetime):
+                    rec[key] = set_utc_timezone(value)
+
+            rec["UpdateTime"] = datetime.now(timezone.utc)
 
             yield ESRecord(rec, self.get_type())
 

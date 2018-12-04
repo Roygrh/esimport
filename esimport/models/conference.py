@@ -8,10 +8,11 @@
 import six
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,6 @@ class Conference(BaseModel):
         logger.debug("Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
                      .format(start, start_date, limit))
 
-        dt_columns = ['DateCreatedUTC', 'StartDateUTC', 'EndDateUTC']
         q1 = self.query_get_conferences(start_date, start, limit)
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
@@ -43,12 +43,13 @@ class Conference(BaseModel):
         for rec1 in list(self.fetch(q1, h1)):
 
             rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in rec1 and isinstance(rec1[dt_column], datetime):
-                    rec1[dt_column] = rec1[dt_column].isoformat()
+            
+            # set all datetime objects to utc timezone
+            for key, value in rec1.items():
+                if isinstance(value, datetime):
+                    rec1[key] = set_utc_timezone(value)
 
-            rec1['UpdateTime'] = datetime.utcnow().isoformat()
+            rec1['UpdateTime'] = datetime.now(timezone.utc)
 
             q2 = self.query_get_additional_access_codes(rec1['ID'])
 

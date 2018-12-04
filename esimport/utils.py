@@ -7,15 +7,15 @@
 ################################################################################
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 import six
 from dateutil import tz
+from dateutil.parser import parse
 
 from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
-
 
 def six_u(v):
     if isinstance(v, six.string_types):
@@ -25,13 +25,11 @@ def six_u(v):
     else:
         return v
 
-
 def convert_keys_to_string(dictionary):
     if not isinstance(dictionary, dict):
         return six_u(dictionary)
     return dict((six_u(k), convert_keys_to_string(v))
         for k, v in dictionary.items())
-
 
 def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
     def tryIt(func):
@@ -57,27 +55,20 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
         return f
     return tryIt
 
-
 def convert_utc_to_local_time(time, timezone):
-    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
-        try:
-            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('UTC'))
-            local = time_dt.astimezone(tz.gettz(timezone))
-            return local.replace(tzinfo=None).isoformat()
-        except ValueError:
-            pass
-        except TypeError:
-            return
-    return
+    assert isinstance(time, datetime) and time.tzinfo == timezone.utc, "Time zone is not set to UTC."
+    local_datetime = time.astimezone(tz.gettz(timezone))
+    return local_datetime.replace(tzinfo=tz.gettz(timezone))
 
 def convert_pacific_to_utc(time):
-    for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
-        try:
-            time_dt = datetime.strptime(time, fmt).replace(tzinfo=tz.gettz('PST8PDT'))
-            utc = time_dt.astimezone(tz.gettz('UTC'))
-            return utc.replace(tzinfo=None).isoformat()
-        except ValueError:
-            pass
-        except TypeError:
-            return
-    return
+    assert isinstance(time, datetime) and time.tzinfo == tz.gettz('America/Los_Angeles'), "Time zone is not set to America/Los_Angeles."
+    utc_datetime = time.astimezone(tz.gettz('UTC'))
+    return utc_datetime.replace(tzinfo=tz.gettz('UTC'))
+
+def set_pacific_timezone(time):
+    assert isinstance(time, datetime), "Object is not a datetime object."
+    return time.replace(tzinfo=tz.gettz('America/Los_Angeles'))
+
+def set_utc_timezone(time):
+    assert isinstance(time, datetime), "Object is not a datetime object."
+    return time.replace(tzinfo=timezone.utc)
