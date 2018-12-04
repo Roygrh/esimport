@@ -55,10 +55,10 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
         return f
     return tryIt
 
-def convert_utc_to_local_time(time, timezone):
+def convert_utc_to_local_time(time, tzone):
     assert isinstance(time, datetime) and time.tzinfo == timezone.utc, "Time zone is not set to UTC."
-    local_datetime = time.astimezone(tz.gettz(timezone))
-    return local_datetime.replace(tzinfo=tz.gettz(timezone))
+    local_datetime = time.astimezone(tz.gettz(tzone))
+    return local_datetime.replace(tzinfo=tz.gettz(tzone))
 
 def convert_pacific_to_utc(time):
     assert isinstance(time, datetime) and time.tzinfo == tz.gettz('America/Los_Angeles'), "Time zone is not set to America/Los_Angeles."
