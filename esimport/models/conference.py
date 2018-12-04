@@ -46,11 +46,8 @@ class Conference(BaseModel):
             
             # set all datetime objects to utc timezone
             for key, value in rec1.items():
-                logger.debug("Key: {0} - Value: {1}".format(key, value))
                 if isinstance(value, datetime):
-                    logger.debug("Setting time zone to UTC for Key: {0}".format(key))                    
                     rec1[key] = set_utc_timezone(value)
-                    logger.debug("New value for Key: {0} is Value: {1}".format(key, rec1[key]))
 
             rec1['UpdateTime'] = datetime.now(timezone.utc)
 
