@@ -87,10 +87,16 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
 
                 # get some properties from PropertyMapping
                 _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
+                logger.debug("Action: {0}".format(_action))
 
                 if 'TimeZone' in _action:
+                    logger.debug("Timezone was found in _action.  Converting to time zone: {0}".format(_action['TimeZone']))
                     for pfik, pfiv in self.dates_to_localize:
+                        logger.debug("Key: {0} - Value to convert: {1}".format(pfik, conference.record[pfik]))
                         _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
+                        logger.debug("New Key: {0} - Converted value: {1}".format(pfiv, _action[pfiv]))
+
+                logger.debug("End timezone conversion code.")
 
                 conference.update(_action)
 
