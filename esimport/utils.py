@@ -56,6 +56,7 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
     return tryIt
 
 def convert_utc_to_local_time(time, timezone):
+    logger.debug("convert_utc_to_local_time - tzinfo: {0} and UTC offset: {1}".format(time.tzinfo, time.tzinfo.utcoffset(time)))
     assert isinstance(time, datetime) and time.tzinfo == timezone.utc, "Time zone is not set to UTC."
     local_datetime = time.astimezone(tz.gettz(timezone))
     return local_datetime.replace(tzinfo=tz.gettz(timezone))
