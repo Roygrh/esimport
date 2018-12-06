@@ -5,7 +5,6 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
-import six
 import logging
 
 from datetime import datetime, timezone
@@ -42,7 +41,7 @@ class Conference(BaseModel):
 
         for rec1 in list(self.fetch(q1, h1)):
 
-            rec1['ID'] = long(rec1.get('ID')) if six.PY2 else int(rec1.get('ID'))
+            rec1['ID'] = int(rec1.get('ID'))
             
             # set all datetime objects to utc timezone
             for key, value in rec1.items():

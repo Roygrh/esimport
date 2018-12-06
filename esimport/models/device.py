@@ -5,7 +5,6 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
-import six
 import logging
 
 from datetime import datetime, timedelta, timezone
@@ -42,7 +41,7 @@ class Device(BaseModel):
         q = self.query_one(start_date, start, limit)
 
         for row in self.fetch_dict(q):
-            row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
+            row['ID'] = int(row.get('ID'))
 
             for key, value in row.items():
                 if isinstance(value, datetime):

@@ -9,7 +9,6 @@ import logging
 import time
 from datetime import datetime, timezone
 
-import six
 from dateutil import tz
 from dateutil.parser import parse
 
@@ -17,18 +16,14 @@ from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
-def six_u(v):
-    if isinstance(v, six.string_types):
-        if six.PY2 and isinstance(v, unicode):
-            return v
-        return six.u(v)
-    else:
-        return v
 
 def convert_keys_to_string(dictionary):
-    if not isinstance(dictionary, dict):
-        return six_u(dictionary)
-    return dict((six_u(k), convert_keys_to_string(v))
+    if not isinstance(dictionary, dict) and isinstance(dictionary, str):
+        return str(dictionary)
+    else:
+        return dictionary
+    
+    return dict((str(k), convert_keys_to_string(v))
         for k, v in dictionary.items())
 
 def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
