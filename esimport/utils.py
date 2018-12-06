@@ -16,7 +16,7 @@ from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
-
+# REVIEW: It looks like this function is no longer needed.  Let's remove unused code.
 def convert_keys_to_string(dictionary):
     if not isinstance(dictionary, dict) and isinstance(dictionary, str):
         return str(dictionary)
