@@ -36,7 +36,7 @@ class ESRecord:
             "doc_as_upsert": True,
             "doc": self.record
         })
-        rec = utils.convert_keys_to_string(rec)
+        # rec = utils.convert_keys_to_string(rec)
         return rec
 
 
