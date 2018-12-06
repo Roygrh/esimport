@@ -41,8 +41,6 @@ class Device(BaseModel):
         q = self.query_one(start_date, start, limit)
 
         for row in self.fetch_dict(q):
-            row['ID'] = int(row.get('ID'))
-
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:

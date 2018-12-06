@@ -40,9 +40,6 @@ class Conference(BaseModel):
               'TotalOutputBytes', 'TotalSessionTime']
 
         for rec1 in list(self.fetch(q1, h1)):
-
-            rec1['ID'] = int(rec1.get('ID'))
-            
             # set all datetime objects to utc timezone
             for key, value in rec1.items():
                 if isinstance(value, datetime):

@@ -35,7 +35,6 @@ class Session(BaseModel):
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
-            row['ID'] = int(row.get('ID'))
             if 'LogoutTime' in row and 'SessionLength' in row:
                 row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
 

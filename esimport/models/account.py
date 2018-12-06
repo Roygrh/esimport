@@ -43,7 +43,6 @@ class Account(BaseModel):
 
     def get_accounts(self, query, *args):
         for row in self.fetch_dict(query, *args):
-            row['ID'] = int(row.get('ID'))
             row['Duration'] = self.find_duration(row)
 
             # Set all datetime objects to utc timezone
