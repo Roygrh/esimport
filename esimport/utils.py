@@ -16,15 +16,6 @@ from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
-# REVIEW: It looks like this function is no longer needed.  Let's remove unused code.
-def convert_keys_to_string(dictionary):
-    if not isinstance(dictionary, dict) and isinstance(dictionary, str):
-        return str(dictionary)
-    else:
-        return dictionary
-    
-    return dict((str(k), convert_keys_to_string(v))
-        for k, v in dictionary.items())
 
 def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
     def tryIt(func):

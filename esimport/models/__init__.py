@@ -7,10 +7,6 @@
 ################################################################################
 from esimport import settings
 
-# REVIEW: It appears like this is not needed.  Let's remove unused code.
-from esimport import utils
-
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -36,8 +32,6 @@ class ESRecord:
             "doc_as_upsert": True,
             "doc": self.record
         })
-        # REVIEW: Let's remove commented out code if it's no longer needed.
-        # rec = utils.convert_keys_to_string(rec)
         return rec
 
     def get(self, name):
