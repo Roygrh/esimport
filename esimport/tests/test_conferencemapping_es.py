@@ -9,7 +9,6 @@
 import chardet
 import glob
 import os
-import six
 import threading
 import time
 
