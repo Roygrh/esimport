@@ -9,10 +9,11 @@
 import six
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +43,15 @@ class Account(BaseModel):
         return self.fetch_dict(q)
 
     def get_accounts(self, query, *args):
-        dt_columns = ['Created', 'Activated', 'DateModifiedUTC']
         for row in self.fetch_dict(query, *args):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             row['Duration'] = self.find_duration(row)
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
+
+            # Set all datetime objects to utc timezone
+            for key, value in row.items():
+                if isinstance(value, datetime):
+                    row[key] = set_utc_timezone(value)
+
             yield ESRecord(row, self.get_type())
 
     def find_duration(self, row):
@@ -257,4 +259,3 @@ ORDER BY
         THEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
         ELSE COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
     END"""
-

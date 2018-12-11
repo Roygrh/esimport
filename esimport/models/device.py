@@ -8,10 +8,13 @@
 import six
 import logging
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from dateutil import tz
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, \
+                            set_pacific_timezone, set_utc_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +24,9 @@ class Device(BaseModel):
 
     _type = "device"
     _date_field = "DateUTC"
+
+    # These dates are in 'America/Los_Angeles' format
+    dates_from_pacific = {"Date": "DateUTC"}
 
     @staticmethod
     def get_type():
@@ -33,14 +39,19 @@ class Device(BaseModel):
 
 
     def get_devices(self, start, limit, start_date='1900-01-01'):
-        dt_columns = ['Date']
         q = self.query_one(start_date, start, limit)
+
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
+
+            for key, value in row.items():
+                if isinstance(value, datetime):
+                    if key in self.dates_from_pacific:
+                        row[self.dates_from_pacific[key]] = convert_pacific_to_utc(set_pacific_timezone(row[key]))
+                        del row[key] # As there's no `Date` field in ElevenAPI's Device model
+                    else:
+                        row[key] = set_utc_timezone(row[key])                     
+
             yield ESRecord(row, self.get_type())
 
 

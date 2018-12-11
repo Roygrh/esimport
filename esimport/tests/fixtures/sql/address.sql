@@ -1,5 +1,15 @@
 USE [Eleven_OS]
 GO
+
+IF (EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Address'))
+BEGIN
+DROP TABLE [dbo].[Address]
+END
+GO
+
 /****** Object:  Table [dbo].[Address]    Script Date: 4/26/2018 12:32:14 PM ******/
 SET ANSI_NULLS ON
 GO

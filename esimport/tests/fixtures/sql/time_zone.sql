@@ -34,6 +34,6 @@ GO
 
 
 INSERT INTO [dbo].[Time_Zone](Description, Tzid)
-	VALUES('UTC+06:00', '1')
+	VALUES('UTC+06:00', 'Asia/Dhaka')
 INSERT INTO [dbo].[Time_Zone](Description, Tzid)
-	VALUES('UTC-06:00', '2')
+	VALUES('UTC-07:00', 'America/Denver')

@@ -8,10 +8,11 @@
 import six
 import logging
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -33,16 +34,16 @@ class Session(BaseModel):
 
 
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
-        dt_columns = ['LogoutTime', 'LoginTime']
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
             row['ID'] = long(row.get('ID')) if six.PY2 else int(row.get('ID'))
             if 'LogoutTime' in row and 'SessionLength' in row:
                 row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
-            # convert datetime to string
-            for dt_column in dt_columns:
-                if dt_column in row and isinstance(row[dt_column], datetime):
-                    row[dt_column] = row[dt_column].isoformat()
+
+            for key, value in row.items():
+                if isinstance(value, datetime):
+                    row[key] = set_utc_timezone(value)
+
             yield ESRecord(row, self.get_type())
 
 
@@ -75,9 +76,9 @@ FROM
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
 WHERE 
-	stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
+    stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
 ORDER BY 
-	stop.ID ASC
+    stop.ID ASC
 """
         q = q.format(start_id, start_date, limit)
         return q
