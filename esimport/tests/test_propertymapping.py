@@ -14,7 +14,6 @@ from unittest import TestCase
 from elasticsearch import Elasticsearch
 
 import chardet
-from six.moves import range
 from mock import MagicMock
 
 from esimport.mappings.property import PropertyMapping
