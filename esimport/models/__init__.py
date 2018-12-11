@@ -6,8 +6,6 @@
 # Eleven Wireless Inc.
 ################################################################################
 from esimport import settings
-from esimport import utils
-
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,11 +20,9 @@ class ESRecord:
         "_index": settings.ES_INDEX
     }
 
-
     def __init__(self, record, doc_type):
         self.record = record
         self.doc_type = doc_type
-
 
     def es(self, record_id=None):
         rec = self.meta_fields.copy()
@@ -36,13 +32,10 @@ class ESRecord:
             "doc_as_upsert": True,
             "doc": self.record
         })
-        rec = utils.convert_keys_to_string(rec)
         return rec
-
 
     def get(self, name):
         return self.record.get(name)
-
 
     def update(self, d):
         return self.record.update(d)
