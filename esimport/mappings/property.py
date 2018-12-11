@@ -86,8 +86,8 @@ class PropertyMapping(DocumentMapping):
                 # add both Property/Organization Number and Service Areas to the cache
                 self.cache_client.set(prop.get('Number'), prop.record)
 
-                for service_area in prop.get('ServiceAreas'):
-                    self.cache_client.set(service_area, prop.record)
+                for service_area_obj in prop.get('ServiceAreaObjects'):
+                    self.cache_client.set(service_area_obj['Number'], prop.record)
 
                 metric_value = prop.get(self.model.get_key_date_field())
 
@@ -124,7 +124,6 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
             return self.cache_client.get(org_number)
         else:
-            # REVIEW: Fix the query to work with a ServiceAreas array
             es_property_query = {
                 "query": {
                     "bool": {
@@ -135,8 +134,19 @@ class PropertyMapping(DocumentMapping):
                                 }
                             },
                             {
-                                "match": {
-                                    "ServiceAreas": org_number
+                                "nested": {
+                                    "path": "ServiceAreaObjects",
+                                    "query": {
+                                        "bool": {
+                                            "must": [
+                                                {
+                                                    "match": {
+                                                        "ServiceAreaObjects.Number": org_number
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
                                 }
                             }
                         ]
@@ -186,8 +196,8 @@ class PropertyMapping(DocumentMapping):
                 # add both Property/Organization Number and Service Areas to the cache
                 self.cache_client.set(prop.get('Number'), prop)
 
-                for service_area in prop.get('ServiceAreas'):
-                    self.cache_client.set(service_area, prop)
+                for service_area_obj in prop.get('ServiceAreaObjects'):
+                    self.cache_client.set(service_area_obj['Number'], prop)
 
                 start = prop.get('ID') + 1
 

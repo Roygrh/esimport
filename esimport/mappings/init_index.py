@@ -80,7 +80,6 @@ class new_index(object):
                 "Pan": {"type": "boolean"},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
-                "ServiceAreas": {"type": "keyword"},
                 "ServiceAreaObjects": {"type": "nested",
                             "properties": {
                                     "Number": {"type": "keyword" },

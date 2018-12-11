@@ -46,7 +46,6 @@ class Property(BaseModel):
             q3 = self.query_get_provider()
             rec["Provider"] = self.execute(q3, rec["ID"]).fetchval()
 
-            sa_nums = []
             sa_list = []
 
             q4 = self.query_get_service_area(rec["ID"])
@@ -73,10 +72,8 @@ class Property(BaseModel):
                     "Hosts": hosts_list
                 }
 
-                sa_nums.append(rec4.Number)
                 sa_list.append(sa_dic)
 
-            rec["ServiceAreas"] = sa_nums
             rec["ServiceAreaObjects"] = sa_list
 
             q6 = self.query_get_active_counts()

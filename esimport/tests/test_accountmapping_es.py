@@ -18,7 +18,6 @@ from unittest import TestCase
 
 import chardet
 import dateutil.parser
-import six
 from elasticsearch import Elasticsearch
 from mock import MagicMock, Mock
 
@@ -176,10 +175,7 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
 
-        if six.PY2:
-            self.assertTrue(isinstance(self.am.get_es_count(), (int, long)))
-        else:
-            self.assertTrue(isinstance(self.am.get_es_count(), int))
+        self.assertTrue(isinstance(self.am.get_es_count(), int))
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
@@ -344,12 +340,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
         # run sync in different thread
         sync = lambda _am: _am.sync('1900-01-01')
-        kwargs = dict()
-        if not six.PY2:
-            kwargs = dict(daemon=True)
-        t = threading.Thread(target=sync, args=(am,), **kwargs)
-        if six.PY2:
-            t.daemon = True
+        t = threading.Thread(target=sync, args=(am,), daemon=True)
         t.start()
 
         # verify data was sync
@@ -511,13 +502,12 @@ class TestAccountMappingElasticSearch(TestCase):
         # time to catch up
         time.sleep(1)
         
-        # REVIEW: Does this test still pass with the ServiceArea changes?
         service_areas = []
         # check if property records are in redis    
         property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]
         for prop in property_list:
-            for service_area in prop['ServiceAreas']:
-                service_areas.append(service_area)
+            for service_area_obj in prop['ServiceAreaObjects']:
+                service_areas.append(service_area_obj['Number'])
         for service_area in service_areas:
             self.assertTrue(self.pm.cache_client.exists(service_area))
 
