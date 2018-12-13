@@ -1,3 +1,5 @@
+# This script was run on ES East and West production clusters on 2018-12-11
+
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search # pip install elasticsearch-dsl
 import requests
