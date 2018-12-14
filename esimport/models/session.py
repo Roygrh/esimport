@@ -35,8 +35,8 @@ class Session(BaseModel):
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
-            if 'LogoutTime' in row and 'SessionLength' in row:
-                row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
+            # if 'LogoutTime' in row and 'SessionLength' in row:
+            #     row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
 
             for key, value in row.items():
                 if isinstance(value, datetime):
@@ -64,7 +64,9 @@ SELECT TOP ({2})
 	stop.Acct_Session_Time AS SessionLength,
 	stop.Acct_Output_Octets AS BytesOut,
 	stop.Acct_Input_Octets AS BytesIn,
-	term.Name AS TerminationReason
+	term.Name AS TerminationReason,
+    zp.Name AS ServicePlan,
+    dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AS LoginTimeUTC
 FROM 
 	Radius.dbo.Radius_Stop_Event stop
 	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
@@ -73,6 +75,13 @@ FROM
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
+    CROSS APPLY (
+		SELECT TOP 1 *
+		FROM Zone_Plan_Account 
+		WHERE Zone_Plan_Account.Activation_Date_UTC <= dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AND Zone_Plan_Account.Member_ID=mem.ID
+		ORDER BY Zone_Plan_Account.Activation_Date_UTC DESC
+	) zpa
+	LEFT JOIN Zone_Plan zp ON zp.ID = zpa.Zone_Plan_ID
 WHERE 
     stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
 ORDER BY 
