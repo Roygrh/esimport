@@ -75,7 +75,7 @@ FROM
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
-    CROSS APPLY (
+    OUTER APPLY (
 		SELECT TOP 1 *
 		FROM Zone_Plan_Account 
 		WHERE Zone_Plan_Account.Activation_Date_UTC <= dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AND Zone_Plan_Account.Member_ID=mem.ID
