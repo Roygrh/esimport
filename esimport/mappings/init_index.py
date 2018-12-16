@@ -234,6 +234,7 @@ class new_index(object):
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "ID": {"type": "long"},
                 "LoginTime": {"type": "date"},
                 "LoginTimeLocal": {"type": "date"},
                 "LogoutTime": {"type": "date"},
@@ -253,6 +254,15 @@ class new_index(object):
                                           "type": "keyword",
                                           "ignore_above": 256
                                       }}},
+                "NetworkDeviceType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
