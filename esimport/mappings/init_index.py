@@ -254,15 +254,6 @@ class new_index(object):
                                           "type": "keyword",
                                           "ignore_above": 256
                                       }}},
-                "NetworkDeviceType": {
-                    "type": "text",
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 256
-                        }
-                    }
-                },
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
