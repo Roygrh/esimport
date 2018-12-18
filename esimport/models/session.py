@@ -80,9 +80,9 @@ FROM
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
     OUTER APPLY (
-		SELECT TOP 1 *
+		SELECT TOP 1 Zone_Plan_ID
 		FROM Zone_Plan_Account 
-		WHERE Zone_Plan_Account.Activation_Date_UTC <= dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AND Zone_Plan_Account.Member_ID=mem.ID
+		WHERE Zone_Plan_Account.Activation_Date_UTC <= dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AND Zone_Plan_Account.Member_ID = mem.ID
 		ORDER BY Zone_Plan_Account.Activation_Date_UTC DESC
 	) zpa
 	LEFT JOIN Zone_Plan zp ON zp.ID = zpa.Zone_Plan_ID
