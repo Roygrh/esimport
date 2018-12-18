@@ -35,6 +35,7 @@ class Session(BaseModel):
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
+			# REVIEW: Let's remove commented out code.
             # if 'LogoutTime' in row and 'SessionLength' in row:
             #     row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
 
@@ -66,6 +67,9 @@ SELECT TOP ({2})
 	stop.Acct_Input_Octets AS BytesIn,
 	term.Name AS TerminationReason,
     zp.Name AS ServicePlan,
+	
+	# REVIEW: The logic before would add the LoginTime field to the resultset.  We need to maintain the same name as what is currently stored in ES.
+	#  Let's rename LoginTimeUTC to LoginTime.  Also, please move this line to just before LogoutTime since these two fields go together.
     dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AS LoginTimeUTC
 FROM 
 	Radius.dbo.Radius_Stop_Event stop
