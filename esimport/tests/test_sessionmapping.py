@@ -82,7 +82,7 @@ class TestSessionMappingElasticsearch(TestCase):
         session_records = [record['_source'] for record in res]
         for record in session_records:
             if sessions_dict[record['ID']].get('ServicePlan'):
-                self.assertCountEqual(record.get('ServicePlan'), sessions_dict[record['ID']].get('ServicePlan'))
+                self.assertEqual(record.get('ServicePlan'), sessions_dict[record['ID']].get('ServicePlan'))
             else:
                 self.assertIsNone(sessions_dict[record['ID']].get('ServicePlan'))
 
