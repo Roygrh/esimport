@@ -233,6 +233,7 @@ class new_index(object):
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "ID": {"type": "long"},
                 "LoginTime": {"type": "date"},
                 "LoginTimeLocal": {"type": "date"},
                 "LogoutTime": {"type": "date"},

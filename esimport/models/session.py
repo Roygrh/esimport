@@ -35,9 +35,6 @@ class Session(BaseModel):
     def get_sessions(self, start_id, limit, start_date='1900-01-01'):
         q = self.query_one(start_id, start_date, limit)
         for row in self.fetch_dict(q):
-            if 'LogoutTime' in row and 'SessionLength' in row:
-                row['LoginTime'] = row['LogoutTime'] - timedelta(seconds=row['SessionLength'])
-
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
@@ -59,13 +56,15 @@ SELECT TOP ({2})
 	hist.Called_Station_Id AS CalledStation,
 	hist.VLAN AS VLAN,
 	hist.Calling_Station_Id AS MacAddress,
+	dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AS LoginTime,
 	hist.Date_UTC AS LogoutTime,
 	acct.Session_ID AS SessionID,
 	stop.Acct_Session_Time AS SessionLength,
 	stop.Acct_Output_Octets AS BytesOut,
 	stop.Acct_Input_Octets AS BytesIn,
-	term.Name AS TerminationReason
-FROM 
+	term.Name AS TerminationReason,
+    zp.Name AS ServicePlan
+FROM
 	Radius.dbo.Radius_Stop_Event stop
 	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
 	JOIN Radius.dbo.Radius_Event_History hist ON hist.Radius_Event_ID = acct.Radius_Event_ID
@@ -73,9 +72,16 @@ FROM
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
 	LEFT JOIN Member mem ON mem.ID = hist.Member_ID
-WHERE 
+    OUTER APPLY (
+		SELECT TOP 1 Zone_Plan_ID
+		FROM Zone_Plan_Account 
+		WHERE Zone_Plan_Account.Activation_Date_UTC <= dateadd(s, (0-stop.Acct_Session_Time), hist.Date_UTC) AND Zone_Plan_Account.Member_ID = mem.ID
+		ORDER BY Zone_Plan_Account.Activation_Date_UTC DESC
+	) zpa
+	LEFT JOIN Zone_Plan zp ON zp.ID = zpa.Zone_Plan_ID
+WHERE
     stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
-ORDER BY 
+ORDER BY
     stop.ID ASC
 """
         q = q.format(start_id, start_date, limit)
