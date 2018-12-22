@@ -1,22 +1,37 @@
-# This script was run on ES East and West production clusters on 2018-12-11
-
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search # pip install elasticsearch-dsl
 import requests
+import json
+import sys
+import time
 
-es = Elasticsearch()
-s = Search(using=es, index="elevenos", doc_type="property")
+params = (
+    ('conflicts', 'proceed'),
+    ('wait_for_completion', 'false') # Will return a task ID when querying
+)
 
-s = s.source([])
-ids = [h.meta.id for h in s.scan()]                                                                                                                                                                                  
+data = '{ "script": { "inline": "ctx._source.remove(\\"ServiceAreas\\")" }, "query": { "match_all":{} } }'
 
-amount = len(ids)
-done = 0 
+response = requests.post('http://localhost:9200/elevenos/property/_update_by_query', params=params, data=data)
 
-data = '{"script" : "ctx._source.remove(\\"ServiceAreas\\")"}'
+task_id = response.json()["task"] # Print task ID
 
-# loop through all documents with _type=property
-for id in ids:
-    response = requests.post('http://localhost:9200/elevenos/property/{0}/_update'.format(id), data=data)
-    done+=1 # deleted field ["ServiceAreas"] (if present) from current document
-    print("Deleted [\"ServiceAreas\"] at _id={0} \t\t [{1}/{2}]".format(id, done, amount))
+print("{0}\n".format(task_id))
+
+params = (
+            ('pretty', 'true'),
+            )
+
+update_interval = 60
+
+# Print task status until completion
+while True:
+    # Checking status of task by querying Task API with task ID
+    response = requests.get('http://localhost:9200/_tasks/{0}'.format(task_id), params=params)
+
+    r = response.json()
+
+    print(json.dumps(r, indent=4, sort_keys=True))
+
+    if r['completed'] == True:
+        exit(0)
+    else:
+        time.sleep(update_interval) # sleep when task not  completed
