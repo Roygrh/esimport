@@ -85,6 +85,8 @@ class new_index(object):
                                     "Number": {"type": "keyword" },
                                     "Name": {"type": "text" },
                                     "ZoneType": {"type": "keyword" },
+                                    "ActiveMembers": {"type": "integer"},
+                                    "ActiveDevices": {"type":  "integer"},
                                     "Hosts": {"type": "nested",
                                            "properties": {
                                                   "NASID": {"type": "keyword" },
