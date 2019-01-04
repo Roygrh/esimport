@@ -89,7 +89,7 @@ class TestPropertyMapping(TestCase):
         properties = list(self.pm.model.fetch(self.pm.model.query_get_properties(0,10)))
 
         for prop in properties:
-            service_areas = list(self.pm.model.fetch(self.pm.model.query_get_service_area(prop.ID)))
+            service_areas = list(self.pm.model.fetch(self.pm.model.query_get_service_areas(prop.ID)))
             service_areas_arr = []
 
             for service_area in service_areas:
@@ -97,9 +97,11 @@ class TestPropertyMapping(TestCase):
                     'Number': service_area.Number,
                     'Name': service_area.Name,
                     'ZoneType': service_area.ZoneType,
+                    'ActiveMembers': service_area.ActiveMembers,
+                    'ActiveDevices': service_area.ActiveDevices
                 }
 
-                hosts = list(self.pm.model.fetch(self.pm.model.query_get_service_area_device(service_area.ID)))
+                hosts = list(self.pm.model.fetch(self.pm.model.query_get_service_area_devices(service_area.ID)))
                 hosts_arr = []
                 for host in hosts:
                     host_dict = {

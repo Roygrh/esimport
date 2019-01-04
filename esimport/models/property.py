@@ -48,27 +48,29 @@ class Property(BaseModel):
 
             sa_list = []
 
-            q4 = self.query_get_service_area(rec["ID"])
+            q4 = self.query_get_service_areas(rec["ID"])
             for rec4 in list(self.fetch(q4)):
 
-                q5 = self.query_get_service_area_device(rec4.ID)
-
                 hosts_list = []
+
+                q5 = self.query_get_service_area_devices(rec4.ID)
                 for rec5 in list(self.fetch(q5)):
                     host_dic = {
-                        "NASID": rec5.NASID, 
-                        "RadiusNASID": rec5.RadiusNASID, 
-                        "HostType": rec5.HostType, 
-                        "VLANRangeStart": rec5.VLANRangeStart, 
-                        "VLANRangeEnd": rec5.VLANRangeEnd, 
+                        "NASID": rec5.NASID,
+                        "RadiusNASID": rec5.RadiusNASID,
+                        "HostType": rec5.HostType,
+                        "VLANRangeStart": rec5.VLANRangeStart,
+                        "VLANRangeEnd": rec5.VLANRangeEnd,
                         "NetIP":rec5.NetIP
                     }
                     hosts_list.append(host_dic)
 
                 sa_dic = {
-                    "Number": rec4.Number, 
-                    "Name": rec4.Name, 
-                    "ZoneType": rec4.ZoneType, 
+                    "Number": rec4.Number,
+                    "Name": rec4.Name,
+                    "ZoneType": rec4.ZoneType,
+                    "ActiveMembers": rec4.ActiveMembers,
+                    "ActiveDevices": rec4.ActiveDevices,
                     "Hosts": hosts_list
                 }
 
@@ -149,21 +151,28 @@ WHERE Org_Value.Organization_ID = {0}
                     AND Organization.Org_Category_Type_ID = 2"""
 
     @staticmethod
-    def query_get_service_area(org_id):
+    def query_get_service_areas(org_id):
         q = """SELECT Organization.ID as ID,
-                       Organization.Number as Number,
-                       Organization.Display_Name as Name,
-                       Org_Value.Value as ZoneType
+                      Organization.Number as Number,
+                      Organization.Display_Name as Name,
+                      Org_Value.Value as ZoneType,
+                      COUNT(DISTINCT r.Member_ID) as ActiveMembers,
+                      COUNT(DISTINCT r.Calling_Station_Id) as ActiveDevices
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
+LEFT JOIN Radius_Active_Usage r WITH (NOLOCK) ON r.Organization_ID = Child_Org_ID
 WHERE Org_Relation_Cache.Parent_Org_ID = {0}
-  AND Organization.Org_Category_Type_ID = 4"""
+    AND Organization.Org_Category_Type_ID = 4
+GROUP BY Organization.ID,
+         Organization.Number,
+         Organization.Display_Name,
+         Org_Value.Value"""
         q = q.format(org_id)
         return q
 
     @staticmethod
-    def query_get_service_area_device(org_id):
+    def query_get_service_area_devices(org_id):
         q = """SELECT NAS_Device.NAS_ID as NASID,
                       NAS_Device.Radius_NAS_ID as RadiusNASID,
                       NAS_Device_Type.Name as HostType,

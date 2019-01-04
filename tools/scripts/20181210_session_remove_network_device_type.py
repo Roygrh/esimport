@@ -1,22 +1,37 @@
-# Consider using https://www.elastic.co/guide/en/elasticsearch/reference/5.3/docs-update-by-query.html
-
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search # pip install elasticsearch-dsl
 import requests
+import json
+import sys
+import time
 
-es = Elasticsearch()
-s = Search(using=es, index="elevenos", doc_type="session")
+params = (
+    ('conflicts', 'proceed'),
+    ('wait_for_completion', 'false') # Will return a task ID when querying
+)
 
-s = s.source([])
-ids = [h.meta.id for h in s.scan()]
+data = '{ "script": { "inline": "ctx._source.remove(\\"NetworkDeviceType\\")" }, "query": { "match_all":{} } }'
 
-amount = len(ids)
-done = 0
+response = requests.post('http://localhost:9200/elevenos/session/_update_by_query', params=params, data=data)
 
-data = '{"script" : "ctx._source.remove(\\"NetworkDeviceType\\")"}'
+task_id = response.json()["task"] # Print task ID
 
-# loop through all documents with _type=session
-for id in ids:
-    response = requests.post('http://localhost:9200/elevenos/session/{0}/_update'.format(id), data=data)
-    done+=1 # deleted field ["NetworkDeviceType"] (if present) from current document
-    print("Deleted [\"NetworkDeviceType\"] at _id={0} \t\t [{1}/{2}]".format(id, done, amount))
+print("{0}\n".format(task_id))
+
+params = (
+            ('pretty', 'true'),
+            )
+
+update_interval = 60
+
+# Print task status until completion
+while True:
+    # Checking status of task by querying Task API with task ID
+    response = requests.get('http://localhost:9200/_tasks/{0}'.format(task_id), params=params)
+
+    r = response.json()
+
+    print(json.dumps(r, indent=4, sort_keys=True))
+
+    if r['completed'] == True:
+        exit(0)
+    else:
+        time.sleep(update_interval) # sleep when task not  completed

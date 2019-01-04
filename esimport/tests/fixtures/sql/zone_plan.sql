@@ -23,8 +23,9 @@ CREATE TABLE [dbo].[Zone_Plan](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
-INSERT INTO [dbo].[Zone_Plan](Plan_Number, Name)
-	VALUES('basic_day_01', 'basic day')
-INSERT INTO [dbo].[Zone_Plan](Plan_Number, Name)
-	VALUES('prem_day_01', 'premium day')
+SET IDENTITY_INSERT Zone_Plan ON
+INSERT INTO [dbo].[Zone_Plan](ID, Plan_Number, Name)
+VALUES
+	(1, 'basic_day_01', 'basic day'),
+	(2, 'prem_day_01', 'premium day')
 GO

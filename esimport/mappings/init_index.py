@@ -85,6 +85,8 @@ class new_index(object):
                                     "Number": {"type": "keyword" },
                                     "Name": {"type": "text" },
                                     "ZoneType": {"type": "keyword" },
+                                    "ActiveMembers": {"type": "integer"},
+                                    "ActiveDevices": {"type":  "integer"},
                                     "Hosts": {"type": "nested",
                                            "properties": {
                                                   "NASID": {"type": "keyword" },
@@ -233,6 +235,7 @@ class new_index(object):
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "ID": {"type": "long"},
                 "LoginTime": {"type": "date"},
                 "LoginTimeLocal": {"type": "date"},
                 "LogoutTime": {"type": "date"},
