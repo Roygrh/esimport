@@ -33,9 +33,13 @@ staging_deploy:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
-    - aws s3 cp s3://dataservices.esimport/odbcinst.ini.stag odbcinst.ini
-    - aws s3 cp s3://dataservices.esimport/odbc.ini.stag odbc.ini
-    - aws s3 cp s3://dataservices.esimport/freetds.conf.stag freetds.conf
+    - aws s3 cp s3://dataservices.esimport/unixODBC-2.3.1-11.el7.x86_64.rpm unixODBC.rpm
+    - aws s3 cp s3://dataservices.esimport/unixODBC-devel-2.3.1-11.el7.x86_64.rpm unixODBC-devel.rpm
+    - aws s3 cp s3://dataservices.esimport/msodbcsql17-17.2.0.1-1.x86_64.rpm msodbcsql17.rpm
+    - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
+    # - aws s3 cp s3://dataservices.esimport/odbcinst.ini.stag odbcinst.ini
+    # - aws s3 cp s3://dataservices.esimport/odbc.ini.stag odbc.ini
+    # - aws s3 cp s3://dataservices.esimport/freetds.conf.stag freetds.conf
     - eb deploy $EB_STAGING_ENV_NAME --verbose
   only:
     - develop
