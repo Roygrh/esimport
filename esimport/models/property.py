@@ -142,13 +142,19 @@ WHERE Org_Value.Organization_ID = {0}
         q = q.format(org_id)
         return q
 
+    """
+    Returns the owning service provider for the given org.  If there are multiple
+    service providers in the org lineage, then the most distant ancestor will be used.
+    """
     @staticmethod
     def query_get_provider():
-        return """SELECT Organization.Display_Name as Provider
+        return """SELECT TOP 1 Organization.Display_Name as Provider
                   FROM Org_Relation_Cache WITH (NOLOCK)
-                  JOIN Organization ON Organization.ID = Parent_Org_ID
-                  WHERE Child_Org_ID = ?
-                    AND Organization.Org_Category_Type_ID = 2"""
+                  JOIN Organization ON Organization.ID = Org_Relation_Cache.Parent_Org_ID
+                  WHERE Org_Relation_Cache.Child_Org_ID = ?
+                    AND Organization.Org_Category_Type_ID = 2
+                    AND Org_Relation_Cache.Org_Relation_Type_ID = 1
+                  ORDER BY Org_Relation_Cache.Depth DESC"""
 
     @staticmethod
     def query_get_service_areas(org_id):
