@@ -150,74 +150,72 @@ class new_index(object):
 
         account_mapping = {
             "properties": {
-                "Name": { "type": "text", 
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword",
-                                "ignore_above": 128
-                            }}},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "Price": {"type": "float"},
-                "PurchaseMacAddress": {"type": "keyword", "ignore_above": 18},
                 "Activated": {"type": "date"},
                 "ActivatedLocal": {"type": "date"},
-                "Created": {"type": "date"},
-                "CreatedLocal": {"type": "date"},
-                "ServicePlan": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword",
-                                        "ignore_above": 128
-                                    }}},
-                "ServicePlanNumber": {"type": "keyword", "ignore_above": 64},
-                "UpCap": {"type": "integer"},
-                "DownCap": {"type": "integer"},
-                "PayMethod": {"type": "keyword"},
-                "Currency": {"type": "keyword", "ignore_above": 8},
-                "CreditCardNumber": {"type": "integer"},
+                "Brand": {"type": "keyword", "ignore_above": 64},
                 "CardType": {"type": "keyword", "ignore_above": 16},
-                "LastName": {"type": "text"},
-                "RoomNumber": {"type": "keyword"},
-                "DiscountCode": {"type": "text",
-                                 "fields": {
-                                     "keyword": {
-                                         "type": "keyword",
-                                         "ignore_above": 128
-                                     }}},
-                "ConnectCode": {
-                    "type": "text",
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 128
-                        }}},
-                "MarketingContact": {"type": "text"},
+                "ConnectCode": {"type": "text",
+                                    "fields": {
+                                        "keyword": {
+                                            "type": "keyword", 
+                                            "ignore_above": 128
+                                        }
+                                    }
+                                },
                 "ConsumableTime": {"type": "integer"},
                 "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
-                "SpanTime": {"type": "integer"},
-                "SpanUnit": {"type": "keyword", "ignore_above": 16},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}},
+                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
+                "Country": {"type": "keyword", "ignore_above": 64},
+                "Created": {"type": "date"},
+                "CreatedLocal": {"type": "date"},
+                "CreditCardNumber": {"type": "integer"},
+                "Currency": {"type": "keyword", "ignore_above": 8},
+                "DateModifiedUTC": {"type": "date"},
+                "DiscountCode": {"type": "text",
+                                 "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
+                "DownCap": {"type": "integer"},
+                "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "LastName": {"type": "text"},
+                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MarketingContact": {"type": "text"},
+                "MemberNumber": {"type": "keyword", "ignore_above": 32},
+                "Name": {"type": "text",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword", 
+                                    "ignore_above": 128
+                                }
+                            }
+                        },
+                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
+                "PayMethod": {"type": "keyword"},
+                "Price": {"type": "float"},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Provider": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
+                "PurchaseMacAddress": {"type": "keyword", "ignore_above": 18},
                 "Region": {"type": "keyword", "ignore_above": 64},
+                "RoomNumber": {"type": "keyword"},
+                "ServiceArea": {"type": "keyword", "ignore_above": 12},
+                "ServicePlan": {"type": "text",
+                                "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
+                "ServicePlanNumber": {"type": "keyword", "ignore_above": 64},
+                "SpanTime": {"type": "integer"},
+                "SpanUnit": {"type": "keyword", "ignore_above": 16},
+                "Status": {"type": "keyword", "ignore_above": 16},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "TaxRate": {"type": "float"},
-                "DateModifiedUTC": {"type": "date"}
+                "TimeZone": {"type": "keyword", "ignore_above": 32},
+                "UpCap": {"type": "integer"},
+                "VLAN": {"type": "integer"},
+                "ZoneType": {"type": "text",
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword", 
+                                        "ignore_above": 128
+                                    }
+                                }
+                            }
             }
         }
 
