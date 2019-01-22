@@ -94,7 +94,7 @@ ENV/
 .idea
 
 config.yml
-odbc.ini
+/odbc.ini
 tempDSN
 
 # Elastic Beanstalk Files
@@ -104,3 +104,6 @@ tempDSN
 
 # vscode
 .vscode/
+
+# S3 config files
+.config/

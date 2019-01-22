@@ -28,7 +28,8 @@ class TestSessionMappingElasticsearch(TestCase):
                 for line in inp:
                     if 'GO' not in line:
                         sqlQuery = sqlQuery + line
-                self.sm.model.execute(sqlQuery).commit()
+                self.sm.model.execute(sqlQuery)
+                # self.sm.model.conn.close()
             inp.close()
             self.sm.model.conn.reset()
 
@@ -37,7 +38,7 @@ class TestSessionMappingElasticsearch(TestCase):
 
         ni = new_index()
         ni.setup()
-        ni.setupindex()
+        ni.create_index()
 
     def test_session_data_in_es(self):
         # self.es.indices.create(index=settings.ES_INDEX)
@@ -63,25 +64,27 @@ class TestSessionMappingElasticsearch(TestCase):
     def test_serviceplan_in_session_mapping_records(self):
         sm = SessionMapping()
         sm.setup()
-        
+
         sessions_gen = sm.model.get_sessions(1, 100, '2018-06-27')
         sessions_dict = {}
+
         for s in sessions_gen:
             sessions_dict[s.record['ID']] = s.record
-            
+
         sync = lambda _sm: _sm.sync('2018-06-27')
         t = threading.Thread(target=sync, args=(sm,), daemon=True)
         t.start()
         time.sleep(2)
 
-
         q = {'query': {'term': {'_type': self.sm.model._type}}}
         res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
-        
-        session_records = [record['_source'] for record in res]
 
+        session_records = [record['_source'] for record in res]
         for record in session_records:
-            self.assertCountEqual(record['ServicePlan'], sessions_dict[record['ID']]['ServicePlan'])
+            if sessions_dict[record['ID']].get('ServicePlan'):
+                self.assertEqual(record.get('ServicePlan'), sessions_dict[record['ID']].get('ServicePlan'))
+            else:
+                self.assertIsNone(sessions_dict[record['ID']].get('ServicePlan'))
 
     def tearDown(self):
         self.sm.model.execute("""
@@ -100,7 +103,7 @@ ORDER BY c.[type];
 SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
 FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
-EXEC SP_EXECUTESQL @sql;""").commit()
+EXEC SP_EXECUTESQL @sql;""")
 
         if self.es.indices.exists(index=settings.ES_INDEX):
             self.es.indices.delete(index=settings.ES_INDEX, ignore=400)

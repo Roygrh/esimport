@@ -12,8 +12,9 @@ class MsSQLConnector:
     conn = None
 
     def __init__(self):
+        logger.info("Setting up DB connection")
         db = settings.DATABASES.get('default', {})
-        self.conn = pyodbc.connect(settings.MSSQL_DSN % db)
+        self.conn = pyodbc.connect(settings.MSSQL_DSN % db, autocommit=True)
 
     def reset(self):
         self.conn.close()

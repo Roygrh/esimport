@@ -4,18 +4,23 @@ services:
 
   # esimport can be run inside a docker container as weel, feel free to uncomment this
   # and adjust you local_settings.py file accordingly 
-  # esimport:
-  #   container_name: esimport
-  #   build: .
-  #   # env_file: .env
-  #   depends_on:
-  #     - redis
-  #     - elasticsearch
-  #     - mssql
-  #   environment:
-  #     - PYTHONDONTWRITEBYTECODE=1
-  #   # entrypoint: pytest
-  #   entrypoint: sh
+  esimport:
+    container_name: esimport
+    build: .
+    # env_file: .env
+    links:
+      - redis
+      - elasticsearch
+      - mssql
+    depends_on:
+      - redis
+      - elasticsearch
+      - mssql
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    entrypoint: bash
+    volumes:
+      - "./esimport:/esimport/esimport"
 
   redis:
     image: "redis:alpine"

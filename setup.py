@@ -20,14 +20,16 @@ setup(
     zip_safe=False,
     install_requires=[
         'click==6.7',
+        'datadog==0.22.0',
         'elasticsearch==5.2.0',
         'hiredis==0.2.0',
         'pyodbc==4.0.22',
         'python-dateutil==2.6.1',
-        'PyYAML==3.12',
+        'PyYAML==3.13',
         'raven==6.5.0',
         'redis==2.10.6',
-        'six==1.11.0'
+        'requests==2.19.1',
+        'urllib3==1.23',
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']

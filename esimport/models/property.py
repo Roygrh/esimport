@@ -7,9 +7,10 @@
 ################################################################################
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
+from esimport.utils import set_utc_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -18,51 +19,90 @@ logger = logging.getLogger(__name__)
 class Property(BaseModel):
 
     _type = "property"
+    _date_field = "UpdateTime"
+
     @staticmethod
     def get_type():
         return Property._type
 
+    @staticmethod
+    def get_key_date_field():
+        return Property._date_field
 
     def get_properties(self, start, limit):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        h1 = ['ID', 'Number', 'Name', 'GuestRooms', 'MeetingRooms', 'Lite', 
-              'Pan', 'CreatedUTC', 'GoLiveUTC', 'Status', 'TimeZone']
-        q1 = self.query_one(start, limit)
-        for rec1 in list(self.fetch(q1, h1)):
+        q1 = self.query_get_properties(start, limit)
+        for rec in list(self.fetch_dict(q1)):
 
-            q2 = self.query_two(rec1['ID'])
-            for rec2 in list(self.fetch(q2, None)):
+            q2 = self.query_get_property_org_values(rec["ID"])
+            for rec2 in list(self.fetch(q2)):
                 if rec2.Name == "TaxRate":
-                    rec1[rec2.Name] = float(rec2.Value)
+                    rec[rec2.Name] = float(rec2.Value)
                 else:
-                    rec1[rec2.Name] = rec2.Value
+                    rec[rec2.Name] = rec2.Value
 
-            q3 = self.query_three(rec1['ID'])
-            for rec3 in list(self.fetch(q3, None)):
-                rec1['Provider'] = rec3.Provider
+            q3 = self.query_get_provider()
+            rec["Provider"] = self.execute(q3, rec["ID"]).fetchval()
 
-            q4 = self.query_four(rec1['ID'])
             sa_list = []
-            for rec4 in list(self.fetch(q4, None)):
-                sa_list.append(rec4.Service_Area_Number)
 
-            rec1['ServiceAreas'] = sa_list
+            q4 = self.query_get_service_areas(rec["ID"])
+            for rec4 in list(self.fetch(q4)):
 
-            q = self.query_get_active_counts()
-            row = self.execute(q, rec1['ID']).fetchone()
+                hosts_list = []
 
-            rec1['ActiveMembers'] = row.ActiveMembers if row else 0
-            rec1['ActiveDevices'] = row.ActiveDevices if row else 0
-            
-            rec1['UpdateTime'] = datetime.utcnow().isoformat()
+                q5 = self.query_get_service_area_devices(rec4.ID)
+                for rec5 in list(self.fetch(q5)):
+                    host_dic = {
+                        "NASID": rec5.NASID,
+                        "RadiusNASID": rec5.RadiusNASID,
+                        "HostType": rec5.HostType,
+                        "VLANRangeStart": rec5.VLANRangeStart,
+                        "VLANRangeEnd": rec5.VLANRangeEnd,
+                        "NetIP":rec5.NetIP
+                    }
+                    hosts_list.append(host_dic)
 
-            yield ESRecord(rec1, self.get_type())
+                sa_dic = {
+                    "Number": rec4.Number,
+                    "Name": rec4.Name,
+                    "ZoneType": rec4.ZoneType,
+                    "ActiveMembers": rec4.ActiveMembers,
+                    "ActiveDevices": rec4.ActiveDevices,
+                    "Hosts": hosts_list
+                }
 
+                sa_list.append(sa_dic)
+
+            rec["ServiceAreaObjects"] = sa_list
+
+            q6 = self.query_get_active_counts()
+            row = self.execute(q6, rec["ID"]).fetchone()
+
+            rec["ActiveMembers"] = row.ActiveMembers if row else 0
+            rec["ActiveDevices"] = row.ActiveDevices if row else 0
+
+            rec["Address"] = {
+                "AddressLine1": rec.pop("AddressLine1"),
+                "AddressLine2": rec.pop("AddressLine2"),
+                "City": rec.pop("City"),
+                "Area": rec.pop("Area"),
+                "PostalCode": rec.pop("PostalCode"),
+                "CountryName": rec.pop("CountryName")
+            }
+
+            for key, value in rec.items():
+                if isinstance(value, datetime):
+                    rec[key] = set_utc_timezone(value)
+
+            rec["UpdateTime"] = datetime.now(timezone.utc)
+
+            yield ESRecord(rec, self.get_type())
 
     @staticmethod
-    def query_one(start, limit):
+    def query_get_properties(start, limit):
         q = """Select TOP {0} Organization.ID as ID,
 Organization.Number as Number,
 Organization.Display_Name as Name,
@@ -73,20 +113,28 @@ Organization.Pan_Enabled as Pan,
 Organization.Date_Added_UTC as CreatedUTC,
 Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
 Org_Status.Name as Status,
-Time_Zone.Tzid as TimeZone
+Time_Zone.Tzid as TimeZone,
+Address.Address_1 as AddressLine1,
+Address.Address_2 as AddressLine2,
+Address.City,
+Address.Area,
+Address.Postal_Code as PostalCode,
+Country.Name as CountryName
 From Organization WITH (NOLOCK)
 Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
 Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
 Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organization.Contact_ID
+Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
+Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
 Where Organization.Org_Category_Type_ID = 3
     AND Organization.ID > {1}
 ORDER BY Organization.ID ASC"""
         q = q.format(limit, start)
         return q
 
-
     @staticmethod
-    def query_two(org_id):
+    def query_get_property_org_values(org_id):
         q = """SELECT Name, Value
 FROM Org_Value WITH (NOLOCK)
 WHERE Org_Value.Organization_ID = {0}
@@ -94,28 +142,54 @@ WHERE Org_Value.Organization_ID = {0}
         q = q.format(org_id)
         return q
 
+    """
+    Returns the owning service provider for the given org.  If there are multiple
+    service providers in the org lineage, then the most distant ancestor will be used.
+    """
+    @staticmethod
+    def query_get_provider():
+        return """SELECT TOP 1 Organization.Display_Name as Provider
+                  FROM Org_Relation_Cache WITH (NOLOCK)
+                  JOIN Organization ON Organization.ID = Org_Relation_Cache.Parent_Org_ID
+                  WHERE Org_Relation_Cache.Child_Org_ID = ?
+                    AND Organization.Org_Category_Type_ID = 2
+                    AND Org_Relation_Cache.Org_Relation_Type_ID = 1
+                  ORDER BY Org_Relation_Cache.Depth DESC"""
 
     @staticmethod
-    def query_three(org_id):
-        q = """SELECT Organization.Display_Name as Provider
-FROM Org_Relation_Cache WITH (NOLOCK)
-JOIN Organization ON Organization.ID = Parent_Org_ID
-WHERE Child_Org_ID = {0}
-    AND Organization.Org_Category_Type_ID = 2"""
-        q = q.format(org_id)
-        return q
-
-
-    @staticmethod
-    def query_four(org_id):
-        q = """SELECT Organization.Number as Service_Area_Number
+    def query_get_service_areas(org_id):
+        q = """SELECT Organization.ID as ID,
+                      Organization.Number as Number,
+                      Organization.Display_Name as Name,
+                      Org_Value.Value as ZoneType,
+                      COUNT(DISTINCT r.Member_ID) as ActiveMembers,
+                      COUNT(DISTINCT r.Calling_Station_Id) as ActiveDevices
 FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
-WHERE Parent_Org_ID = {0}
-    AND Organization.Org_Category_Type_ID = 4"""
+LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
+LEFT JOIN Radius_Active_Usage r WITH (NOLOCK) ON r.Organization_ID = Child_Org_ID
+WHERE Org_Relation_Cache.Parent_Org_ID = {0}
+    AND Organization.Org_Category_Type_ID = 4
+GROUP BY Organization.ID,
+         Organization.Number,
+         Organization.Display_Name,
+         Org_Value.Value"""
         q = q.format(org_id)
         return q
 
+    @staticmethod
+    def query_get_service_area_devices(org_id):
+        q = """SELECT NAS_Device.NAS_ID as NASID,
+                      NAS_Device.Radius_NAS_ID as RadiusNASID,
+                      NAS_Device_Type.Name as HostType,
+                      NAS_Device.VLAN_Range_Start as VLANRangeStart,
+                      NAS_Device.VLAN_Range_End as VLANRangeEnd,
+                      NAS_Device.Net_IP as NetIP
+FROM NAS_Device WITH (NOLOCK)
+LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
+WHERE Organization_ID = {0}"""
+        q = q.format(org_id)
+        return q
 
     @staticmethod
     def query_get_active_counts():

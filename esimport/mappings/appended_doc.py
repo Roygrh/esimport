@@ -47,13 +47,14 @@ class PropertyAppendedDocumentMapping(DocumentMapping):
         self.pm.setup()
 
     """
-    Grab the site level org values and information given a service area
+    Grab the site level org values and information given a organization number
     """
-    def get_site_values(self, service_area):
+    def get_site_values(self, org_number):
         _action = {}
-        for prop in self.pm.get_properties_by_service_area(service_area):
+
+        prop = self.pm.get_property_by_org_number(org_number)
+        if prop:
             for pfik, pfiv in self.property_fields_include:
                 _action[pfik] = prop.get(pfiv or pfik, "")
-            break
 
         return _action

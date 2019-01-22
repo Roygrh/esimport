@@ -3,8 +3,6 @@
 .elasticbeanstalk
 .vscode
 
-docker
-
 .git/
 
 build

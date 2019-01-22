@@ -11,7 +11,7 @@ import traceback
 import time
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dateutil import parser
 from operator import itemgetter
 
@@ -23,7 +23,7 @@ from esimport.connectors.mssql import MsSQLConnector
 from esimport.models.base import BaseModel
 from esimport import settings
 from esimport.utils import retry
-from esimport.utils import convert_utc_to_local_time
+from esimport.utils import convert_utc_to_local_time, set_utc_timezone
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.models.property import Property
@@ -45,6 +45,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         super(AccountMapping, self).setup()
         self.model = Account(self.conn)
 
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_ACCOUNT_METRIC
+
     """
     Loop to continuous add/update accounts
     """
@@ -52,14 +56,15 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if start_date and start_date != '1900-01-01':
             start_date = parser.parse(start_date)
         else:
-            # otherwise, get the most recent starting point from data in Elasticsearch
-            modified_date = self.get_most_recent_date('DateModifiedUTC') 
-            start_date = modified_date if modified_date is not None else self.get_most_recent_date('Created')
+            # otherwise, get the most recent starting point from data in Elasticsearch (use Created to prevent gaps in data)
+            start_date = self.get_most_recent_date('Created', Account.get_type())
+            logger.info("Data Check - Created: {0}".format(start_date))
 
-            # if ES read fails, default to now
-            start_date = start_date or datetime.utcnow()
+        assert start_date is not None, "Start Date is null.  Unable to sync accounts."
+        
+        start_date = set_utc_timezone(start_date)
 
-        time_delta_window = timedelta(hours=1)
+        time_delta_window = timedelta(minutes=10)
         end_date = start_date + time_delta_window
 
         while True:
@@ -70,17 +75,18 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 count += 1
                 self.append_site_values(account)
                 logger.debug("Record found: {0}".format(account.get('ID')))
-                self.add(account.es(), self.step_size)
 
                 # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-                start_date = parser.parse(account.get('DateModifiedUTC'))
+                start_date = account.get('DateModifiedUTC')
                 logger.debug("New Start Date: {0}".format(start_date))
 
+                self.add(account.es(), self.step_size, start_date)
+
             # send the remainder of accounts to elasticsearch 
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None, 0, start_date)
 
             logger.info("Processed a total of {0} accounts".format(count))
-            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
+            logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(self.db_wait))
 
             self.model.conn.reset()
             time.sleep(self.db_wait)
@@ -89,39 +95,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             start_date = min(start_date, end_date)
 
             # advance end date until reaching now
-            end_date = min(end_date + time_delta_window, datetime.utcnow())
+            end_date = min(end_date + time_delta_window, datetime.now(timezone.utc))
 
-
-    """
-    Get the most recent date requested from elasticsearch
-    """
-    def get_most_recent_date(self, date_field):
-        q = {
-                "query": {
-                    "match_all": {}
-                },
-                "sort":[
-                    {
-                        str(date_field): {
-                            "order": "desc",
-                            "missing": "_last",
-                            "unmapped_type": "date"
-                        }
-                    }
-                ],
-                "size": 1
-        }
-
-        try:
-            hits = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(), body=q)['hits']['hits']
-            initial_time = parser.parse(hits[0]['_source'][date_field])
-        except Exception as err:
-            initial_time = None
-            logger.error(err)
-            traceback.print_exc(file=sys.stdout)
-            sentry_client.captureException()
-
-        return initial_time
 
     """
     Append site values to account record
@@ -167,10 +142,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                                                if pfik not in row]
                 # get some properties from PropertyMapping
                 _action = {}
-                for properte in self.pm.get_properties_by_service_area(row.get('ServiceArea')):
+                prop = self.pm.get_property_by_org_number(row.get('ServiceArea'))
+                if prop:
                     for pfik, pfiv in new_property_fields_include:
-                        _action[pfik] = properte.get(pfiv or pfik, "")
-                    break
+                        _action[pfik] = prop.get(pfiv or pfik, "")
                 row.update(_action)
             es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
             if not isinstance(es_records, list):

@@ -12,6 +12,7 @@ import logging
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,45 +29,52 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         super(SessionMapping, self).setup()
         self.model = Session(self.conn)
 
-    """
-    Find Sessions in SQL and add them to ElasticSearch
-    """
-    def add_sessions(self, start_date):
-        count = 0
-        start = self.max_id() + 1
-        logger.debug("Get Sessions from {0} to {1} since {2}"
-              .format(start, start+self.step_size, start_date))
-        for session in self.model.get_sessions(start, self.step_size, start_date):
-            count += 1
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_SESSION_METRIC
 
-            _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
-
-            if 'TimeZone' in _action:
-                for pfik, pfiv in self.dates_to_localize:
-                    _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
-
-            session.update(_action)
-
-            rec = session.es()
-            logger.debug("Record found: {0}".format(session.get('ID')))
-            self.add(rec, self.step_size)
-
-        # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
-
-        # only wait between DB calls when there is no delay from ES (HTTP requests)
-        if count <= 0:
-            self.model.conn.reset()
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
 
     """
-    Loop to continuously find new Sessions and add them
+    Loop to continuously find new Sessions and add them to Elasticsearch
     """
     def sync(self, start_date):
+        start = self.max_id() + 1
+        timer_start = time.time()
         while True:
-            self.add_sessions(start_date)
+            count = 0
+            metric_value = None
 
+            logger.debug("Get Sessions from {0} to {1} since {2}"
+                .format(start, start+self.db_record_limit, start_date))
+
+            for session in self.model.get_sessions(start, self.db_record_limit, start_date):
+                count += 1
+                logger.debug("Record found: {0}".format(session.get('ID')))
+
+                _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
+
+                if 'TimeZone' in _action:
+                    for pfik, pfiv in self.dates_to_localize:
+                        _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
+
+                session.update(_action)
+                metric_value = session.get(self.model.get_key_date_field())
+
+                self.add(session.es(), self.step_size, metric_value)
+                start = session.get('ID') + 1
+
+            # for cases when all/remaining items count were less than limit
+            self.add(None, 0, metric_value)
+
+            elapsed_time = int(time.time() - timer_start)
+
+            # habitually reset mssql connection.
+            if count == 0 or elapsed_time >= self.db_conn_reset_limit:
+                wait = self.db_wait * 2
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
+                self.model.conn.reset()
+                time.sleep(wait)
+                timer_start=time.time() # reset timer
 
     """
     NON FUNCTIONAL. Needs to be implemented.

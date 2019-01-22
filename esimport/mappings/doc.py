@@ -11,6 +11,9 @@ import time
 import pprint
 import logging
 import traceback
+from datetime import datetime
+from dateutil import parser
+from datadog import initialize, api
 
 from elasticsearch import Elasticsearch
 
@@ -19,6 +22,7 @@ from elasticsearch import exceptions
 
 from esimport import settings
 from esimport.utils import retry
+from esimport.cache import CacheClient
 from esimport.connectors.mssql import MsSQLConnector
 
 from extensions import sentry_client
@@ -34,6 +38,7 @@ class DocumentMapping(object):
     model = None
     es = None
 
+    cache_client = None
     conn = None
     _items = None
 
@@ -45,14 +50,21 @@ class DocumentMapping(object):
         self.esTimeout = settings.ES_TIMEOUT
         self.esRetry = settings.ES_RETRIES
         self.db_wait = settings.DATABASE_CALLS_WAIT
+        self.db_conn_reset_limit = settings.DATABASE_CONNECTION_RESET_LIMIT
+        self.db_record_limit = settings.DATABASE_RECORD_LIMIT
 
     def setup(self):  # pragma: no cover
-        logger.debug("Setting up DB connection")
         self.conn = MsSQLConnector()
 
-        logger.debug("Setting up ES connection")
+        logger.info("Setting up ES connection")
         # defaults to localhost:9200
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
+
+        self.cache_client = CacheClient()
+
+    @staticmethod
+    def get_monitoring_metric():
+        return ""
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
@@ -83,7 +95,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        helpers.bulk(es, actions, request_timeout=timeout)
+        return helpers.bulk(es, actions, request_timeout=timeout)
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
@@ -99,11 +111,65 @@ class DocumentMapping(object):
             sentry_client.captureException()
         return 0
 
-    def add(self, item, limit):
+    def add(self, item, limit, metric_value=None):
         if item:
             self._items.append(item)
         items_count = len(self._items)
         if items_count > 0 and items_count >= limit:
             logger.info("Adding/Updating {0} records".format(items_count))
-            self.bulk_add_or_update(self.es, self._items)
+            result = self.bulk_add_or_update(self.es, self._items)
             self._items = []
+            if result[0] > 0:
+                self.cache_client.set(self.get_monitoring_metric(), metric_value)
+
+    """
+    Get the most recent date requested from elasticsearch
+    """
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
+    def get_most_recent_date(self, date_field, doc_type):
+        q = {
+                "aggs": {
+                    "most_recent_date": {
+                        "max": {
+                            "field": str(date_field)
+                        }
+                    }
+                },
+                "size": 0
+            }
+
+        response = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)
+        most_recent_date_es = response['aggregations']['most_recent_date'].get('value_as_string', None)
+        most_recent_date = parser.parse(most_recent_date_es) if most_recent_date_es else datetime.utcnow()
+        return most_recent_date.replace(tzinfo=None)
+
+
+    """
+    Gets the most recent record from Elasticsearch and sends the time difference (in minutes)
+    between utc now and date of the recent record to datadog
+    """
+    def monitor_metric(self):
+        if not settings.DATADOG_API_KEY:
+            logger.error('ESDataCheck - DataDog API key not found.  Metrics will not be reported to DataDog.')
+            return
+
+        initialize(api_key=settings.DATADOG_API_KEY, host_name=settings.ENVIRONMENT)
+
+        doc_type = self.model.get_type()
+        metric_setting = self.get_monitoring_metric()
+
+        while True:
+            recent_date = self.cache_client.get(metric_setting)
+            if recent_date is not None:
+                now = datetime.utcnow()
+                recent_date = parser.parse(recent_date, ignoretz=True)
+                minutes_behind = (now - recent_date).total_seconds() / 60
+                api.Metric.send(metric=metric_setting, points=minutes_behind)
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
+                                                                                                                metric_setting, 
+                                                                                                                minutes_behind, 
+                                                                                                                now))
+            else:
+                logger.error('ESDataCheck - {0} metric does not exist in cache.'.format(doc_type))
+
+            time.sleep(15)

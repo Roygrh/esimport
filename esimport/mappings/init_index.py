@@ -32,7 +32,7 @@ class new_index(object):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-    def setupindex(self):
+    def create_index(self, index_name=settings.ES_INDEX):
 
         if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
             create_index = {
@@ -51,38 +51,68 @@ class new_index(object):
 
         property_mapping = {
             "properties": {
-                "UpdateTime": {"type": "date"},
+                "ActiveDevices": {"type": "integer"},
+                "ActiveMembers": {"type": "integer"},
+                "Address": {
+                    "type": "nested",
+                    "properties": {
+                        "AddressLine1": {"type": "text"},
+                        "AddressLine2": {"type": "text"},
+                        "City": {"type": "keyword"},
+                        "Area": {"type": "keyword"},
+                        "PostalCode": {"type": "keyword"},
+                        "CountryName": {"type": "text"}
+                    }
+                },
+                "Brand": {"type": "keyword", "ignore_above": 64},
+                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
+                "Country": {"type": "keyword", "ignore_above": 64},
+                "CreatedUTC": {"type": "date"},
+                "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "GoLiveUTC": {"type": "date"},
+                "GuestRooms": {"type": "integer"},
+                "Lite": {"type": "boolean"},
+                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MeetingRooms": {"type": "integer"},
                 "Name": {"type": "text"},
                 "Number": {"type": "keyword", "ignore_above": 12},
-                "GuestRooms": {"type": "integer"},
-                "MeetingRooms": {"type": "integer"},
-                "Lite": {"type": "boolean"},
-                "Pan": {"type": "boolean"},
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "CreatedUTC": {"type": "date"},
-                "GoLiveUTC": {"type": "date"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "ServiceAreas": {"type": "keyword"},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
+                "Pan": {"type": "boolean"},
+                "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
+                "ServiceAreaObjects": {"type": "nested",
+                            "properties": {
+                                    "Number": {"type": "keyword" },
+                                    "Name": {"type": "text" },
+                                    "ZoneType": {"type": "keyword" },
+                                    "ActiveMembers": {"type": "integer"},
+                                    "ActiveDevices": {"type":  "integer"},
+                                    "Hosts": {"type": "nested",
+                                           "properties": {
+                                                  "NASID": {"type": "keyword" },
+                                                  "RadiusNASID": {"type": "text" },
+                                                  "HostType": {"type": "text" },
+                                                  "VLANRangeStart": {"type": "integer" },
+                                                  "VLANRangeEnd": {"type": "integer" },
+                                                  "NetIP": {"type": "keyword" }
+                                           }
+                                    }
+                            }
+                },
+                "Status": {"type": "keyword", "ignore_above": 16},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }
-                             }
-                             },
                 "TaxRate": {"type": "float"},
-                "ActiveMembers": {"type": "integer"},
-                "ActiveDevices": {"type": "integer"}
+                "TimeZone": {"type": "keyword", "ignore_above": 32},
+                "UpdateTime": {"type": "date"},
+                "ZoneType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
             }
         }
 
@@ -107,6 +137,8 @@ class new_index(object):
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
+                "MemberID": {"type": "long"},
+                "MemberNumber": {"type": "keyword"},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "Region": {"type": "keyword", "ignore_above": 64},
@@ -201,6 +233,7 @@ class new_index(object):
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
+                "ID": {"type": "long"},
                 "LoginTime": {"type": "date"},
                 "LoginTimeLocal": {"type": "date"},
                 "LogoutTime": {"type": "date"},
@@ -220,7 +253,6 @@ class new_index(object):
                                           "type": "keyword",
                                           "ignore_above": 256
                                       }}},
-                "NetworkDeviceType": {"type": "keyword"},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
@@ -267,6 +299,14 @@ class new_index(object):
 
         conference_mapping = {
             "properties": {
+                "AccessCodes": {
+                    "type": "nested", 
+                    "properties": {
+                        "Code": {"type": "keyword"},
+                        "MemberNumber": {"type": "keyword"},
+                        "MemberID": {"type": "long"}
+                    }
+                },
                 "UpdateTime": {"type": "date"},
                 "Name": {"type": "text"},
                 "DateCreatedLocal": {"type": "date"},
@@ -300,6 +340,9 @@ class new_index(object):
                              "type": "keyword",
                              "ignore_above": 64
                          }}},
+                "ConnectionLimit": {"type": "integer"},
+                "DownKbs": {"type": "integer"},
+                "UpKbs": {"type": "integer"},
                 "UserCount": {"type": "integer"},
                 "TotalInputBytes": {"type": "long"},
                 "TotalOutputBytes": {"type": "long"},
@@ -321,10 +364,10 @@ class new_index(object):
 
         }
 
-        es.indices.create(index=settings.ES_INDEX, body=create_index)
-        es.indices.refresh(index=settings.ES_INDEX)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="property", body=property_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="device", body=device_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="account", body=account_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="session", body=session_mapping)
-        es.indices.put_mapping(index=settings.ES_INDEX, doc_type="conference", body=conference_mapping)
+        es.indices.create(index=index_name, body=create_index)
+        es.indices.refresh(index=index_name)
+        es.indices.put_mapping(index=index_name, doc_type="property", body=property_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
+        es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)

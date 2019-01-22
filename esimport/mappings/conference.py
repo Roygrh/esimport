@@ -9,9 +9,10 @@
 import time
 import logging
 
-from esimport.utils import convert_utc_to_local_time, convert_pacific_to_utc
+from esimport.utils import convert_utc_to_local_time
 from esimport.models.conference import Conference
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport import settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,10 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     def setup(self):  # pragma: no cover
         super(ConferenceMapping, self).setup()
         self.model = Conference(self.conn)
+
+    @staticmethod
+    def get_monitoring_metric():
+        return settings.DATADOG_CONFERENCE_METRIC
 
     """
     Find Conference in SQL and add them to ElasticSearch
@@ -72,14 +77,15 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     """
     def update(self, start_date):
         start = 0
+        timer_start = time.time()
         while True:
             count = 0
+            metric_value = None
             for conference in self.model.get_conferences(start, self.step_size, start_date):
                 count += 1
                 logger.debug("Record found: {0}".format(conference.get('ID')))
 
                 # get some properties from PropertyMapping
-                _action = {}
                 _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
                 if 'TimeZone' in _action:
@@ -87,16 +93,27 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                         _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
 
                 conference.update(_action)
-                self.add(dict(conference.es()), self.step_size)
-                start = conference.record.get('ID')
+
+                metric_value = conference.get(self.model.get_key_date_field())
+
+                self.add(conference.es(), self.step_size, metric_value)
+                start = conference.record.get('ID') + 1
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), self.step_size))
-            #start += count
+            self.add(None, 0, metric_value)
 
             # always wait between DB calls
             time.sleep(self.db_wait)
 
-            if count <= 0:
-                start = 0
-                time.sleep(self.db_wait * 4)
+            elapsed_time = int(time.time() - timer_start)
+
+            # habitually reset mssql connections.
+            if count == 0 or elapsed_time >= self.db_conn_reset_limit:
+                wait = self.db_wait * 4
+                logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
+                self.model.conn.reset()
+                time.sleep(wait)
+                timer_start=time.time() # reset timer
+                # start over again when all records have been processed
+                if count == 0:
+                    start = 0

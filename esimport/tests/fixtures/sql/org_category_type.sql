@@ -1,0 +1,46 @@
+USE [Eleven_OS]
+GO
+
+IF (EXISTS (SELECT * 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = 'dbo' 
+            AND  TABLE_NAME = 'Org_Category_Type'))
+BEGIN
+	DROP TABLE [dbo].[Org_Category_Type]
+END
+GO
+
+/****** Object:  Table [dbo].[Org_Category_Type]    Script Date: 4/26/2018 12:32:20 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Org_Category_Type](
+	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
+	[Name] [varchar](64) NOT NULL,
+	[Description] [varchar](256) NOT NULL,
+	[Feature_ID] [int] NOT NULL,
+ CONSTRAINT [PK_Org_Category_Type] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+--  ,CONSTRAINT [UQ_Org_Category_Type_Name] UNIQUE NONCLUSTERED 
+-- (
+-- 	[Name] ASC
+-- )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+-- GO
+-- ALTER TABLE [dbo].[Org_Category_Type]  WITH CHECK ADD  CONSTRAINT [FK_Org_Category_Type_Feature] FOREIGN KEY([Feature_ID])
+-- REFERENCES [dbo].[Feature] ([ID])
+-- GO
+-- ALTER TABLE [dbo].[Org_Category_Type] CHECK CONSTRAINT [FK_Org_Category_Type_Feature]
+-- GO
+
+SET IDENTITY_INSERT [dbo].[Org_Category_Type] ON;
+INSERT [dbo].[Org_Category_Type] ([ID], [Name], [Description], [Feature_ID]) VALUES (1, 'Grouping', 'Used to organize Sites and Service Areas.', 92)
+INSERT [dbo].[Org_Category_Type] ([ID], [Name], [Description], [Feature_ID]) VALUES (2, 'Service Provider', 'A partner that resells Eleven''s products and provides customers the first level of service.', 93)
+INSERT [dbo].[Org_Category_Type] ([ID], [Name], [Description], [Feature_ID]) VALUES (3, 'Site', 'Used to represent an actual location (e.g. Hotel XYZ).', 94)
+INSERT [dbo].[Org_Category_Type] ([ID], [Name], [Description], [Feature_ID]) VALUES (4, 'Service Area', 'A physical or logical area within a site where distinct services are delivered (e.g. Meeting Rooms, Business Center, BlueSky WIFI).', 95)
+GO

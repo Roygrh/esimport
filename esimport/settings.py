@@ -25,12 +25,22 @@ ES_RETRIES = 5
 ES_RETRIES_WAIT = 5
 ES_BULK_LIMIT = 10
 
+# Are we inside Docker?
+INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
+
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
+
+# Reset database connection (seconds) giving esimport a chance to
+# pickup any DNS changes that have propagated since the last connection
+DATABASE_CONNECTION_RESET_LIMIT = 300
 
 DATABASE_CALLS_RETRIES = 10
 DATABASE_CALLS_RETRIES_WAIT = 5
 DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = True
+
+# the number of records to return from sql queries where TOP X is used.
+DATABASE_RECORD_LIMIT = 10000   
 
 DATABASES = {
     'default': {
@@ -61,6 +71,14 @@ SQL_SERVER = ''
 # Redis
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
+
+# Datadog
+DATADOG_API_KEY = ''
+DATADOG_ACCOUNT_METRIC = 'esimport.account.minutes_behind'
+DATADOG_CONFERENCE_METRIC = 'esimport.conference.minutes_behind'
+DATADOG_DEVICE_METRIC = 'esimport.device.minutes_behind'
+DATADOG_PROPERTY_METRIC = 'esimport.property.minutes_behind'
+DATADOG_SESSION_METRIC = 'esimport.session.minutes_behind'
 
 try:
     from local_settings import *
