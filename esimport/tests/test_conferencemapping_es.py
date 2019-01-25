@@ -80,9 +80,11 @@ class TestConferenceMappingElasticSearch(TestCase):
 
         for i in range(0,len(conference_list)):
             for key in conference_list[i].items():
+                #if key[0] == 'UpdateTime' or key[0] == 'DateCreatedUTC' or key[0] == 'StartDateUTC':
                 if key[0] == 'UpdateTime':
                     continue
                 self.assertEqual(conference_list[i][key[0]], conference_es_list[i][key[0]])
+                print("{0} = {1}".format(conference_list[i][key[0]], conference_es_list[i][key[0]]))
 
 
     def test_conference_data_has_access_codes_nested_objects(self):

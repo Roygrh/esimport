@@ -65,8 +65,10 @@ def set_pacific_timezone(time):
     return time.replace(tzinfo=tz.gettz('America/Los_Angeles'))
 
 def set_utc_timezone(time):
+    #import pdb; pdb.set_trace()
     if time is None:
         return None
 
     assert isinstance(time, datetime), "Object is not a datetime object."
     return time.replace(tzinfo=timezone.utc)
+    #print(time.replace(tzinfo=timezone.utc))
