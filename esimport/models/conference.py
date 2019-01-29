@@ -39,12 +39,10 @@ class Conference(BaseModel):
 	          'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
               'TotalOutputBytes', 'TotalSessionTime']
 
-        #import pdb; pdb.set_trace()
         for rec1 in list(self.fetch(q1, h1)):
             # set all datetime objects to utc timezone
             for key, value in rec1.items():
                 if isinstance(value, datetime):
-                    print(set_utc_timezone(value))
                     rec1[key] = set_utc_timezone(value)
 
             rec1['UpdateTime'] = datetime.now(timezone.utc)
