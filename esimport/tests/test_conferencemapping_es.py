@@ -7,12 +7,13 @@
 ################################################################################
 
 import chardet
+import datetime
 import glob
 import os
 import threading
 import time
 
-from datetime import datetime
+from datetime import datetime, timezone
 from operator import itemgetter
 
 from esimport import settings, tests
@@ -80,8 +81,12 @@ class TestConferenceMappingElasticSearch(TestCase):
 
         for i in range(0,len(conference_list)):
             for key in conference_list[i].items():
+
                 if key[0] == 'UpdateTime':
                     continue
+                if key[0] == 'EndDateUTC' or key[0] == 'DateCreatedUTC' or key[0] == 'StartDateUTC':
+                    conference_es_list[i][key[0]] = datetime.strptime(conference_es_list[i][key[0]], '%Y-%m-%dT%H:%M:%S.%f+00:00').replace(tzinfo=timezone.utc)
+
                 self.assertEqual(conference_list[i][key[0]], conference_es_list[i][key[0]])
 
 

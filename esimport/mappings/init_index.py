@@ -333,6 +333,7 @@ class new_index(object):
                 "MemberNumberList": {"type": "keyword"},
                 "MemberID": {"type": "long"},
                 "MemberNumber": {"type": "keyword"},
+                "MemberStatus": {"type": "keyword"},
                 "SSID":
                     {"type": "text",
                      "fields": {

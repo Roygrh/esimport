@@ -13,6 +13,7 @@ GO
 CREATE TABLE [dbo].[Member_Status](
 	[ID] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](64) NOT NULL,
+	[Description] [varchar](256) NOT NULL,
  CONSTRAINT [PK_Member_Status] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -22,6 +23,11 @@ CREATE TABLE [dbo].[Member_Status](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
-INSERT INTO [dbo].[Member_Status](Name)
-	VALUES('Active')
+INSERT INTO [dbo].[Member_Status](Name, Description)
+	VALUES
+    ('Active', 'Membership is active.'),
+    ('Expired', 'Membership has expired.'),
+    ('Disabled', 'Membership has been disabled.'),
+    ('Removed', 'Membership has been removed.'),
+    ('Deleted', 'Membership is scheduled for deletion.')
 GO
