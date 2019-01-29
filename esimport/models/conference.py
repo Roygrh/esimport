@@ -35,7 +35,7 @@ class Conference(BaseModel):
         q1 = self.query_get_conferences(start_date, start, limit)
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
-              'Code', 'MemberID', 'MemberNumber', 'SSID', 'StartDateUTC', 'EndDateUTC',
+              'Code', 'MemberID', 'MemberNumber', 'MemberStatus', 'SSID', 'StartDateUTC', 'EndDateUTC',
 	          'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
               'TotalOutputBytes', 'TotalSessionTime']
 
@@ -87,6 +87,7 @@ Organization.Number AS ServiceArea,
 Member.Display_Name AS Code,
 Member.ID AS MemberID,
 Member.Number AS MemberNumber,
+Member_Status.Name AS MemberStatus,
 Network_Configuration.SsidName AS SSID,
 Network_Access_Limits.Start_Date_UTC AS StartDateUTC,
 Network_Access_Limits.End_Date_UTC AS EndDateUTC,
@@ -99,6 +100,7 @@ Scheduled_Access.Total_Output_Bytes AS TotalOutputBytes,
 Scheduled_Access.Total_Session_Time AS TotalSessionTime
 FROM Scheduled_Access
 LEFT JOIN Member WITH (NOLOCK) ON Member.ID = Scheduled_Access.Member_ID
+LEFT JOIN Member_Status WITH (NOLOCK) ON Member_Status.ID = Member.Member_Status_ID
 LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Scheduled_Access.Organization_ID
 LEFT JOIN Network_Configuration WITH (NOLOCK) ON Network_Configuration.Scheduled_Access_ID = Scheduled_Access.ID
 LEFT JOIN Network_Access WITH (NOLOCK) ON Network_Access.ID = Scheduled_Access.Network_Access_ID
