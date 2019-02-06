@@ -23,6 +23,7 @@ GO
 SET IDENTITY_INSERT Zone_Plan_Type ON
 INSERT INTO [dbo].[Zone_Plan_Type] (ID, Name, Description) 
 VALUES 
-	(1, 'Name 1', 'Description of ID 1'),
-	(2, 'Name 2', 'Description of ID 2')
+	(1, 'Prepaid', 'Prepaid plan.'),
+	(2, 'Subscription', 'Subscription plan with recurring charges.'),
+	(3, 'AccessCode', 'Access code Internet usage template.')
 GO

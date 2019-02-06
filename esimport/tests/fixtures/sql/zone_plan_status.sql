@@ -24,6 +24,8 @@ GO
 SET IDENTITY_INSERT Zone_Plan_Status ON
 INSERT INTO [dbo].[Zone_Plan_Status] (ID, Name, Description) 
 VALUES 
-	(1, 'Name 1', 'Description of ID 1'),
-	(2, 'Name 2', 'Description of ID 2')
+	(1, 'Testing', 'Zone_Plan is in testing mode.'),
+	(2, 'Active', 'Zone_Plan is active.'),
+	(3, 'Disabled', 'Zone_Plan has been disabled.'),
+	(4, 'Removed', 'Zone_Plan has been removed.')
 GO
