@@ -96,6 +96,30 @@ class new_index(object):
                                                   "VLANRangeEnd": {"type": "integer" },
                                                   "NetIP": {"type": "keyword" }
                                            }
+                                    },
+                                    "ServicePlans": {
+                                        "type": "nested",
+                                        "properties": {
+                                            "Number": {"type": "keyword"},
+                                            "Name": {"type": "keyword"},
+                                            "Description": {"type": "text"},
+                                            "Price": {"type": "float"},
+                                            "UpKbs": {"type": "integer"},
+                                            "DownKbs": {"type": "integer"},
+                                            "IdleTimeout": {"type": "integer"},
+                                            "ConnectionLimit": {"type": "integer"},
+                                            "RadiusClass": {"type": "keyword"},
+                                            "GroupBandwidthLimit": {"type": "boolean"},
+                                            "Type": {"type": "keyword"},
+                                            "PlanTime": {"type": "integer"},
+                                            "PlanUnit": {"type": "keyword"},
+                                            "LifespanTime": {"type": "integer"},
+                                            "lifespanUnit": {"type": "keyword"},
+                                            "CurrencyCode": {"type": "keyword"},
+                                            "Status": {"type": "keyword"},
+                                            "OrgCode": {"type": "keyword"},
+                                            "DateCreatedUTTC": {"type": "date"}
+                                        }
                                     }
                             }
                 },
