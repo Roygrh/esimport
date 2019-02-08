@@ -33,11 +33,12 @@ CREATE TABLE [dbo].[Org_Relation_Cache](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID, Org_Relation_Type_ID, Depth)
+SET IDENTITY_INSERT Org_Relation_Cache ON
+INSERT INTO [dbo].[Org_Relation_Cache](ID, Parent_Org_ID, Child_Org_ID, Org_Relation_Type_ID, Depth)
 VALUES
-	(1, 1, 1, 1),
-	(2, 2, 1, 1),
-	(3, 1, 1, 1),
-	(4, 2, 1, 1),
-	(3, 5, 1, 1)
+	(1, 1, 1, 1, 1),
+	(2, 1, 3, 1, 1),
+	(3, 2, 2, 1, 1),
+	(4, 2, 4, 1, 1),
+	(5, 2, 5, 1, 1)
 GO
