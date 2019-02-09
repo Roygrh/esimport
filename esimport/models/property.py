@@ -36,6 +36,38 @@ class Property(BaseModel):
         q1 = self.query_get_properties(start, limit)
         for rec in list(self.fetch_dict(q1)):
 
+            # All site-level service plans are stored with their org ID as key
+            site_level_sps = {}
+
+            q_serviceplans = self.query_get_service_area_serviceplans(rec["ID"])
+            for service_plan in list(self.fetch(q_serviceplans)):
+                sp_dic = {
+                    "Number": service_plan.Number,
+                    "Name": service_plan.Name,
+                    "Description": service_plan.Description,
+                    "Price": service_plan.Price,
+                    "UpKbs": service_plan.UpKbs,
+                    "DownKbs": service_plan.DownKbs,
+                    "IdleTimeout": service_plan.IdleTimeout,
+                    "ConnectionLimit": service_plan.ConnectionLimit,
+                    "RadiusClass": service_plan.RadiusClass,
+                    "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
+                    "Type": service_plan.Type,
+                    "PlanTime": service_plan.PlanTime,
+                    "PlanUnit": service_plan.PlanUnit,
+                    "LifespanTime": service_plan.LifespanTime,
+                    "LifespanUnit": service_plan.LifespanUnit,
+                    "CurrencyCode": service_plan.CurrencyCode,
+                    "Status": service_plan.Status,
+                    "OrgCode": service_plan.OrgCode,
+                    "DateCreatedUTC": service_plan.DateCreatedUTC
+                }
+
+                if not service_plan.Owner_Org_ID in site_level_sps.keys():
+                    site_level_sps[service_plan.Owner_Org_ID] = [sp_dic]
+                else:
+                    site_level_sps[service_plan.Owner_Org_ID].append(sp_dic)
+
             q2 = self.query_get_property_org_values(rec["ID"])
             for rec2 in list(self.fetch(q2)):
                 if rec2.Name == "TaxRate":
@@ -65,42 +97,17 @@ class Property(BaseModel):
                     }
                     hosts_list.append(host_dic)
 
-                service_plans = []
-
-                q_serviceplans = self.query_get_service_area_serviceplans(rec4.ID)
-                for service_plan in list(self.fetch(q_serviceplans)):
-                    sp_dic = {
-                        "Number": service_plan.Number,
-                        "Name": service_plan.Name,
-                        "Description": service_plan.Description,
-                        "Price": service_plan.Price,
-                        "UpKbs": service_plan.UpKbs,
-                        "DownKbs": service_plan.DownKbs,
-                        "IdleTimeout": service_plan.IdleTimeout,
-                        "ConnectionLimit": service_plan.ConnectionLimit,
-                        "RadiusClass": service_plan.RadiusClass,
-                        "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
-                        "Type": service_plan.Type,
-                        "PlanTime": service_plan.PlanTime,
-                        "PlanUnit": service_plan.PlanUnit,
-                        "LifespanTime": service_plan.LifespanTime,
-                        "LifespanUnit": service_plan.LifespanUnit,
-                        "CurrencyCode": service_plan.CurrencyCode,
-                        "Status": service_plan.Status,
-                        "OrgCode": service_plan.OrgCode,
-                        "DateCreatedUTC": service_plan.DateCreatedUTC
-                    }
-                    service_plans.append(sp_dic)
-
                 sa_dic = {
                     "Number": rec4.Number,
                     "Name": rec4.Name,
                     "ZoneType": rec4.ZoneType,
                     "ActiveMembers": rec4.ActiveMembers,
                     "ActiveDevices": rec4.ActiveDevices,
-                    "Hosts": hosts_list,
-                    "ServicePlans": service_plans
+                    "Hosts": hosts_list
                 }
+
+                if rec4.ID in site_level_sps.keys():
+                    sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
 
                 sa_list.append(sa_dic)
 
