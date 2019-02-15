@@ -29,7 +29,8 @@ CREATE TABLE [dbo].[Org_Status](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [dbo].[Org_Status](Name, Description)
-	VALUES('active', 'active')
-INSERT INTO [dbo].[Org_Status](Name, Description)
-	VALUES('deactive', 'not active')
+SET IDENTITY_INSERT Org_Status ON
+INSERT INTO [dbo].[Org_Status](ID, Name, Description)
+VALUES
+	(1, 'active', 'active'),
+	(2, 'deactive', 'not active')
