@@ -342,6 +342,7 @@ class new_index(object):
                              "ignore_above": 64
                          }}},
                 "ConnectionLimit": {"type": "integer"},
+                "GroupBandwidthLimit": {"type": "boolean"},
                 "DownKbs": {"type": "integer"},
                 "UpKbs": {"type": "integer"},
                 "UserCount": {"type": "integer"},
