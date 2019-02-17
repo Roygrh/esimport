@@ -118,7 +118,7 @@ class new_index(object):
                                             "CurrencyCode": {"type": "keyword"},
                                             "Status": {"type": "keyword"},
                                             "OrgCode": {"type": "keyword"},
-                                            "DateCreatedUTTC": {"type": "date"}
+                                            "DateCreatedUTC": {"type": "date"}
                                         }
                                     }
                             }
