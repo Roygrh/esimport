@@ -33,9 +33,9 @@ staging_deploy:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
-    - aws s3 cp s3://dataservices.esimport/unixODBC-2.3.1-11.el7.x86_64.rpm unixODBC.rpm
-    - aws s3 cp s3://dataservices.esimport/unixODBC-devel-2.3.1-11.el7.x86_64.rpm unixODBC-devel.rpm
-    - aws s3 cp s3://dataservices.esimport/msodbcsql17-17.2.0.1-1.x86_64.rpm msodbcsql17.rpm
+    - wget https://packages.microsoft.com/rhel/7/prod/msodbcsql17-17.3.1.1-1.x86_64.rpm -O msodbcsql17.rpm
+    - wget http://mirror.centos.org/centos/7/os/x86_64/Packages/unixODBC-2.3.1-11.el7.x86_64.rpm -O unixODBC.rpm
+    - wget http://mirror.centos.org/centos/7/os/x86_64/Packages/unixODBC-devel-2.3.1-11.el7.x86_64.rpm -O unixODBC-devel.rpm
     - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
     # - aws s3 cp s3://dataservices.esimport/odbcinst.ini.stag odbcinst.ini
     # - aws s3 cp s3://dataservices.esimport/odbc.ini.stag odbc.ini
