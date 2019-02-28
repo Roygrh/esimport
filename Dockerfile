@@ -25,6 +25,9 @@ WORKDIR /esimport
 # Install Python dependencies but first Make sure we have the latest pip version
 COPY . /esimport
 
+# Create Microsoft ODBC DSN file
+RUN sh docker/setup_db.bash
+
 # upgrade pip, install cython (required by mssql)
 RUN pip-3.6 install -r dev-requirements.txt
 
