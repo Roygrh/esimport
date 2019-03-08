@@ -20,8 +20,6 @@ RUN ACCEPT_EULA=Y yum install -y msodbcsql17-17.3.1.1-1.x86_64.rpm
 # Create and set /gpnsreports as the working directory for this container
 WORKDIR /esimport
 
-# RUN printf '[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\n' > /etc/odbcinst.ini
-
 # Install Python dependencies but first Make sure we have the latest pip version
 COPY . /esimport
 
