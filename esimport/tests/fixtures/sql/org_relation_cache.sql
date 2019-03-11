@@ -16,6 +16,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Org_Relation_Cache](
+	[Depth] [int] NOT NULL,
+	[Org_Relation_Type_ID] [int] NOT NULL,
 	[Parent_Org_ID] [int] NULL,
 	[Child_Org_ID] [int] NULL,
 	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
@@ -31,14 +33,13 @@ CREATE TABLE [dbo].[Org_Relation_Cache](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
-	VALUES(1, 1)
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
-	VALUES(2, 2)
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
-	VALUES(3, 1)
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
-	VALUES(4, 2)
-INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID)
-	VALUES(3, 5)
+INSERT INTO [dbo].[Org_Relation_Cache](Parent_Org_ID, Child_Org_ID, Org_Relation_Type_ID, Depth)
+    VALUES
+	(1, 1, 1, 1),
+	(2, 2, 1, 1),
+	(3, 1, 1, 1),
+	(4, 2, 1, 1),
+	(3, 5, 1, 1),
+	(6, 3, 1, 1),
+	(6, 4, 1, 1)
 GO

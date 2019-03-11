@@ -78,8 +78,16 @@ class Property(BaseModel):
 
             rec["ServiceAreaObjects"] = sa_list
 
-            q6 = self.query_get_active_counts()
-            row = self.execute(q6, rec["ID"]).fetchone()
+            q6 = self.query_get_org_number_tree(rec["ID"])
+            org_number_tree_list = []
+
+            for rec6 in list(self.fetch(q6)):
+                org_number_tree_list.append(rec6[0])
+
+            rec["OrgNumberTree"] = org_number_tree_list
+
+            q7 = self.query_get_active_counts()
+            row = self.execute(q7, rec["ID"]).fetchone()
 
             rec["ActiveMembers"] = row.ActiveMembers if row else 0
             rec["ActiveDevices"] = row.ActiveDevices if row else 0
@@ -188,6 +196,20 @@ GROUP BY Organization.ID,
 FROM NAS_Device WITH (NOLOCK)
 LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
 WHERE Organization_ID = {0}"""
+        q = q.format(org_id)
+        return q
+
+    @staticmethod
+    def query_get_org_number_tree(org_id):
+        q = """SELECT o.Number as OrgNumberTree
+               FROM Org_Relation_Cache c
+               JOIN Organization o on o.ID = c.Parent_Org_ID
+               WHERE c.Child_Org_ID = {0}
+               UNION
+               SELECT o.Number as OrgNumberTree
+               FROM Org_Relation_Cache c
+               JOIN Organization o on o.ID = c.Child_Org_ID
+               WHERE c.Parent_Org_ID = {0}"""
         q = q.format(org_id)
         return q
 
