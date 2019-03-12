@@ -38,7 +38,6 @@ staging_deploy:
     - aws s3 cp s3://dataservices.esimport/freetds.conf.stag freetds.conf
     - eb deploy $EB_STAGING_ENV_NAME --verbose
   only:
-    - master
     - develop
   when: manual
 
