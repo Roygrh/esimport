@@ -114,7 +114,7 @@ class new_index(object):
                                             "PlanTime": {"type": "integer"},
                                             "PlanUnit": {"type": "keyword"},
                                             "LifespanTime": {"type": "integer"},
-                                            "lifespanUnit": {"type": "keyword"},
+                                            "LifespanUnit": {"type": "keyword"},
                                             "CurrencyCode": {"type": "keyword"},
                                             "Status": {"type": "keyword"},
                                             "OrgCode": {"type": "keyword"},
