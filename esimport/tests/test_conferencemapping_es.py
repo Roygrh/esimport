@@ -118,6 +118,27 @@ class TestConferenceMappingElasticSearch(TestCase):
                 assert key in should_contain
 
 
+    def test_conference_data_has_group_bandwidth_limit(self):
+        cm = ConferenceMapping()
+        cm.setup()
+
+        conference_update = lambda _cm: _cm.update('2018-05-01')
+        t = threading.Thread(target=conference_update, args=(cm,), daemon=True)
+        t.start()
+        # time to catch up
+        time.sleep(5)
+
+       # get all conferences from elasticsearch
+        conference_es_list = []
+        query = {'query': {'term': {'_type': 'conference'}}}
+        conference_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
+        for conference in conference_es:
+            conference_data = conference['_source']
+            # make sure GroupBandwidthLimit exists and is type of bool:
+            group_bandwidth_limit = conference_data.get('GroupBandwidthLimit')
+            assert isinstance(group_bandwidth_limit, bool)
+            
+
     def tearDown(self):
         self.cm.model.execute("""
 DECLARE @sql NVARCHAR(MAX);

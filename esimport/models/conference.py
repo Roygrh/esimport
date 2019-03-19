@@ -37,7 +37,7 @@ class Conference(BaseModel):
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
               'Code', 'MemberID', 'MemberNumber', 'MemberStatus', 'SSID', 'StartDateUTC', 'EndDateUTC',
 	          'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
-              'TotalOutputBytes', 'TotalSessionTime']
+              'TotalOutputBytes', 'TotalSessionTime', 'GroupBandwidthLimit']
 
         for rec1 in list(self.fetch(q1, h1)):
             # set all datetime objects to utc timezone
@@ -94,6 +94,7 @@ Network_Access_Limits.End_Date_UTC AS EndDateUTC,
 Network_Access_Limits.Connection_Limit AS ConnectionLimit,
 Network_Access_Limits.Down_kbs AS DownKbs,
 Network_Access_Limits.Up_kbs AS UpKbs,
+Network_Access_Limits.Group_Bandwidth_Limit as GroupBandwidthLimit,
 Scheduled_Access.Actual_User_Count AS UserCount,
 Scheduled_Access.Total_Input_Bytes AS TotalInputBytes,
 Scheduled_Access.Total_Output_Bytes AS TotalOutputBytes,
