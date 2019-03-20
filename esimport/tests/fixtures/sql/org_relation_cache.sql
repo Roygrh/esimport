@@ -16,11 +16,11 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Org_Relation_Cache](
+	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
 	[Parent_Org_ID] [int] NULL,
 	[Child_Org_ID] [int] NULL,
 	[Org_Relation_Type_ID] [int] NOT NULL,
 	[Depth] [int] NOT NULL,
-	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
  CONSTRAINT [PK_Org_Relation_Cache] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -35,10 +35,12 @@ GO
 
 SET IDENTITY_INSERT Org_Relation_Cache ON
 INSERT INTO [dbo].[Org_Relation_Cache](ID, Parent_Org_ID, Child_Org_ID, Org_Relation_Type_ID, Depth)
-VALUES
+    VALUES
 	(1, 1, 1, 1, 1),
-	(2, 2, 3, 1, 1),
-	(3, 2, 2, 1, 1),
-	(4, 6, 4, 1, 1),
-	(5, 7, 5, 1, 1)
+	(2, 2, 2, 1, 1),
+	(3, 3, 1, 1, 1),
+	(4, 4, 2, 1, 1),
+	(5, 3, 5, 1, 1),
+	(6, 6, 3, 1, 1),
+	(7, 6, 4, 1, 1)
 GO

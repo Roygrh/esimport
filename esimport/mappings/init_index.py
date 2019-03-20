@@ -76,6 +76,7 @@ class new_index(object):
                 "MeetingRooms": {"type": "integer"},
                 "Name": {"type": "text"},
                 "Number": {"type": "keyword", "ignore_above": 12},
+                "OrgNumberTree": {"type": "keyword"},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Pan": {"type": "boolean"},
                 "Provider": {"type": "keyword", "ignore_above": 128},
