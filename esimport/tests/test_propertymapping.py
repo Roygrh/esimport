@@ -147,6 +147,53 @@ class TestPropertyMapping(TestCase):
         for prop in res:
             self.assertEqual(set(prop['_source']['Address']), set(addresses[prop['_id']]))
 
+    def test_service_plans_in_service_area(self):
+        time.sleep(2)
+
+        properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
+        
+        prop_mapping = {}
+
+        for prop in list(properties):
+            q_serviceplans = self.pm.model.query_get_service_area_serviceplans(prop.ID)
+            for service_plan in list(self.pm.model.fetch(q_serviceplans)):
+                sp_dic = {
+                    "Number": service_plan.Number,
+                    "Name": service_plan.Name,
+                    "Description": service_plan.Description,
+                    "Price": float(service_plan.Price),
+                    "UpKbs": service_plan.UpKbs,
+                    "DownKbs": service_plan.DownKbs,
+                    "IdleTimeout": service_plan.IdleTimeout,
+                    "ConnectionLimit": service_plan.ConnectionLimit,
+                    "RadiusClass": service_plan.RadiusClass,
+                    "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
+                    "Type": service_plan.Type,
+                    "PlanTime": service_plan.PlanTime,
+                    "PlanUnit": service_plan.PlanUnit,
+                    "LifespanTime": service_plan.LifespanTime,
+                    "LifespanUnit": service_plan.LifespanUnit,
+                    "CurrencyCode": service_plan.CurrencyCode,
+                    "Status": service_plan.Status,
+                    "OrgCode": service_plan.OrgCode,
+                    "DateCreatedUTC": service_plan.DateCreatedUTC.isoformat()
+                }
+                    
+            q_serviceareas = self.pm.model.query_get_service_areas(prop.ID)
+            for service_area in list(self.pm.model.fetch(q_serviceareas)):
+                if service_area.ID in prop_mapping.keys():
+                    prop_mapping[prop.ID].append(sp_dic)
+                else:
+                    prop_mapping[prop.ID] = [sp_dic]
+
+        q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
+        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+
+        for r in res:
+            for sa in r['_source']['ServiceAreaObjects']:
+                if sa.get('ServicePlans'):
+                    self.assertListEqual(prop_mapping[int(r['_id'])], sa['ServicePlans'])
+
     # def test_add(self):
     #     pm1 = PropertyMapping()
     #     pm1.bulk_add_or_update = MagicMock()

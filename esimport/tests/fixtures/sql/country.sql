@@ -26,11 +26,14 @@ CREATE TABLE [dbo].[Country](
 GO
 
 SET IDENTITY_INSERT [dbo].[Country] ON;
-
 INSERT INTO [dbo].[Country] (ID, Name)
 VALUES 
-	(1, 'USA'),
-	(2, 'Canada')
+	(1, 'Afghanistan'),
+	(3, 'Algeria'),
+	(5, 'Andorra'),
+	(10, 'Argentina'),
+	(11, 'Armenia'),
+	(12, 'Aruba')
 GO
 --  CONSTRAINT [UQ_Country_Alpha_2] UNIQUE NONCLUSTERED 
 -- (
