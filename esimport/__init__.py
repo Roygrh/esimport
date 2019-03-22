@@ -92,7 +92,6 @@ def update(mapping_name, start_date):
     if mapping_name == 'property':
         pm = PropertyMapping()
         pm.setup()
-        #pm.loadCache()
         pm.update()
     if mapping_name == 'conference':
         cm = ConferenceMapping()

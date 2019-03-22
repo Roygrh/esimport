@@ -104,8 +104,8 @@ class PropertyMapping(DocumentMapping):
             self.add(None, 0, metric_value)
 
             # always wait between DB calls
-            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
+            #logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
+            #time.sleep(self.db_wait)
 
             elapsed_time = int(time.time() - timer_start)
 
@@ -190,27 +190,3 @@ class PropertyMapping(DocumentMapping):
 
             # for cases when all/remaining items count were less than limit
         self.add(None, min(len(self._items), 50))
-
-    def loadCache(self):
-        start = 0
-        while True:
-            count = 0
-            for prop in self.get_existing_properties(start, self.step_size):
-                count += 1
-                logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
-
-                # add both Property/Organization Number and Service Areas to the cache
-                self.cache_client.set(prop.get('Number'), prop)
-
-                for service_area_obj in prop.get('ServiceAreaObjects'):
-                    self.cache_client.set(service_area_obj['Number'], prop)
-
-                start = prop.get('ID') + 1
-
-            # always wait between ES calls
-            logger.info("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
-
-            if count == 0:
-                logger.info("All properties have been loaded into cache")
-                break
