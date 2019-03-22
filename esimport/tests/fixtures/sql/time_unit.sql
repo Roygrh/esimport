@@ -13,6 +13,8 @@ GO
 CREATE TABLE [dbo].[Time_Unit](
 	[ID] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [varchar](64) NOT NULL,
+	[Description] [varchar](256) NOT NULL,
+	[Seconds] [int] NOT NULL,
  CONSTRAINT [PK_Time_Unit] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -23,12 +25,14 @@ GO
 
 
 -- PUT DATA INSERT SCRIPTS BELOW
-INSERT INTO [dbo].[Time_Unit](Name)
-	VALUES('Days')
-INSERT INTO [dbo].[Time_Unit](Name)
-	VALUES('Minutes')
-INSERT INTO [dbo].[Time_Unit](Name)
-	VALUES('Hours')
-INSERT INTO [dbo].[Time_Unit](Name)
-	VALUES('Weeks')
+SET IDENTITY_INSERT Time_Unit ON
+INSERT INTO [dbo].[Time_Unit](ID, Name, Description, Seconds)
+VALUES
+	(1, 'Seconds', 'Units are in seconds.', 1),
+	(2, 'Minutes', 'Units are in minutes.', 60),
+	(3, 'Hours', 'Units are in hours.', 3600),
+	(4, 'Days', 'Units are in days.', 86400),
+	(5, 'Weeks', 'Units are in weeks.', 604800),
+	(6, 'Months', 'Units are in months.', 2629746),
+	(7, 'Years', 'Units are in years.', 31556952)
 GO

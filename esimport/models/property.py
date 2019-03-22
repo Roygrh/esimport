@@ -36,6 +36,38 @@ class Property(BaseModel):
         q1 = self.query_get_properties(start, limit)
         for rec in list(self.fetch_dict(q1)):
 
+            # All site-level service plans are stored with their org ID as key
+            site_level_sps = {}
+
+            q_serviceplans = self.query_get_service_area_serviceplans(rec["ID"])
+            for service_plan in list(self.fetch(q_serviceplans)):
+                sp_dic = {
+                    "Number": service_plan.Number,
+                    "Name": service_plan.Name,
+                    "Description": service_plan.Description,
+                    "Price": service_plan.Price,
+                    "UpKbs": service_plan.UpKbs,
+                    "DownKbs": service_plan.DownKbs,
+                    "IdleTimeout": service_plan.IdleTimeout,
+                    "ConnectionLimit": service_plan.ConnectionLimit,
+                    "RadiusClass": service_plan.RadiusClass,
+                    "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
+                    "Type": service_plan.Type,
+                    "PlanTime": service_plan.PlanTime,
+                    "PlanUnit": service_plan.PlanUnit,
+                    "LifespanTime": service_plan.LifespanTime,
+                    "LifespanUnit": service_plan.LifespanUnit,
+                    "CurrencyCode": service_plan.CurrencyCode,
+                    "Status": service_plan.Status,
+                    "OrgCode": service_plan.OrgCode,
+                    "DateCreatedUTC": service_plan.DateCreatedUTC
+                }
+
+                if not service_plan.Owner_Org_ID in site_level_sps.keys():
+                    site_level_sps[service_plan.Owner_Org_ID] = [sp_dic]
+                else:
+                    site_level_sps[service_plan.Owner_Org_ID].append(sp_dic)
+
             q2 = self.query_get_property_org_values(rec["ID"])
             for rec2 in list(self.fetch(q2)):
                 if rec2.Name == "TaxRate":
@@ -74,12 +106,23 @@ class Property(BaseModel):
                     "Hosts": hosts_list
                 }
 
+                if rec4.ID in site_level_sps.keys():
+                    sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
+
                 sa_list.append(sa_dic)
 
             rec["ServiceAreaObjects"] = sa_list
 
-            q6 = self.query_get_active_counts()
-            row = self.execute(q6, rec["ID"]).fetchone()
+            q6 = self.query_get_org_number_tree(rec["ID"])
+            org_number_tree_list = []
+
+            for rec6 in list(self.fetch(q6)):
+                org_number_tree_list.append(rec6[0])
+
+            rec["OrgNumberTree"] = org_number_tree_list
+
+            q7 = self.query_get_active_counts()
+            row = self.execute(q7, rec["ID"]).fetchone()
 
             rec["ActiveMembers"] = row.ActiveMembers if row else 0
             rec["ActiveDevices"] = row.ActiveDevices if row else 0
@@ -192,9 +235,63 @@ WHERE Organization_ID = {0}"""
         return q
 
     @staticmethod
+    def query_get_org_number_tree(org_id):
+        q = """SELECT o.Number as OrgNumberTree
+               FROM Org_Relation_Cache c
+               JOIN Organization o on o.ID = c.Parent_Org_ID
+               WHERE c.Child_Org_ID = {0}
+               UNION
+               SELECT o.Number as OrgNumberTree
+               FROM Org_Relation_Cache c
+               JOIN Organization o on o.ID = c.Child_Org_ID
+               WHERE c.Parent_Org_ID = {0}"""
+        q = q.format(org_id)
+        return q
+
+    @staticmethod
     def query_get_active_counts():
         return """SELECT COUNT(DISTINCT r.Member_ID) as ActiveMembers,
                          COUNT(DISTINCT r.Calling_Station_Id) as ActiveDevices
                   FROM Radius_Active_Usage r
                   INNER JOIN Org_Relation_Cache o ON o.Child_Org_ID = r.Organization_ID
                   WHERE o.Parent_Org_ID = ?"""
+
+    @staticmethod
+    def query_get_service_area_serviceplans(org_id):
+        q = """SELECT            
+                Organization.ID as Owner_Org_ID,
+                Zone_Plan.Plan_Number AS Number,
+                Zone_Plan.Name AS Name, 
+                Zone_Plan.Description AS Description,
+                Zone_Plan.Price AS Price,
+                Network_Access_Limits.Up_kbs AS UpKbs,
+                Network_Access_Limits.Down_kbs AS DownKbs,
+                Network_Access_Limits.Idle_Timeout AS IdleTimeout,
+                Network_Access_Limits.Connection_Limit AS ConnectionLimit,
+                Network_Access_Limits.Radius_Class AS RadiusClass,
+                Network_Access_Limits.Group_Bandwidth_Limit AS GroupBandwidthLimit,
+                Zone_Plan_Type.Name AS Type,
+                Prepaid_Zone_Plan.Consumable_Time AS PlanTime,
+                Time_Unit.Name AS PlanUnit,
+                Prepaid_Zone_Plan.Lifespan_Time AS LifespanTime,
+                Lifespan_Time_Unit.Name AS LifespanUnit,
+                Currency.Code AS CurrencyCode,
+                Zone_Plan_Status.Name AS Status,
+                Organization.Property_Code AS OrgCode,
+                Zone_Plan.Date_Created_UTC AS DateCreatedUTC
+            FROM
+                Zone_Plan
+                JOIN Network_Access_Limits ON Network_Access_Limits.ID = Zone_Plan.Network_Access_Limits_ID
+                JOIN Zone_Plan_Type ON Zone_Plan_Type.ID = Zone_Plan.Zone_Plan_Type_ID
+                LEFT JOIN Prepaid_Zone_Plan ON Prepaid_Zone_Plan.Zone_Plan_ID = Zone_Plan.ID
+                LEFT JOIN Time_Unit ON Time_Unit.ID = Prepaid_Zone_Plan.Consumable_Time_Unit_ID
+                LEFT JOIN Time_Unit AS Lifespan_Time_Unit ON Lifespan_Time_Unit.ID = Prepaid_Zone_Plan.Lifespan_Time_Unit_ID
+                JOIN Currency ON Currency.ID = Zone_Plan.Price_Currency_ID
+                JOIN Zone_Plan_Status ON Zone_Plan_Status.ID = Zone_Plan.Zone_Plan_Status_ID
+                JOIN Org_Zone ON Org_Zone.ID = Zone_Plan.Org_Zone_ID
+                JOIN Organization ON Organization.ID = Org_Zone.Organization_ID
+                JOIN Org_Relation_Cache ON Org_Relation_Cache.Child_Org_ID = Organization.ID
+            WHERE 
+                Org_Relation_Cache.Parent_Org_ID = {0}"""
+        q = q.format(org_id)
+        return q

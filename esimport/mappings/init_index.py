@@ -76,6 +76,7 @@ class new_index(object):
                 "MeetingRooms": {"type": "integer"},
                 "Name": {"type": "text"},
                 "Number": {"type": "keyword", "ignore_above": 12},
+                "OrgNumberTree": {"type": "keyword"},
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "Pan": {"type": "boolean"},
                 "Provider": {"type": "keyword", "ignore_above": 128},
@@ -96,6 +97,30 @@ class new_index(object):
                                                   "VLANRangeEnd": {"type": "integer" },
                                                   "NetIP": {"type": "keyword" }
                                            }
+                                    },
+                                    "ServicePlans": {
+                                        "type": "nested",
+                                        "properties": {
+                                            "Number": {"type": "keyword"},
+                                            "Name": {"type": "keyword"},
+                                            "Description": {"type": "text"},
+                                            "Price": {"type": "float"},
+                                            "UpKbs": {"type": "integer"},
+                                            "DownKbs": {"type": "integer"},
+                                            "IdleTimeout": {"type": "integer"},
+                                            "ConnectionLimit": {"type": "integer"},
+                                            "RadiusClass": {"type": "keyword"},
+                                            "GroupBandwidthLimit": {"type": "boolean"},
+                                            "Type": {"type": "keyword"},
+                                            "PlanTime": {"type": "integer"},
+                                            "PlanUnit": {"type": "keyword"},
+                                            "LifespanTime": {"type": "integer"},
+                                            "LifespanUnit": {"type": "keyword"},
+                                            "CurrencyCode": {"type": "keyword"},
+                                            "Status": {"type": "keyword"},
+                                            "OrgCode": {"type": "keyword"},
+                                            "DateCreatedUTC": {"type": "date"}
+                                        }
                                     }
                             }
                 },
@@ -342,6 +367,7 @@ class new_index(object):
                              "ignore_above": 64
                          }}},
                 "ConnectionLimit": {"type": "integer"},
+                "GroupBandwidthLimit": {"type": "boolean"},
                 "DownKbs": {"type": "integer"},
                 "UpKbs": {"type": "integer"},
                 "UserCount": {"type": "integer"},

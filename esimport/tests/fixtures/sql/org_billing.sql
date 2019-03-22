@@ -41,3 +41,10 @@ GO
 -- GO
 -- ALTER TABLE [dbo].[Org_Billing] CHECK CONSTRAINT [FK_Org_Billing_Organization]
 -- GO
+
+SET IDENTITY_INSERT Org_Billing ON
+INSERT INTO [dbo].[Org_Billing] (ID, Organization_ID)
+VALUES 
+	(1, 1),
+	(2, 2)
+GO
