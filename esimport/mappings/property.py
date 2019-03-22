@@ -195,10 +195,7 @@ class PropertyMapping(DocumentMapping):
         start = 0
         while True:
             count = 0
-            # HACK: While we want everything else in the property mapping to process 50 records at a time,
-            #  we still want to load the cache quickly, so keep this at 500 records since it doesn't send
-            #  any data to ES.
-            for prop in self.get_existing_properties(start, 500):
+            for prop in self.get_existing_properties(start, self.step_size):
                 count += 1
                 logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
 
