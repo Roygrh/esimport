@@ -1,3 +1,9 @@
+# HACK: Replacing self.step_size with 50 so other mappings still process the amount
+# set in the config, but the property mapping will always use 50 regardless.  This is
+# because there is too much data being sent to AWS ES and it's throwing an exception.
+# This is a quick hack that should be fixed in a different way.
+
+
 ################################################################################
 # Copyright 2002-2017 Eleven Wireless Inc.  All rights reserved.
 #
@@ -43,13 +49,13 @@ class PropertyMapping(DocumentMapping):
         while True:
             count = 0
             start = self.max_id()
-            for prop in self.model.get_properties(start, self.step_size):
+            for prop in self.model.get_properties(start, 50):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
-                self.add(dict(prop.es()), self.step_size)
+                self.add(dict(prop.es()), 50)
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None, min(len(self._items), 50))
 
             # only wait between DB calls when there is no delay from ES (HTTP requests)
             if count <= 0:
@@ -79,7 +85,7 @@ class PropertyMapping(DocumentMapping):
         while True:
             count = 0
             metric_value = None
-            for prop in self.model.get_properties(start, self.step_size):
+            for prop in self.model.get_properties(start, 50):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
 
@@ -91,7 +97,7 @@ class PropertyMapping(DocumentMapping):
 
                 metric_value = prop.get(self.model.get_key_date_field())
 
-                self.add(prop.es(), self.step_size, metric_value)
+                self.add(prop.es(), 50, metric_value)
                 start = prop.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
@@ -177,19 +183,22 @@ class PropertyMapping(DocumentMapping):
 
     def backload(self):
         start = 0
-        for prop in self.model.get_properties(start, self.step_size):
+        for prop in self.model.get_properties(start, 50):
             p = prop.es()
             logger.debug("Record found: {0}".format(prop.get('ID')))
-            self.add(dict(p), self.step_size)
+            self.add(dict(p), 50)
 
             # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
+        self.add(None, min(len(self._items), 50))
 
     def loadCache(self):
         start = 0
         while True:
             count = 0
-            for prop in self.get_existing_properties(start, self.step_size):
+            # HACK: While we want everything else in the property mapping to process 50 records at a time,
+            #  we still want to load the cache quickly, so keep this at 500 records since it doesn't send
+            #  any data to ES.
+            for prop in self.get_existing_properties(start, 500):
                 count += 1
                 logger.info("Loading property id: {0} into cache".format(prop.get('ID')))
 
