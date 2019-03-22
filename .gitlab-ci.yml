@@ -50,8 +50,8 @@ production_west_deploy:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.west local_settings.py
-    - aws s3 cp s3://dataservices.esimport/msodbc.ini.prod.west msodbc.ini
-    - eb deploy $EB_PROD_ENV_NAME --verbose
+    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
+    - eb deploy $EB_PROD_WEST_ENV_NAME --verbose
   only:
     - master
   when: manual
@@ -63,8 +63,8 @@ production_east_deploy:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.east local_settings.py
-    - aws s3 cp s3://dataservices.esimport/msodbc.ini.prod.east msodbc.ini
-    - eb deploy $EB_PROD_ENV_NAME --verbose
+    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.east msodbc.ini
+    - eb deploy $EB_PROD_EAST_ENV_NAME --verbose
   only:
     - master
   when: manual
