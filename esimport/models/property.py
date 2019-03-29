@@ -108,6 +108,8 @@ class Property(BaseModel):
 
                 if rec4.ID in site_level_sps.keys():
                     sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
+                else:
+                    sa_dic["ServicePlans"] = []
 
                 sa_list.append(sa_dic)
 
