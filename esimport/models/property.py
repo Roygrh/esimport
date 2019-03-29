@@ -60,7 +60,7 @@ class Property(BaseModel):
                     "CurrencyCode": service_plan.CurrencyCode,
                     "Status": service_plan.Status,
                     "OrgCode": service_plan.OrgCode,
-                    "DateCreatedUTC": service_plan.DateCreatedUTC
+                    "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC)
                 }
 
                 if not service_plan.Owner_Org_ID in site_level_sps.keys():
