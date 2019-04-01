@@ -60,7 +60,7 @@ class Property(BaseModel):
                     "CurrencyCode": service_plan.CurrencyCode,
                     "Status": service_plan.Status,
                     "OrgCode": service_plan.OrgCode,
-                    "DateCreatedUTC": service_plan.DateCreatedUTC
+                    "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC)
                 }
 
                 if not service_plan.Owner_Org_ID in site_level_sps.keys():
@@ -108,6 +108,8 @@ class Property(BaseModel):
 
                 if rec4.ID in site_level_sps.keys():
                     sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
+                else:
+                    sa_dic["ServicePlans"] = []
 
                 sa_list.append(sa_dic)
 
