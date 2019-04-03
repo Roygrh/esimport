@@ -28,6 +28,7 @@ class BaseModel(object):
     @retry(settings.DATABASE_CALLS_RETRIES, settings.DATABASE_CALLS_RETRIES_WAIT,
             retry_exception=pyodbc.Error)
     def execute(self, query, *args):
+        self.conn.cursor.execute("USE Eleven_OS")
         return self.conn.cursor.execute(query, list(args))
 
 
