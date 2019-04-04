@@ -61,7 +61,7 @@ DATABASES = {
 MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
 
 # Windows
-#MSSQL_DSN = "Driver={SQL Server};Server=.;Database=Eleven_OS;Trusted_Connection=yes;"
+#MSSQL_DSN = "Driver={SQL Server};Server=.;Trusted_Connection=yes;"
 
 ES_CALLS_RETRIES = 10
 ES_CALLS_RETRIES_WAIT = 5
