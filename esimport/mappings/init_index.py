@@ -232,6 +232,7 @@ class new_index(object):
                 "TaxRate": {"type": "float"},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
                 "UpCap": {"type": "integer"},
+                "UpsellAccountID": {"type": "long"},
                 "VLAN": {"type": "integer"},
                 "ZoneType": {"type": "text",
                                 "fields": {

@@ -199,6 +199,7 @@ SELECT
     Zone_Plan_Account.Purchase_MAC_Address AS PurchaseMacAddress,
     Zone_Plan_Account.Activation_Date_UTC AS Activated,
     Zone_Plan_Account.Date_Created_UTC AS Created,
+    Zone_Plan_Account.Upsell_Zone_Plan_Account_ID AS UpsellAccountID,
     CASE 
         WHEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC) > COALESCE(Network_Access_Limits.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)
         THEN COALESCE(Zone_Plan_Account.Date_Modified_UTC, Zone_Plan_Account.Date_Created_UTC)

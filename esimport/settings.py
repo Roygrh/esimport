@@ -31,10 +31,12 @@ INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
 
-# Database timeout
+# Database timeouts (seconds)
 DATABASE_CONNECTION_TIMEOUT = 60
-DATABASE_QUERY_TIMEOUT = 300
+DATABASE_QUERY_TIMEOUT = 60
 
+# TODO: Since we now connect to SQL via the SQL Listener High Availability Group,
+# we no longer need to account for any DNS propagation changes.  We should remove this.
 # Reset database connection (seconds) giving esimport a chance to
 # pickup any DNS changes that have propagated since the last connection
 DATABASE_CONNECTION_RESET_LIMIT = 300
@@ -61,7 +63,7 @@ DATABASES = {
 MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
 
 # Windows
-#MSSQL_DSN = "Driver={SQL Server};Server=.;Database=Eleven_OS;Trusted_Connection=yes;"
+#MSSQL_DSN = "Driver={SQL Server};Server=.;Trusted_Connection=yes;"
 
 ES_CALLS_RETRIES = 10
 ES_CALLS_RETRIES_WAIT = 5

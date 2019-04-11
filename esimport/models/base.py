@@ -11,7 +11,6 @@ import pyodbc
 import logging
 
 from esimport import settings
-from esimport.utils import retry
 
 
 logger = logging.getLogger(__name__)
@@ -25,9 +24,11 @@ class BaseModel(object):
         self.conn = connection
 
 
-    @retry(settings.DATABASE_CALLS_RETRIES, settings.DATABASE_CALLS_RETRIES_WAIT,
-            retry_exception=pyodbc.Error)
     def execute(self, query, *args):
+        # As Eleven uses availability groups, we can't specify db name in DSN string. Rather we have
+        # to send an USE command. The API in the pyodbc connector doesn't allow multiple statements 
+        # in a SQL call. As it remembers context, it's used before every transaction.
+        self.conn.cursor.execute("USE Eleven_OS")
         return self.conn.cursor.execute(query, list(args))
 
 
