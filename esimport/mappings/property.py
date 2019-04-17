@@ -132,23 +132,7 @@ class PropertyMapping(DocumentMapping):
                         "should": [
                             {
                                 "match": {
-                                    "Number": org_number
-                                }
-                            },
-                            {
-                                "nested": {
-                                    "path": "ServiceAreaObjects",
-                                    "query": {
-                                        "bool": {
-                                            "must": [
-                                                {
-                                                    "match": {
-                                                        "ServiceAreaObjects.Number": org_number
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
+                                    "OrgNumberTree": org_number
                                 }
                             }
                         ]
