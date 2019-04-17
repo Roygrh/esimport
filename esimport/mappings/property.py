@@ -128,14 +128,8 @@ class PropertyMapping(DocumentMapping):
         else:
             es_property_query = {
                 "query": {
-                    "bool": {
-                        "should": [
-                            {
-                                "match": {
-                                    "OrgNumberTree": org_number
-                                }
-                            }
-                        ]
+                    "term": {
+                        "OrgNumberTree": org_number
                     }
                 }
             }
