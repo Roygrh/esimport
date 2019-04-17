@@ -128,30 +128,8 @@ class PropertyMapping(DocumentMapping):
         else:
             es_property_query = {
                 "query": {
-                    "bool": {
-                        "should": [
-                            {
-                                "match": {
-                                    "Number": org_number
-                                }
-                            },
-                            {
-                                "nested": {
-                                    "path": "ServiceAreaObjects",
-                                    "query": {
-                                        "bool": {
-                                            "must": [
-                                                {
-                                                    "match": {
-                                                        "ServiceAreaObjects.Number": org_number
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
-                        ]
+                    "term": {
+                        "OrgNumberTree": org_number
                     }
                 }
             }
