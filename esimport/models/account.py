@@ -230,7 +230,7 @@ FROM
     Zone_Plan_Account WITH (NOLOCK)
     JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
     JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
-    JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
+    JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
     JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
     JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
     JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
