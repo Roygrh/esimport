@@ -68,8 +68,8 @@ class Property(BaseModel):
                 else:
                     site_level_sps[service_plan.Owner_Org_ID].append(sp_dic)
 
-            q2 = self.query_get_property_org_values(rec["ID"])
-            for rec2 in list(self.fetch(q2)):
+            q2 = self.query_get_property_org_values()
+            for rec2 in self.execute(q2, rec["ID"]):
                 if rec2.Name == "TaxRate":
                     rec[rec2.Name] = float(rec2.Value)
                 else:
@@ -179,13 +179,11 @@ ORDER BY Organization.ID ASC"""
         return q
 
     @staticmethod
-    def query_get_property_org_values(org_id):
-        q = """SELECT Name, Value
-FROM Org_Value WITH (NOLOCK)
-WHERE Org_Value.Organization_ID = {0}
-    AND Name NOT IN ('EradApiKey')"""
-        q = q.format(org_id)
-        return q
+    def query_get_property_org_values():
+        return """SELECT Name, Value
+                  FROM Org_Value WITH (NOLOCK)
+                  WHERE Org_Value.Organization_ID = ?
+                    AND Name NOT IN ('EradApiKey')"""
 
     """
     Returns the owning service provider for the given org.  If there are multiple
