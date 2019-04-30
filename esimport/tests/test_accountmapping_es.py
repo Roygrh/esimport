@@ -273,56 +273,9 @@ class TestAccountMappingElasticSearch(TestCase):
         time.sleep(1)
 
         account_doc_es = es.get(index=settings.ES_INDEX, id=1)
-        self.assertEqual(account_doc_es['_source']['ServiceArea'], 'FF-471-20')
-
-
-    def test_update_new_fields_only(self):
-        _index = settings.ES_INDEX
-        _type = Account.get_type()
-
-        es = self.es
-        es.indices.create(index=_index, ignore=400)
-        self.assertTrue(es.indices.exists(index=_index))
-
-        self.assertTrue(self._give_me_some_data(es))
-
-        # create mocked sql with new field(s) (Org=SkyNet)
-        updated_records = tests.Records()
-        for r in range(0, len(self.rows), 2):
-            row = self.rows[r]
-            updated_records.setKeys(row.keys())
-            row['Org'] = 'SkyNet'
-            updated_records.append(row)
-
-        limit = self.am.get_es_count()
-
-        # get updated records from mocked sql and verify length
-        _rows = self.am.model.conn.cursor.execute
-        self.am.model.conn.cursor.execute = MagicMock(return_value=updated_records)
-        actions = list(self.am.get_updated_records(self.start, limit))
-        self.assertEqual(len(actions), len(updated_records))
-
-        # check if all updated_records (actions) has _id
-        for action in actions:
-            self.assertIn('_id', action)
-            self.assertIsNotNone('_id', action)
-
-        # update ES records with new fields only
-        self.am.update()
-
-        # verify only records with new fields were updated
-        for r in self.rows:
-            doc_saved = es.get(index=_index, doc_type=_type, id=r.get('ID')).get('_source', {})
-            updated_record = any(filter(lambda x: x.get('ID') == doc_saved.get('ID'), updated_records))
-            if updated_record:
-                self.assertIn('Org', doc_saved)
-            else:
-                self.assertNotIn('Org', doc_saved)
-
-        self.am.model.conn.cursor.execute = _rows
-
-        es.indices.delete(index=_index, ignore=400)
-        self.assertFalse(es.indices.exists(index=_index))
+        account = am.model.get_accounts_by_created_date([1])
+        ac = next(account).es()
+        self.assertEqual(ac['doc']['ServiceArea'], account_doc_es['_source']['ServiceArea'])
 
 
     def test_property_mapping_fields(self):
