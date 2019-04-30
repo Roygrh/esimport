@@ -124,49 +124,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         for record in records['hits']['hits']:
             yield record.get('_source')
 
-    """
-    Get records from MSSQL based on records from ElasticSearch
-    """
-    def get_new_and_existing_accounts_tuples(self, start, limit):
-        ids = []
-        accounts = []
-        for account in self.get_existing_accounts(start, limit):
-            accounts.append(account)
-            ids.append(str(account.get('ID')))
-
-        for row in self.model.get_records_by_zpa_id(ids):
-            logger.debug("Record found: {0}".format(row.get('ID')))
-            # only for account where there are 1 or more missing property fields
-            if any([pfik not in row for pfik, pfiv in self.property_fields_include]):
-                new_property_fields_include = [(pfik, pfiv) for pfik, pfiv in self.property_fields_include
-                                               if pfik not in row]
-                # get some properties from PropertyMapping
-                _action = {}
-                prop = self.pm.get_property_by_org_number(row.get('ServiceArea'))
-                if prop:
-                    for pfik, pfiv in new_property_fields_include:
-                        _action[pfik] = prop.get(pfiv or pfik, "")
-                row.update(_action)
-            es_records = filter(lambda x: x if x.get('ID') == row.get('ID') else [None], accounts)
-            if not isinstance(es_records, list):
-                es_records = list(es_records)
-            if es_records:
-                account = (row, es_records[0])
-                yield account
-
-    """
-    Filter records based on new fields found in MSSQL but not in ElasticSearch
-    """
-    def get_updated_records(self, start, limit):
-        ignore_fields = ['Price', 'Currency']
-
-        for new, current in self.get_new_and_existing_accounts_tuples(start, limit):
-            new_fields = set(new.keys()) - set(current.keys()) - set(ignore_fields)
-            new_record = dict([(k, v) for k, v in new.items() if k in new_fields])
-            if len(new_record) > 0:
-                new_account = ESRecord(new_record, Account.get_type()) \
-                    .es(record_id=new.get('ID'))
-                yield new_account
 
     """
     Update Account records in Elasticsearch
