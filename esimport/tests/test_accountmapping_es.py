@@ -60,17 +60,17 @@ class TestAccountMappingElasticSearch(TestCase):
         self.pm.setup()
 
         self.start = 0
-        # for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
-        #     # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
-        #     # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db],
-        #     #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        #     with open(sql, 'b+r') as inp:
-        #         sqlQuery = ''
-        #         inp_b = inp.read()
-        #         the_encoding = chardet.detect(inp_b)['encoding']
-        #         inp = inp_b.decode(the_encoding).replace('GO', '')
-        #         self.am.model.execute(inp)
-        #     self.am.model.conn.reset()
+        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+            # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+            # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db],
+            #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            with open(sql, 'b+r') as inp:
+                sqlQuery = ''
+                inp_b = inp.read()
+                the_encoding = chardet.detect(inp_b)['encoding']
+                inp = inp_b.decode(the_encoding).replace('GO', '')
+                self.am.model.execute(inp)
+            self.am.model.conn.reset()
 
         self.end = self.start + min(len(self.rows), self.am.step_size)
 
@@ -264,7 +264,7 @@ class TestAccountMappingElasticSearch(TestCase):
         am = AccountMapping()
         am.setup()
 
-        am.add(account_doc, 1, metric_value=None)
+        am.add(account_doc, 1)
 
         account_update = lambda _am: _am.update('1990-01-01')
         t = threading.Thread(target=account_update, args=(am,), daemon=True)
@@ -604,27 +604,27 @@ class TestAccountMappingElasticSearch(TestCase):
             if record:
                 self.assertTrue(record['cache'])
 
-#     def tearDown(self):
-#         self.am.model.execute("""
-# DECLARE @sql NVARCHAR(MAX);
-# SET @sql = N'';
-# SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
-#   + QUOTENAME(t.name) + N' DROP CONSTRAINT '
-#   + QUOTENAME(c.name) + ';'
-# FROM sys.objects AS c
-# INNER JOIN sys.tables AS t
-# ON c.parent_object_id = t.[object_id]
-# INNER JOIN sys.schemas AS s
-# ON t.[schema_id] = s.[schema_id]
-# WHERE c.[type] = 'F'
-# ORDER BY c.[type];
-# SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
-# FROM [INFORMATION_SCHEMA].[TABLES]
-# WHERE [TABLE_TYPE] = 'BASE TABLE';
-# EXEC SP_EXECUTESQL @sql;""")
-#
-#         es = self.am.es
-#         if es.indices.exists(index=settings.ES_INDEX):
-#             es.indices.delete(index=settings.ES_INDEX, ignore=400)
-#
-#         self.pm.cache_client.client.flushall()
+    def tearDown(self):
+        self.am.model.execute("""
+DECLARE @sql NVARCHAR(MAX);
+SET @sql = N'';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+  + QUOTENAME(c.name) + ';'
+FROM sys.objects AS c
+INNER JOIN sys.tables AS t
+ON c.parent_object_id = t.[object_id]
+INNER JOIN sys.schemas AS s
+ON t.[schema_id] = s.[schema_id]
+WHERE c.[type] = 'F'
+ORDER BY c.[type];
+SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+FROM [INFORMATION_SCHEMA].[TABLES]
+WHERE [TABLE_TYPE] = 'BASE TABLE';
+EXEC SP_EXECUTESQL @sql;""")
+
+        es = self.am.es
+        if es.indices.exists(index=settings.ES_INDEX):
+            es.indices.delete(index=settings.ES_INDEX, ignore=400)
+
+        self.pm.cache_client.client.flushall()
