@@ -29,8 +29,8 @@ class Account(BaseModel):
     def get_key_date_field():
         return Account._date_field
 
-    def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
-        q = self.eleven_query(start_date, start, limit)
+    def get_accounts_by_created_date(self, start, start_date='1900-01-01'):
+        q = self.query_records_by_account_id(start_date, start)
         return self.get_accounts(q)
 
     def get_accounts_by_modified_date(self, start_date, end_date):
@@ -62,8 +62,8 @@ class Account(BaseModel):
 
 
     @staticmethod
-    def eleven_query(start_date, start_zpa_id, limit):
-        q = """Select TOP {1} Zone_Plan_Account.ID as ID,
+    def query_records_by_account_id(start_date, ids):
+        q = """Select Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
 Zone_Plan_Account_Status.Name AS Status,
@@ -101,7 +101,7 @@ Member_Vlan.Vlan as VLAN
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
 JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
-JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
+JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
 JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
@@ -118,9 +118,9 @@ LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
 LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Zone_Plan_Account.ID >= {0} AND Zone_Plan_Account.Date_Created_UTC >= '{2}'
+WHERE Zone_Plan_Account.ID IN ({0}) AND Zone_Plan_Account.Date_Created_UTC >= '{1}'
 ORDER BY Zone_Plan_Account.ID ASC"""
-        q = q.format(start_zpa_id, limit, start_date)
+        q = q.format(','.join(str(i) for i in ids), start_date)
         return q
 
 
@@ -164,7 +164,7 @@ Member_Vlan.Vlan as VLAN
 FROM Zone_Plan_Account WITH (NOLOCK)
 JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
 JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
-JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
+JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
 JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
 JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
 JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID
@@ -230,7 +230,7 @@ FROM
     Zone_Plan_Account WITH (NOLOCK)
     JOIN Member WITH (NOLOCK) ON Member.ID = Zone_Plan_Account.Member_ID
     JOIN Zone_Plan_Account_Status WITH (NOLOCK) ON Zone_Plan_Account.Zone_Plan_Account_Status_ID = Zone_Plan_Account_Status.ID
-    JOIN Organization WITH (NOLOCK) ON Organization.ID = Zone_Plan_Account.Purchase_Org_ID
+    JOIN Organization WITH (NOLOCK) ON Organization.ID = Member.Organization_ID
     JOIN Zone_Plan WITH (NOLOCK) ON Zone_Plan.ID = Zone_Plan_Account.Zone_Plan_ID
     JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Zone_Plan_Account.Network_Access_Limits_ID
     JOIN Payment_Method WITH (NOLOCK) ON Payment_Method.ID = Zone_Plan_Account.Payment_Method_ID

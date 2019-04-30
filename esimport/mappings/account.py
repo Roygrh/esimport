@@ -169,29 +169,31 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 yield new_account
 
     """
-    DO NOT CALL! We don't want this functionality currently.
+    Update Account records in Elasticsearch
     """
-    def update(self):
+    def update(self, start_date):
         start = 0
-        total = self.get_es_count()
-        while start < total:
+        while True:
             count = 0
-            for account in self.get_updated_records(start, self.step_size):
+            for account in self.model.get_accounts_by_created_date(list(range(start, start+self.step_size)), start_date):
                 count += 1
-                start = account.get('_id')  # because account is dict() not ESRecord
-                self.add(account, self.step_size)
-                if settings.LOG_LEVEL == logging.DEBUG:  # pragma: no cover
-                    logger.debug("Updating Account: {0}".format(self.pp.pformat(account)))
-            start += 1
-            total = self.get_es_count()
+                self.append_site_values(account)
+                account_es = account.es()
+                logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(
+                    account_es.get('_id'),
+                    account_es['doc'].get('Created')))
+
+                self.add(account_es, self.step_size)
+
+            start += self.step_size
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
 
-            # only wait between DB calls when there is no delay from ES (HTTP requests)
             if count <= 0:
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
+
 
     """
     NON FUNCTIONAL. Needs to be implemented.
