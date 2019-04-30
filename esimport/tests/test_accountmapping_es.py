@@ -60,17 +60,17 @@ class TestAccountMappingElasticSearch(TestCase):
         self.pm.setup()
 
         self.start = 0
-        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
-            # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
-            # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db], 
-            #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            with open(sql, 'b+r') as inp:
-                sqlQuery = ''
-                inp_b = inp.read()
-                the_encoding = chardet.detect(inp_b)['encoding']
-                inp = inp_b.decode(the_encoding).replace('GO', '')
-                self.am.model.execute(inp)
-            self.am.model.conn.reset()
+        # for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+        #     # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
+        #     # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db],
+        #     #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        #     with open(sql, 'b+r') as inp:
+        #         sqlQuery = ''
+        #         inp_b = inp.read()
+        #         the_encoding = chardet.detect(inp_b)['encoding']
+        #         inp = inp_b.decode(the_encoding).replace('GO', '')
+        #         self.am.model.execute(inp)
+        #     self.am.model.conn.reset()
 
         self.end = self.start + min(len(self.rows), self.am.step_size)
 
@@ -193,6 +193,87 @@ class TestAccountMappingElasticSearch(TestCase):
             retries += 1
 
         return total > 0
+
+
+    def test_update_fields_data(self):
+        _index = settings.ES_INDEX
+        _type = Account.get_type()
+
+        es = self.es
+        es.indices.create(index=_index, ignore=400)
+        self.assertTrue(es.indices.exists(index=_index))
+
+        account_doc = {
+            "_op_type": "update",
+            "_index": "esrecord",
+            "_type": "account",
+            "_id": "1",
+            "doc_as_upsert": True,
+            "doc": {
+                "ID": 1,
+                "Name": "cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11",
+                "MemberNumber": "1",
+                "Status": "Status",
+                "ServiceArea": "00-00-00",
+                "Price": 12.95,
+                "PurchaseMacAddress": "34-C0-59-D8-31-08",
+                "Activated": "2014-01-04T07:38:24.370000+00:00",
+                "Created": "2014-01-04T07:38:24.357000+00:00",
+                "UpsellAccountID": None,
+                "DateModifiedUTC": "2018-05-02T09:15:11.237000+00:00",
+                "ServicePlan": "basic day",
+                "ServicePlanNumber": "basic_day_01",
+                "UpCap": 1236,
+                "DownCap": 4196,
+                "NetworkAccessStartDateUTC": "2014-01-04T07:38:24.357000+00:00",
+                "NetworkAccessEndDateUTC": "2018-04-05T10:31:46.767000+00:00",
+                "PayMethod": "CC",
+                "Currency": "AFA",
+                "CreditCardNumber": None,
+                "CardType": None,
+                "LastName": "trava",
+                "RoomNumber": "4051",
+                "DiscountCode": "DC03",
+                "ConsumableTime": 2,
+                "ConsumableUnit": "Hours",
+                "SpanTime": None,
+                "SpanUnit": None,
+                "ConnectCode": None,
+                "MarketingContact": None,
+                "ZoneType": None,
+                "VLAN": 1,
+                "Duration": "2 Hours consumable",
+                "PropertyName": "some display name 1",
+                "PropertyNumber": "GL-236-20",
+                "Provider": None,
+                "Brand": "Marriott",
+                "MARSHA_Code": "BWIAK",
+                "Country": "",
+                "Region": "",
+                "SubRegion": "",
+                "OwnershipGroup": "",
+                "TaxRate": "",
+                "CorporateBrand": "",
+                "ExtPropId": "",
+                "TimeZone": "Asia/Dhaka",
+                "CreatedLocal": "2014-01-04T13:38:24.357000+06:00",
+                "ActivatedLocal": "2014-01-04T13:38:24.370000+06:00"
+            }
+        }
+
+        am = AccountMapping()
+        am.setup()
+
+        am.add(account_doc, 1, metric_value=None)
+
+        account_update = lambda _am: _am.update('1990-01-01')
+        t = threading.Thread(target=account_update, args=(am,), daemon=True)
+        t.start()
+
+        time.sleep(1)
+
+        account_doc_es = es.get(index=settings.ES_INDEX, id=1)
+        self.assertEqual(account_doc_es['_source']['ServiceArea'], 'FF-471-20')
 
 
     def test_update_new_fields_only(self):
@@ -523,27 +604,27 @@ class TestAccountMappingElasticSearch(TestCase):
             if record:
                 self.assertTrue(record['cache'])
 
-    def tearDown(self):
-        self.am.model.execute("""
-DECLARE @sql NVARCHAR(MAX);
-SET @sql = N'';
-SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
-  + QUOTENAME(t.name) + N' DROP CONSTRAINT '
-  + QUOTENAME(c.name) + ';'
-FROM sys.objects AS c
-INNER JOIN sys.tables AS t
-ON c.parent_object_id = t.[object_id]
-INNER JOIN sys.schemas AS s 
-ON t.[schema_id] = s.[schema_id]
-WHERE c.[type] = 'F'
-ORDER BY c.[type];
-SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
-FROM [INFORMATION_SCHEMA].[TABLES]
-WHERE [TABLE_TYPE] = 'BASE TABLE';
-EXEC SP_EXECUTESQL @sql;""")
-
-        es = self.am.es
-        if es.indices.exists(index=settings.ES_INDEX):
-            es.indices.delete(index=settings.ES_INDEX, ignore=400)
-
-        self.pm.cache_client.client.flushall()
+#     def tearDown(self):
+#         self.am.model.execute("""
+# DECLARE @sql NVARCHAR(MAX);
+# SET @sql = N'';
+# SELECT @sql += 'ALTER TABLE ' + QUOTENAME(s.name) + N'.'
+#   + QUOTENAME(t.name) + N' DROP CONSTRAINT '
+#   + QUOTENAME(c.name) + ';'
+# FROM sys.objects AS c
+# INNER JOIN sys.tables AS t
+# ON c.parent_object_id = t.[object_id]
+# INNER JOIN sys.schemas AS s
+# ON t.[schema_id] = s.[schema_id]
+# WHERE c.[type] = 'F'
+# ORDER BY c.[type];
+# SELECT @sql += 'DROP TABLE ' + QUOTENAME([TABLE_SCHEMA]) + '.' + QUOTENAME([TABLE_NAME]) + ';'
+# FROM [INFORMATION_SCHEMA].[TABLES]
+# WHERE [TABLE_TYPE] = 'BASE TABLE';
+# EXEC SP_EXECUTESQL @sql;""")
+#
+#         es = self.am.es
+#         if es.indices.exists(index=settings.ES_INDEX):
+#             es.indices.delete(index=settings.ES_INDEX, ignore=400)
+#
+#         self.pm.cache_client.client.flushall()
