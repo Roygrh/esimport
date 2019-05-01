@@ -65,7 +65,7 @@ class TestSessionMappingElasticsearch(TestCase):
         sm = SessionMapping()
         sm.setup()
 
-        sessions_gen = sm.model.get_sessions(1, 100, '2018-06-27')
+        sessions_gen = sm.model.get_sessions(1, 100, '2018-06-27', True)
         sessions_dict = {}
 
         for s in sessions_gen:

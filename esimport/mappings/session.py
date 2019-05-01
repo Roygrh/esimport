@@ -9,6 +9,8 @@
 import time
 import logging
 
+from datetime import datetime, timezone
+
 from esimport.utils import convert_utc_to_local_time
 from esimport.models.session import Session
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
@@ -38,8 +40,11 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     Loop to continuously find new Sessions and add them to Elasticsearch
     """
     def sync(self, start_date):
+        use_historical = True
+        most_recent_session_time = datetime.now(timezone.utc)
         start = self.max_id() + 1
         timer_start = time.time()
+        
         while True:
             count = 0
             metric_value = None
@@ -47,7 +52,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             logger.debug("Get Sessions from {0} to {1} since {2}"
                 .format(start, start+self.db_record_limit, start_date))
 
-            for session in self.model.get_sessions(start, self.db_record_limit, start_date):
+            for session in self.model.get_sessions(start, self.db_record_limit, start_date, use_historical):
                 count += 1
                 logger.debug("Record found: {0}".format(session.get('ID')))
 
@@ -60,6 +65,8 @@ class SessionMapping(PropertyAppendedDocumentMapping):
                 session.update(_action)
                 metric_value = session.get(self.model.get_key_date_field())
 
+                most_recent_session_time = session.get("LogoutTime")
+
                 self.add(session.es(), self.step_size, metric_value)
                 start = session.get('ID') + 1
 
@@ -67,6 +74,13 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             self.add(None, 0, metric_value)
 
             elapsed_time = int(time.time() - timer_start)
+
+            # While we're catching up to the current time, use the historical session data source. 
+            # Once we're within an hour or there are no records being returned, then switch to the real-time data source.
+            minutes_behind = (datetime.now(timezone.utc) - most_recent_session_time).total_seconds() / 60
+            if count == 0 or minutes_behind < 60:
+                logger.info("Switching to use the real-time session data source.  Latest Record Count Returned: {0}, Minutes Behind Now: {1}".format(count, minutes_behind))
+                use_historical = False
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
@@ -81,7 +95,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     """
     def backload(self, start_date):
         start = 0
-        for session in self.model.get_sessions(start, self.step_size, start_date):
+        for session in self.model.get_sessions(start, self.step_size, start_date, True):
             rec = session.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
             self.add(dict(rec), self.step_size)
