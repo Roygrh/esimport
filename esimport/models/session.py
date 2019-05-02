@@ -84,10 +84,10 @@ WHERE
 ORDER BY
     stop.ID ASC
 """
-		# Session data older than 15 minutes lives in the Radius_Event_History table.
-		# Real-time session data (less than 24 hours old) lives in the Radius_Event table.
-		event_table = "Radius_Event_History" if historical else "Radius_Event"
-		event_table_id = "Radius_Event_ID" if historical else "ID"
+        # Session data older than 15 minutes lives in the Radius_Event_History table.
+        # Real-time session data (less than 24 hours old) lives in the Radius_Event table.
+        event_table = "Radius_Event_History" if historical else "Radius_Event"
+        event_table_id = "Radius_Event_ID" if historical else "ID"
 
         q = q.format(start_id, start_date, limit, event_table, event_table_id)		
         return q
