@@ -32,7 +32,7 @@ class Session(BaseModel):
         return Session._date_field
 
 
-    def get_sessions(self, start_id, limit, start_date='1900-01-01', historical):
+    def get_sessions(self, start_id, limit, start_date='1900-01-01', historical=True):
         q = self.query_sessions(start_id, start_date, limit, historical)
         for row in self.fetch_dict(q):
             for key, value in row.items():
