@@ -32,8 +32,8 @@ class Session(BaseModel):
         return Session._date_field
 
 
-    def get_sessions(self, start_id, limit, start_date='1900-01-01'):
-        q = self.query_one(start_id, start_date, limit)
+    def get_sessions(self, start_id, limit, start_date='1900-01-01', historical=True):
+        q = self.query_sessions(start_id, start_date, limit, historical)
         for row in self.fetch_dict(q):
             for key, value in row.items():
                 if isinstance(value, datetime):
@@ -43,7 +43,7 @@ class Session(BaseModel):
 
 
     @staticmethod
-    def query_one(start_id, start_date, limit):
+    def query_sessions(start_id, start_date, limit, historical):
         q = """
 SELECT TOP ({2}) 
 	stop.ID AS ID,
@@ -67,7 +67,7 @@ SELECT TOP ({2})
 FROM
 	Radius.dbo.Radius_Stop_Event stop
 	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
-	JOIN Radius.dbo.Radius_Event_History hist ON hist.Radius_Event_ID = acct.Radius_Event_ID
+	JOIN Radius.dbo.{3} hist ON hist.{4} = acct.Radius_Event_ID
 	LEFT JOIN Radius.dbo.Radius_Terminate_Cause term ON term.ID = stop.Acct_Terminate_Cause
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
@@ -84,5 +84,10 @@ WHERE
 ORDER BY
     stop.ID ASC
 """
-        q = q.format(start_id, start_date, limit)
+        # Session data older than 15 minutes lives in the Radius_Event_History table.
+        # Real-time session data (less than 24 hours old) lives in the Radius_Event table.
+        event_table = "Radius_Event_History" if historical else "Radius_Event"
+        event_table_id = "Radius_Event_ID" if historical else "ID"
+
+        q = q.format(start_id, start_date, limit, event_table, event_table_id)		
         return q
