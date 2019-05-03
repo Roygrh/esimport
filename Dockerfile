@@ -27,10 +27,10 @@ COPY . /esimport
 RUN sh docker/setup_db.bash
 
 # upgrade pip, install cython (required by mssql)
-RUN pip-3.6 install -r dev-requirements.txt
+RUN pip-3.6 install --upgrade pip && pip install -r dev-requirements.txt
 
 # set up esimport
-RUN pip-3.6 install -e .
+RUN pip install -e .
 
 ENTRYPOINT ["esimport"]
 CMD ["sync"]
