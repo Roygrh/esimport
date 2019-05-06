@@ -31,14 +31,13 @@ from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.models.base import BaseModel
 
-
 """
 Separated because takes long to run
 """
+
+
 class TestAccountMappingElasticSearch(TestCase):
-
     maxDiff = None
-
 
     def setUp(self):
         # sqlcmd -S localhost -i esimport/tests/fixtures/sql/zone_plan_account.sql -U SA -P <password> -d Eleven_OS
@@ -60,7 +59,7 @@ class TestAccountMappingElasticSearch(TestCase):
         self.pm.setup()
 
         self.start = 0
-        for sql in glob.glob(test_dir+'/esimport/tests/fixtures/sql/*.sql'):
+        for sql in glob.glob(test_dir + '/esimport/tests/fixtures/sql/*.sql'):
             # script = test_dir + "/esimport/tests/fixtures/sql/"+sql
             # subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db],
             #                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -73,7 +72,6 @@ class TestAccountMappingElasticSearch(TestCase):
             self.am.model.conn.reset()
 
         self.end = self.start + min(len(self.rows), self.am.step_size)
-
 
         # conn = Mock()
         # self.am.model = Account(conn)
@@ -90,7 +88,6 @@ class TestAccountMappingElasticSearch(TestCase):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         # self.am.es = self.es
         # self.am.pm.es = self.es
-
 
     # also an integration test
     def test_bulk_add_or_update(self):
@@ -116,7 +113,6 @@ class TestAccountMappingElasticSearch(TestCase):
 
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
-
 
     def test_upsert(self):
         _index = settings.ES_INDEX
@@ -167,7 +163,6 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
-
     def test_get_es_count(self):
         _index = settings.ES_INDEX
 
@@ -180,10 +175,9 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
-
     def _give_me_some_data(self, es):
         # add accounts from mocked sql to ES
-        self.am.add_accounts('1990-01-01') # there is a delay
+        self.am.add_accounts('1990-01-01')  # there is a delay
 
         total = self.am.get_es_count()
         retries = 0
@@ -193,7 +187,6 @@ class TestAccountMappingElasticSearch(TestCase):
             retries += 1
 
         return total > 0
-
 
     def test_update_fields_data(self):
         _index = settings.ES_INDEX
@@ -273,10 +266,9 @@ class TestAccountMappingElasticSearch(TestCase):
         time.sleep(1)
 
         account_doc_es = es.get(index=settings.ES_INDEX, id=1)
-        account = am.model.get_accounts_by_created_date([1])
+        account = am.model.get_accounts_by_created_date(1, 10)
         ac = next(account).es()
         self.assertEqual(ac['doc']['ServiceArea'], account_doc_es['_source']['ServiceArea'])
-
 
     def test_property_mapping_fields(self):
         _index = settings.ES_INDEX
@@ -296,57 +288,56 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
-# currently not working, but also not being used in production
-#    def test_backload(self):
-#        _index = settings.ES_INDEX
-#        _type = Account.get_type()
-#
-#        es = self.es
-#        es.indices.create(index=_index, ignore=400)
-#        self.assertTrue(es.indices.exists(index=_index))
-#
-#        # load a fixture with data from 2012 - 2016
-#        data = tests._mocked_sql('esimport_accounts_2012_2016.csv')
-#
-#        _rows = self.am.model.get_accounts_by_created_date(self.start, self.end)
-#        # self.am.model.conn.cursor.execute = MagicMock(return_value=data)
-#
-#        start = 0
-#        limit = len(data)
-#        # needed because we need ESRecord by Account's model
-#        data = self.am.model.get_accounts_by_created_date(start, limit)
-#
-#        # call backload with start_date=2015-*
-#        start_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
-#        dt_format = '%Y-%m-%dT%H:%M:%S.%f'
-#        filtered_data = map(lambda x: x if datetime.strptime(x.get('Created'), dt_format) >= start_date
-#                                        else None, data)
-#        filtered_data = list(filter(lambda x: x, filtered_data))
-#        _get_accounts = self.am.model.get_accounts_by_created_date(start, limit, start_date=start_date)
-#        # self.am.model.get_accounts = MagicMock(return_value=filtered_data)
-#        self.am.backload('2015-01-01')
-#
-#        # wait
-#        total = self.am.get_es_count()
-#        retries = 0
-#        while total <= 0 and retries < self.am.esRetry:
-#            time.sleep(self.am.esTimeout)
-#            total = self.am.get_es_count()
-#            retries += 1
-#        self.assertEqual(total, len(filtered_data))
-#
-#        # get existing records
-#        start = 0
-#        end = start + min(len(filtered_data), self.am.step_size)
-#        for rec in self.am.get_existing_accounts(start, end):
-#            # verify that only 2015-2016 data exists
-#            self.assertGreaterEqual(datetime.strptime(rec.get('Created'), dt_format), start_date)
-#
-#        self.am.model.get_accounts_by_created_date = _get_accounts
-#
-#        es.indices.delete(index=_index, ignore=400)
-#        self.assertFalse(es.indices.exists(index=_index))
-
+    # currently not working, but also not being used in production
+    #    def test_backload(self):
+    #        _index = settings.ES_INDEX
+    #        _type = Account.get_type()
+    #
+    #        es = self.es
+    #        es.indices.create(index=_index, ignore=400)
+    #        self.assertTrue(es.indices.exists(index=_index))
+    #
+    #        # load a fixture with data from 2012 - 2016
+    #        data = tests._mocked_sql('esimport_accounts_2012_2016.csv')
+    #
+    #        _rows = self.am.model.get_accounts_by_created_date(self.start, self.end)
+    #        # self.am.model.conn.cursor.execute = MagicMock(return_value=data)
+    #
+    #        start = 0
+    #        limit = len(data)
+    #        # needed because we need ESRecord by Account's model
+    #        data = self.am.model.get_accounts_by_created_date(start, limit)
+    #
+    #        # call backload with start_date=2015-*
+    #        start_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
+    #        dt_format = '%Y-%m-%dT%H:%M:%S.%f'
+    #        filtered_data = map(lambda x: x if datetime.strptime(x.get('Created'), dt_format) >= start_date
+    #                                        else None, data)
+    #        filtered_data = list(filter(lambda x: x, filtered_data))
+    #        _get_accounts = self.am.model.get_accounts_by_created_date(start, limit, start_date=start_date)
+    #        # self.am.model.get_accounts = MagicMock(return_value=filtered_data)
+    #        self.am.backload('2015-01-01')
+    #
+    #        # wait
+    #        total = self.am.get_es_count()
+    #        retries = 0
+    #        while total <= 0 and retries < self.am.esRetry:
+    #            time.sleep(self.am.esTimeout)
+    #            total = self.am.get_es_count()
+    #            retries += 1
+    #        self.assertEqual(total, len(filtered_data))
+    #
+    #        # get existing records
+    #        start = 0
+    #        end = start + min(len(filtered_data), self.am.step_size)
+    #        for rec in self.am.get_existing_accounts(start, end):
+    #            # verify that only 2015-2016 data exists
+    #            self.assertGreaterEqual(datetime.strptime(rec.get('Created'), dt_format), start_date)
+    #
+    #        self.am.model.get_accounts_by_created_date = _get_accounts
+    #
+    #        es.indices.delete(index=_index, ignore=400)
+    #        self.assertFalse(es.indices.exists(index=_index))
 
     def test_sync_is_continuous(self):
         # need some mocked data
@@ -408,7 +399,6 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
-
     def test_date_modified_update(self):
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
@@ -417,7 +407,8 @@ class TestAccountMappingElasticSearch(TestCase):
         am = AccountMapping()
         am.setup()
 
-        initial_date = self.am.model.execute("""SELECT MAX(Date_Modified_UTC) from Zone_Plan_Account""").fetchone()[0].strftime('%Y-%m-%d %H:%M:%S')
+        initial_date = self.am.model.execute("""SELECT MAX(Date_Modified_UTC) from Zone_Plan_Account""").fetchone()[
+            0].strftime('%Y-%m-%d %H:%M:%S')
         check_time_change = lambda _am: _am.sync(initial_date)
         t = threading.Thread(target=check_time_change, args=(am,), daemon=True)
         t.start()
@@ -433,7 +424,6 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertEqual(zpa_1_es[0]['_source']['ID'], 1)
         self.assertEqual(zpa_1_es[0]['_source']['Price'], float(zpa_1[1]))
 
-
         # change a record in db
         # current_time = datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S.%f')[:-3]
         current_time = '2018-04-05 10:33:20.000'
@@ -442,7 +432,8 @@ class TestAccountMappingElasticSearch(TestCase):
             WHERE ID=1"""
 
         self.am.model.execute(q, current_time)
-        zpa_1 = self.am.model.execute("""SELECT ID,Purchase_Price,Date_Modified_UTC FROM Zone_Plan_Account WHERE ID=1""").fetchone()
+        zpa_1 = self.am.model.execute(
+            """SELECT ID,Purchase_Price,Date_Modified_UTC FROM Zone_Plan_Account WHERE ID=1""").fetchone()
         time.sleep(1)
         self.assertEqual(zpa_1[1], 13.0)
         zpa_1_es = self.es.search(index=settings.ES_INDEX, body=query)['hits']['hits']
@@ -464,8 +455,8 @@ class TestAccountMappingElasticSearch(TestCase):
         self.am.model.execute(q)
 
         query = {'query': {
-                    'terms': {'ID': ['1','2','3']}
-                }
+            'terms': {'ID': ['1', '2', '3']}
+        }
         }
 
         # Wait for the database connection to reset
@@ -473,7 +464,8 @@ class TestAccountMappingElasticSearch(TestCase):
         time.sleep(1)
 
         zpa_123_es = self.es.search(index=settings.ES_INDEX, body=query, doc_type='account')['hits']['hits']
-        zpa_123 = self.am.model.execute("""SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
+        zpa_123 = self.am.model.execute(
+            """SELECT ID,Purchase_Price FROM Zone_Plan_Account WHERE ID IN (1,2,3)""").fetchall()
         zpa_123.sort(key=itemgetter(0))
         for zpa in zpa_123_es:
             if zpa['_source']['ID'] == 1:
@@ -535,7 +527,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
         # time to catch up
         time.sleep(1)
-        
+
         service_areas = []
         # check if property records are in redis    
         property_list = [prop.record for prop in self.pm.model.get_properties(0, 2)]
@@ -551,7 +543,7 @@ class TestAccountMappingElasticSearch(TestCase):
             res['cache'] = True
             res['CreatedUTC'] = dateutil.parser.parse(res['CreatedUTC'])
             self.pm.cache_client.set(service_area, res)
-        
+
         for service_area in service_areas:
             record = self.pm.get_property_by_org_number(service_area)
             if record:
