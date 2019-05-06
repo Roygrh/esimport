@@ -132,7 +132,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         start = 0
         while True:
             count = 0
-            for account in self.model.get_accounts_by_created_date(list(range(start, start+self.step_size)), start_date):
+            for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
                 count += 1
                 self.append_site_values(account)
                 account_es = account.es()
@@ -142,7 +142,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
                 self.add(account_es, self.step_size)
 
-            start += self.step_size
+            start += 1
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))

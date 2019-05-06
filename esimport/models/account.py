@@ -16,8 +16,8 @@ from esimport.utils import set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
-class Account(BaseModel):
 
+class Account(BaseModel):
     _type = "account"
     _date_field = 'DateModifiedUTC'
 
@@ -29,9 +29,9 @@ class Account(BaseModel):
     def get_key_date_field():
         return Account._date_field
 
-    def get_accounts_by_created_date(self, start, start_date='1900-01-01'):
-        q = self.query_records_by_account_id(start_date, start)
-        return self.get_accounts(q)
+    def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
+        q = self.query_records_by_account_id()
+        return self.get_accounts(q, limit, start, start_date)
 
     def get_accounts_by_modified_date(self, start_date, end_date):
         q = self.query_records_by_modified_date()
@@ -56,10 +56,9 @@ class Account(BaseModel):
         else:
             return None
 
-
     @staticmethod
-    def query_records_by_account_id(start_date, ids):
-        q = """Select Zone_Plan_Account.ID as ID,
+    def query_records_by_account_id():
+        return """Select TOP (?) Zone_Plan_Account.ID as ID,
 Member.Display_Name AS Name,
 Member.Number AS MemberNumber,
 Zone_Plan_Account_Status.Name AS Status,
@@ -114,11 +113,8 @@ LEFT JOIN Time_Unit AS STU WITH (NOLOCK) ON STU.ID = Prepaid_Zone_Plan.Lifespan_
 LEFT JOIN Code WITH (NOLOCK) ON Code.ID = Zone_Plan_Account.Code_ID
 LEFT JOIN Member_Marketing_Opt_In WITH (NOLOCK) ON Member_Marketing_Opt_In.Member_ID = Member.ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Zone_Plan_Account.ID IN ({0}) AND Zone_Plan_Account.Date_Created_UTC >= '{1}'
+WHERE Zone_Plan_Account.ID >= ? AND Zone_Plan_Account.Date_Created_UTC >= ?
 ORDER BY Zone_Plan_Account.ID ASC"""
-        q = q.format(','.join(str(i) for i in ids), start_date)
-        return q
-
 
     @staticmethod
     def query_records_by_modified_date():
