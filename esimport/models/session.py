@@ -28,10 +28,9 @@ class Session(BaseModel):
     def get_key_date_field():
         return Session._date_field
 
-
     def get_sessions(self, start_id, limit, start_date='1900-01-01', historical):
-        q = self.query_sessions(start_id, start_date, limit, historical)
-        for row in self.fetch_dict(q):
+        q = self.query_sessions(historical)
+        for row in self.fetch_dict(q, limit, start_id, start_id, limit, start_date):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
