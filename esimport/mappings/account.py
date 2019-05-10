@@ -33,6 +33,7 @@ from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
 
+
 class AccountMapping(PropertyAppendedDocumentMapping):
     dates_to_localize = (
         ('Created', 'CreatedLocal'),
@@ -61,7 +62,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             logger.info("Data Check - Created: {0}".format(start_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
-        
+
         start_date = set_utc_timezone(start_date)
 
         time_delta_window = timedelta(minutes=10)
@@ -97,7 +98,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             # advance end date until reaching now
             end_date = min(end_date + time_delta_window, datetime.now(timezone.utc))
 
-
     """
     Append site values to account record
     """
@@ -109,7 +109,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
 
         account.update(_action)
-
 
     """
     Get existing accounts from ElasticSearch
@@ -124,25 +123,24 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         for record in records['hits']['hits']:
             yield record.get('_source')
 
-
     """
     Update Account records in Elasticsearch
     """
     def update(self, start_date):
         start = 0
-        while True:
+        max_id = self.max_id()
+        while start < max_id:
             count = 0
             for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
                 count += 1
                 self.append_site_values(account)
                 account_es = account.es()
-                logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(
-                    account_es.get('_id'),
-                    account_es['doc'].get('Created')))
-
+                start = account.get('ID')
                 self.add(account_es, self.step_size)
 
-            start += 1
+            logger.info("Updated Account upto ID: {0}".format(start))
+
+            max_id = self.max_id()
 
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
@@ -150,7 +148,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
             if count <= 0:
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
-
 
     """
     NON FUNCTIONAL. Needs to be implemented.
