@@ -128,6 +128,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     """
     def update(self, start_date):
         start = 0
+        created_date = None
         max_id = self.max_id()
         while start < max_id:
             count = 0
@@ -136,9 +137,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 self.append_site_values(account)
                 account_es = account.es()
                 start = account.get('ID')
+                created_date = account.get('Created')
                 self.add(account_es, self.step_size)
 
-            logger.info("Updated Account upto ID: {0}".format(start))
+            logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(start, created_date))
 
             max_id = self.max_id()
 
