@@ -38,7 +38,6 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     """
     Loop to continuously find new Sessions and add them to Elasticsearch
     """
-
     def sync(self, start_date):
         use_historical = True
         most_recent_session_time = datetime.now(timezone.utc)
@@ -76,13 +75,19 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             elapsed_time = int(time.time() - timer_start)
 
             # While we're catching up to the current time, use the historical session data source. 
-            # Once we're within an hour or there are no records being returned, then switch to the real-time data source.
+            # Once we're within an hour or there are no records being returned, then
+            # switch to the real-time data source.
             minutes_behind = (datetime.now(timezone.utc) - most_recent_session_time).total_seconds() / 60
-            if count == 0 or minutes_behind < 60:
-                logger.info(
-                    "Switching to use the real-time session data source.  Latest Record Count Returned: {0}, Minutes Behind Now: {1}".format(
-                        count, minutes_behind))
+            if use_historical and (count == 0 or minutes_behind < 60):
+                logger.info("Switching to use the real-time session data source.  Record Count: {0}, Minutes Behind: "
+                            "{1}".format(count, minutes_behind))
                 use_historical = False
+            elif not use_historical and count > 0 and minutes_behind > 1380:
+                # if there's a surge of session data more than ESImport can handle then it may get
+                # behind and need to switch to the historical data source.  1380 mins = 23 hours
+                logger.info("Switching to use the historical session data source.  Record Count: {0}, Minutes Behind: "
+                            "{1}".format(count, minutes_behind))
+                use_historical = True
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.db_conn_reset_limit:
@@ -95,10 +100,9 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     """
     NON FUNCTIONAL. Needs to be implemented.
     """
-
     def backload(self, start_date):
         start = 0
-        for session in self.model.get_sessions(start, self.step_size, start_date, True):
+        for session in self.model.get_sessions(start, self.step_size, start_date):
             rec = session.es()
             logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
             self.add(dict(rec), self.step_size)

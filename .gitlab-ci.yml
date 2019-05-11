@@ -29,6 +29,7 @@ build:
   script:
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
+  allow_failure: true # TODO: change/remove this if prod/staging are/will be using the docker image
 
 staging_deploy:
   stage: staging_deploy
