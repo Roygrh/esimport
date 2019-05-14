@@ -133,10 +133,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         while start < max_id:
             for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
                 self.append_site_values(account)
-                account_es = account.es()
                 start = account.get('ID')
                 created_date = account.get('Created')
-                self.add(account_es, self.step_size)
+                self.add(account.es(), self.step_size)
 
             logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(start, created_date))
 
