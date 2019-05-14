@@ -97,6 +97,10 @@ def update(mapping_name, start_date):
         cm = ConferenceMapping()
         cm.setup()
         cm.update(start_date)
+    if mapping_name == 'account':
+        am = AccountMapping()
+        am.setup()
+        am.update(start_date)
 
 
 @cli.command()
