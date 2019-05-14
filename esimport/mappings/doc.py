@@ -119,7 +119,7 @@ class DocumentMapping(object):
             logger.info("Adding/Updating {0} records".format(items_count))
             result = self.bulk_add_or_update(self.es, self._items)
             self._items = []
-            if result[0] > 0:
+            if result[0] > 0 and metric_value is not None:
                 self.cache_client.set(self.get_monitoring_metric(), metric_value)
 
     """
