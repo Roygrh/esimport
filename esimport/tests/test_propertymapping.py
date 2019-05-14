@@ -63,7 +63,7 @@ class TestPropertyMapping(TestCase):
         property_id_es = [property['_source']['ID'] for property in res]
         property_id_es.sort()
 
-        properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
+        properties = self.pm.model.fetch(self.pm.model.query_get_properties(), 10, 0)
         property_ids = [prop.ID for prop in properties]
         property_ids.sort()
         self.assertEqual(property_ids, property_id_es)
@@ -86,10 +86,10 @@ class TestPropertyMapping(TestCase):
 
         service_area_lookup = {}
 
-        properties = list(self.pm.model.fetch(self.pm.model.query_get_properties(0,10)))
+        properties = list(self.pm.model.fetch(self.pm.model.query_get_properties(), 10, 0))
 
         for prop in properties:
-            service_areas = list(self.pm.model.fetch(self.pm.model.query_get_service_areas(prop.ID)))
+            service_areas = list(self.pm.model.fetch(self.pm.model.query_get_service_areas(), prop.ID))
             service_areas_arr = []
 
             for service_area in service_areas:
@@ -101,7 +101,7 @@ class TestPropertyMapping(TestCase):
                     'ActiveDevices': service_area.ActiveDevices
                 }
 
-                hosts = list(self.pm.model.fetch(self.pm.model.query_get_service_area_devices(service_area.ID)))
+                hosts = list(self.pm.model.fetch(self.pm.model.query_get_service_area_devices(), service_area.ID))
                 hosts_arr = []
                 for host in hosts:
                     host_dict = {
@@ -129,7 +129,7 @@ class TestPropertyMapping(TestCase):
     def test_property_address(self):
         time.sleep(2)
 
-        properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
+        properties = self.pm.model.fetch(self.pm.model.query_get_properties(), 10, 0)
 
         addresses = {}
         for prop in properties:
@@ -150,13 +150,13 @@ class TestPropertyMapping(TestCase):
     def test_service_plans_in_service_area(self):
         time.sleep(2)
 
-        properties = self.pm.model.fetch(self.pm.model.query_get_properties(0,10))
+        properties = self.pm.model.fetch(self.pm.model.query_get_properties(), 10, 0)
         
         prop_mapping = {}
 
         for prop in list(properties):
-            q_serviceplans = self.pm.model.query_get_service_area_serviceplans(prop.ID)
-            for service_plan in list(self.pm.model.fetch(q_serviceplans)):
+            q_serviceplans = self.pm.model.query_get_service_area_serviceplans()
+            for service_plan in list(self.pm.model.fetch(q_serviceplans, prop.ID)):
                 sp_dic = {
                     "Number": service_plan.Number,
                     "Name": service_plan.Name,
@@ -179,8 +179,8 @@ class TestPropertyMapping(TestCase):
                     "DateCreatedUTC": service_plan.DateCreatedUTC.isoformat()
                 }
                     
-            q_serviceareas = self.pm.model.query_get_service_areas(prop.ID)
-            for service_area in list(self.pm.model.fetch(q_serviceareas)):
+            q_serviceareas = self.pm.model.query_get_service_areas()
+            for service_area in list(self.pm.model.fetch(q_serviceareas, prop.ID)):
                 if service_area.ID in prop_mapping.keys():
                     prop_mapping[prop.ID].append(sp_dic)
                 else:

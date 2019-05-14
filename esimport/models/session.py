@@ -13,13 +13,10 @@ from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 from esimport.utils import set_utc_timezone
 
-
 logger = logging.getLogger(__name__)
 
 
 class Session(BaseModel):
-
-
     _type = "session"
     _date_field = "LogoutTime"
 
@@ -31,21 +28,19 @@ class Session(BaseModel):
     def get_key_date_field():
         return Session._date_field
 
-
     def get_sessions(self, start_id, limit, start_date='1900-01-01', historical=True):
-        q = self.query_sessions(start_id, start_date, limit, historical)
-        for row in self.fetch_dict(q):
+        q = self.query_sessions(historical)
+        for row in self.fetch_dict(q, limit, start_id, start_id, limit, start_date):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
             yield ESRecord(row, self.get_type())
 
-
     @staticmethod
-    def query_sessions(start_id, start_date, limit, historical):
+    def query_sessions(historical):
         q = """
-SELECT TOP ({2}) 
+SELECT TOP (?) 
 	stop.ID AS ID,
 	org.Number AS ServiceArea,
 	val.Value AS ZoneType,
@@ -67,7 +62,7 @@ SELECT TOP ({2})
 FROM
 	Radius.dbo.Radius_Stop_Event stop
 	JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
-	JOIN Radius.dbo.{3} hist ON hist.{4} = acct.Radius_Event_ID
+	JOIN Radius.dbo.{0} hist ON hist.{1} = acct.Radius_Event_ID
 	LEFT JOIN Radius.dbo.Radius_Terminate_Cause term ON term.ID = stop.Acct_Terminate_Cause
 	JOIN Organization org ON org.ID = hist.Organization_ID
 	LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
@@ -80,7 +75,7 @@ FROM
 	) zpa
 	LEFT JOIN Zone_Plan zp ON zp.ID = zpa.Zone_Plan_ID
 WHERE
-    stop.ID >= {0} AND stop.ID < ({0} + {2}) AND hist.Date_UTC > '{1}'
+    stop.ID >= ? AND stop.ID < (? + ?) AND hist.Date_UTC > ?
 ORDER BY
     stop.ID ASC
 """
@@ -89,5 +84,5 @@ ORDER BY
         event_table = "Radius_Event_History" if historical else "Radius_Event"
         event_table_id = "Radius_Event_ID" if historical else "ID"
 
-        q = q.format(start_id, start_date, limit, event_table, event_table_id)		
+        q = q.format(event_table, event_table_id)
         return q
