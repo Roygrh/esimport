@@ -12,17 +12,14 @@ import logging
 
 from esimport import settings
 
-
 logger = logging.getLogger(__name__)
 
 
 class BaseModel(object):
-
     conn = None
 
     def __init__(self, connection):
         self.conn = connection
-
 
     def execute(self, query, *args):
         # As Eleven uses availability groups, we can't specify db name in DSN string. Rather we have
@@ -31,14 +28,12 @@ class BaseModel(object):
         self.conn.cursor.execute("USE Eleven_OS")
         return self.conn.cursor.execute(query, list(args))
 
-
-    def fetch(self, query, column_names=None):
-        for row in self.execute(query):
+    def fetch(self, query, *args, column_names=None):
+        for row in self.execute(query, *args):
             if column_names:
                 yield dict([(cn, getattr(row, cn, '')) for cn in column_names])
             else:
                 yield row
-
 
     def fetch_dict(self, query, *args):
         rows = self.execute(query, *args)

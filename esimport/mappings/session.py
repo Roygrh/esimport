@@ -35,7 +35,6 @@ class SessionMapping(PropertyAppendedDocumentMapping):
     def get_monitoring_metric():
         return settings.DATADOG_SESSION_METRIC
 
-
     """
     Loop to continuously find new Sessions and add them to Elasticsearch
     """
@@ -44,13 +43,13 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         most_recent_session_time = datetime.now(timezone.utc)
         start = self.max_id() + 1
         timer_start = time.time()
-        
+
         while True:
             count = 0
             metric_value = None
 
             logger.debug("Get Sessions from {0} to {1} since {2}"
-                .format(start, start+self.db_record_limit, start_date))
+                         .format(start, start + self.db_record_limit, start_date))
 
             for session in self.model.get_sessions(start, self.db_record_limit, start_date, use_historical):
                 count += 1
@@ -76,15 +75,18 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             elapsed_time = int(time.time() - timer_start)
 
             # While we're catching up to the current time, use the historical session data source. 
-            # Once we're within an hour or there are no records being returned, then switch to the real-time data source.
+            # Once we're within an hour or there are no records being returned, then
+            # switch to the real-time data source.
             minutes_behind = (datetime.now(timezone.utc) - most_recent_session_time).total_seconds() / 60
             if use_historical and (count == 0 or minutes_behind < 60):
-                logger.info("Switching to use the real-time session data source.  Record Count: {0}, Minutes Behind: {1}".format(count, minutes_behind))
+                logger.info("Switching to use the real-time session data source.  Record Count: {0}, Minutes Behind: "
+                            "{1}".format(count, minutes_behind))
                 use_historical = False
             elif not use_historical and count > 0 and minutes_behind > 1380:
                 # if there's a surge of session data more than ESImport can handle then it may get
                 # behind and need to switch to the historical data source.  1380 mins = 23 hours
-                logger.info("Switching to use the historical session data source.  Record Count: {0}, Minutes Behind: {1}".format(count, minutes_behind))
+                logger.info("Switching to use the historical session data source.  Record Count: {0}, Minutes Behind: "
+                            "{1}".format(count, minutes_behind))
                 use_historical = True
 
             # habitually reset mssql connection.
@@ -93,7 +95,7 @@ class SessionMapping(PropertyAppendedDocumentMapping):
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(wait))
                 self.model.conn.reset()
                 time.sleep(wait)
-                timer_start=time.time() # reset timer
+                timer_start = time.time()  # reset timer
 
     """
     NON FUNCTIONAL. Needs to be implemented.

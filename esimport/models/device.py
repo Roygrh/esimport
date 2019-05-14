@@ -13,14 +13,12 @@ from dateutil import tz
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, \
-                            set_pacific_timezone, set_utc_timezone
-
+    set_pacific_timezone, set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
 
 class Device(BaseModel):
-
     _type = "device"
     _date_field = "DateUTC"
 
@@ -31,30 +29,27 @@ class Device(BaseModel):
     def get_type():
         return Device._type
 
-
     @staticmethod
     def get_key_date_field():
         return Device._date_field
 
-
     def get_devices(self, start, limit, start_date='1900-01-01'):
-        q = self.query_one(start_date, start, limit)
+        q = self.query_one()
 
-        for row in self.fetch_dict(q):
+        for row in self.fetch_dict(q, limit, start, start_date):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
                         row[self.dates_from_pacific[key]] = convert_pacific_to_utc(set_pacific_timezone(row[key]))
-                        del row[key] # As there's no `Date` field in ElevenAPI's Device model
+                        del row[key]  # As there's no `Date` field in ElevenAPI's Device model
                     else:
-                        row[key] = set_utc_timezone(row[key])                     
+                        row[key] = set_utc_timezone(row[key])
 
             yield ESRecord(row, self.get_type())
 
-
     @staticmethod
-    def query_one(start_date, start_ct_id, limit):
-        q = """SELECT TOP({1})
+    def query_one():
+        return """SELECT TOP (?)
 Client_Tracking.ID AS ID,
 Client_Tracking.Date AS Date,
 Client_Tracking.IP_Address AS IP,
@@ -75,8 +70,5 @@ LEFT JOIN Browser_Type WITH (NOLOCK) ON Browser_Type.ID = Client_Tracking.Browse
 LEFT JOIN Member WITH (NOLOCK) ON Member.ID = Client_Tracking.Member_ID
 LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Client_Tracking.Organization_ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Client_Tracking.ID >= {0} AND Client_Tracking.Date > '{2}'
-ORDER BY Client_Tracking.ID ASC
-"""
-        q = q.format(start_ct_id, limit, start_date)
-        return q
+WHERE Client_Tracking.ID >= ? AND Client_Tracking.Date > ?
+ORDER BY Client_Tracking.ID ASC"""
