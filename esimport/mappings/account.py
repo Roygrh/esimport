@@ -131,9 +131,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         created_date = None
         max_id = self.max_id()
         while start < max_id:
-            count = 0
             for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
-                count += 1
                 self.append_site_values(account)
                 account_es = account.es()
                 start = account.get('ID')
@@ -142,14 +140,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
             logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(start, created_date))
 
-            max_id = self.max_id()
-
             # for cases when all/remaining items count were less than limit
             self.add(None, min(len(self._items), self.step_size))
-
-            if count <= 0:
-                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
 
     """
     NON FUNCTIONAL. Needs to be implemented.
