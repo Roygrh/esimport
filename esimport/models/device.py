@@ -13,14 +13,12 @@ from dateutil import tz
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, \
-                            set_pacific_timezone, set_utc_timezone
-
+    set_pacific_timezone, set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
 
 class Device(BaseModel):
-
     _type = "device"
     _date_field = "DateUTC"
 
@@ -31,26 +29,29 @@ class Device(BaseModel):
     def get_type():
         return Device._type
 
-
     @staticmethod
     def get_key_date_field():
         return Device._date_field
 
-
     def get_devices(self, start, limit, start_date='1900-01-01'):
         q = self.query_one(start_date, start, limit)
 
-        for row in self.fetch_dict(q):
+        for row in list(self.fetch_dict(q)):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
                         row[self.dates_from_pacific[key]] = convert_pacific_to_utc(set_pacific_timezone(row[key]))
-                        del row[key] # As there's no `Date` field in ElevenAPI's Device model
+                        del row[key]  # As there's no `Date` field in ElevenAPI's Device model
                     else:
-                        row[key] = set_utc_timezone(row[key])                     
+                        row[key] = set_utc_timezone(row[key])
+
+            org_number_tree = []
+            org_number_tree_query = self.query_get_org_number_tree()
+            for org in list(self.fetch(org_number_tree_query, row['ID'])):
+                org_number_tree.append(org[0])
+            row['AncestorOrgNumberTree'] = org_number_tree
 
             yield ESRecord(row, self.get_type())
-
 
     @staticmethod
     def query_one(start_date, start_ct_id, limit):
@@ -80,3 +81,10 @@ ORDER BY Client_Tracking.ID ASC
 """
         q = q.format(start_ct_id, limit, start_date)
         return q
+
+    @staticmethod
+    def query_get_org_number_tree():
+        return """SELECT o.Number AS AncestorOrgNumberTree
+                  FROM Org_Relation_Cache c
+                  JOIN Organization o ON o.ID = c.Parent_Org_ID
+                  WHERE c.Child_Org_ID = ?"""

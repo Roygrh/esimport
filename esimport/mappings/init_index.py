@@ -82,48 +82,48 @@ class new_index(object):
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "ServiceAreaObjects": {"type": "nested",
-                            "properties": {
-                                    "Number": {"type": "keyword" },
-                                    "Name": {"type": "text" },
-                                    "ZoneType": {"type": "keyword" },
-                                    "ActiveMembers": {"type": "integer"},
-                                    "ActiveDevices": {"type":  "integer"},
-                                    "Hosts": {"type": "nested",
-                                           "properties": {
-                                                  "NASID": {"type": "keyword" },
-                                                  "RadiusNASID": {"type": "text" },
-                                                  "HostType": {"type": "text" },
-                                                  "VLANRangeStart": {"type": "integer" },
-                                                  "VLANRangeEnd": {"type": "integer" },
-                                                  "NetIP": {"type": "keyword" }
+                                       "properties": {
+                                           "Number": {"type": "keyword"},
+                                           "Name": {"type": "text"},
+                                           "ZoneType": {"type": "keyword"},
+                                           "ActiveMembers": {"type": "integer"},
+                                           "ActiveDevices": {"type": "integer"},
+                                           "Hosts": {"type": "nested",
+                                                     "properties": {
+                                                         "NASID": {"type": "keyword"},
+                                                         "RadiusNASID": {"type": "text"},
+                                                         "HostType": {"type": "text"},
+                                                         "VLANRangeStart": {"type": "integer"},
+                                                         "VLANRangeEnd": {"type": "integer"},
+                                                         "NetIP": {"type": "keyword"}
+                                                     }
+                                                     },
+                                           "ServicePlans": {
+                                               "type": "nested",
+                                               "properties": {
+                                                   "Number": {"type": "keyword"},
+                                                   "Name": {"type": "keyword"},
+                                                   "Description": {"type": "text"},
+                                                   "Price": {"type": "float"},
+                                                   "UpKbs": {"type": "integer"},
+                                                   "DownKbs": {"type": "integer"},
+                                                   "IdleTimeout": {"type": "integer"},
+                                                   "ConnectionLimit": {"type": "integer"},
+                                                   "RadiusClass": {"type": "keyword"},
+                                                   "GroupBandwidthLimit": {"type": "boolean"},
+                                                   "Type": {"type": "keyword"},
+                                                   "PlanTime": {"type": "integer"},
+                                                   "PlanUnit": {"type": "keyword"},
+                                                   "LifespanTime": {"type": "integer"},
+                                                   "LifespanUnit": {"type": "keyword"},
+                                                   "CurrencyCode": {"type": "keyword"},
+                                                   "Status": {"type": "keyword"},
+                                                   "OrgCode": {"type": "keyword"},
+                                                   "DateCreatedUTC": {"type": "date"}
+                                               }
                                            }
-                                    },
-                                    "ServicePlans": {
-                                        "type": "nested",
-                                        "properties": {
-                                            "Number": {"type": "keyword"},
-                                            "Name": {"type": "keyword"},
-                                            "Description": {"type": "text"},
-                                            "Price": {"type": "float"},
-                                            "UpKbs": {"type": "integer"},
-                                            "DownKbs": {"type": "integer"},
-                                            "IdleTimeout": {"type": "integer"},
-                                            "ConnectionLimit": {"type": "integer"},
-                                            "RadiusClass": {"type": "keyword"},
-                                            "GroupBandwidthLimit": {"type": "boolean"},
-                                            "Type": {"type": "keyword"},
-                                            "PlanTime": {"type": "integer"},
-                                            "PlanUnit": {"type": "keyword"},
-                                            "LifespanTime": {"type": "integer"},
-                                            "LifespanUnit": {"type": "keyword"},
-                                            "CurrencyCode": {"type": "keyword"},
-                                            "Status": {"type": "keyword"},
-                                            "OrgCode": {"type": "keyword"},
-                                            "DateCreatedUTC": {"type": "date"}
-                                        }
-                                    }
-                            }
-                },
+                                       }
+                                       },
                 "Status": {"type": "keyword", "ignore_above": 16},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
                 "TaxRate": {"type": "float"},
@@ -143,33 +143,37 @@ class new_index(object):
 
         device_mapping = {
             "properties": {
+                "AncestorOrgNumberTree": {"type": "keyword"},
+                "Brand": {"type": "keyword", "ignore_above": 64},
                 "Browser": {"type": "keyword", "ignore_above": 32},
+                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
+                "Country": {"type": "keyword", "ignore_above": 64},
                 "DateLocal": {"type": "date"},
                 "DateUTC": {"type": "date"},
+                "ExtPropId": {"type": "keyword", "ignore_above": 64},
                 "IP": {"type": "keyword", "ignore_above": 56},
                 "MAC": {"type": "keyword", "ignore_above": 18},
-                "Platform": {"type": "keyword", "ignore_above": 32},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Provider": {"type": "keyword", "ignore_above": 128},
                 "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
                 "MemberID": {"type": "long"},
                 "MemberNumber": {"type": "keyword"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
+                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
+                "Platform": {"type": "keyword", "ignore_above": 32},
+                "PropertyName": {"type": "text"},
+                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
+                "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
+                "TaxRate": {"type": "float"},
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"}
+                "ZoneType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                }
             }
         }
 
@@ -180,12 +184,12 @@ class new_index(object):
                 "Brand": {"type": "keyword", "ignore_above": 64},
                 "CardType": {"type": "keyword", "ignore_above": 16},
                 "ConnectCode": {"type": "text",
-                                    "fields": {
-                                        "keyword": {
-                                            "type": "keyword", 
-                                            "ignore_above": 128
-                                        }
+                                "fields": {
+                                    "keyword": {
+                                        "type": "keyword",
+                                        "ignore_above": 128
                                     }
+                                }
                                 },
                 "ConsumableTime": {"type": "integer"},
                 "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
@@ -205,13 +209,13 @@ class new_index(object):
                 "MarketingContact": {"type": "text"},
                 "MemberNumber": {"type": "keyword", "ignore_above": 32},
                 "Name": {"type": "text",
-                            "fields": {
-                                "keyword": {
-                                    "type": "keyword", 
-                                    "ignore_above": 128
-                                }
-                            }
-                        },
+                         "fields": {
+                             "keyword": {
+                                 "type": "keyword",
+                                 "ignore_above": 128
+                             }
+                         }
+                         },
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PayMethod": {"type": "keyword"},
                 "Price": {"type": "float"},
@@ -235,13 +239,13 @@ class new_index(object):
                 "UpsellAccountID": {"type": "long"},
                 "VLAN": {"type": "integer"},
                 "ZoneType": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword", 
-                                        "ignore_above": 128
-                                    }
-                                }
-                            }
+                             "fields": {
+                                 "keyword": {
+                                     "type": "keyword",
+                                     "ignore_above": 128
+                                 }
+                             }
+                             }
             }
         }
 
@@ -319,14 +323,14 @@ class new_index(object):
                                  "keyword": {
                                      "type": "keyword",
                                      "ignore_above": 128
-                                }}}
+                                 }}}
             }
         }
 
         conference_mapping = {
             "properties": {
                 "AccessCodes": {
-                    "type": "nested", 
+                    "type": "nested",
                     "properties": {
                         "Code": {"type": "keyword"},
                         "MemberNumber": {"type": "keyword"},
