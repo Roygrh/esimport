@@ -33,14 +33,14 @@ class Property(BaseModel):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
                 .format(start, limit))
 
-        q1 = self.query_get_properties(start, limit)
-        for rec in list(self.fetch_dict(q1)):
+        q1 = self.query_get_properties()
+        for rec in list(self.fetch_dict(q1, limit, start)):
 
             # All site-level service plans are stored with their org ID as key
             site_level_sps = {}
 
-            q_serviceplans = self.query_get_service_area_serviceplans(rec["ID"])
-            for service_plan in list(self.fetch(q_serviceplans)):
+            q_serviceplans = self.query_get_service_area_serviceplans()
+            for service_plan in list(self.fetch(q_serviceplans, rec["ID"])):
                 sp_dic = {
                     "Number": service_plan.Number,
                     "Name": service_plan.Name,
@@ -80,13 +80,13 @@ class Property(BaseModel):
 
             sa_list = []
 
-            q4 = self.query_get_service_areas(rec["ID"])
-            for rec4 in list(self.fetch(q4)):
+            q4 = self.query_get_service_areas()
+            for rec4 in list(self.fetch(q4, rec["ID"])):
 
                 hosts_list = []
 
-                q5 = self.query_get_service_area_devices(rec4.ID)
-                for rec5 in list(self.fetch(q5)):
+                q5 = self.query_get_service_area_devices()
+                for rec5 in list(self.fetch(q5, rec4.ID)):
                     host_dic = {
                         "NASID": rec5.NASID,
                         "RadiusNASID": rec5.RadiusNASID,
@@ -115,10 +115,10 @@ class Property(BaseModel):
 
             rec["ServiceAreaObjects"] = sa_list
 
-            q6 = self.query_get_org_number_tree(rec["ID"])
+            q6 = self.query_get_org_number_tree()
             org_number_tree_list = []
 
-            for rec6 in list(self.fetch(q6)):
+            for rec6 in list(self.fetch(q6, rec["ID"], rec["ID"])):
                 org_number_tree_list.append(rec6[0])
 
             rec["OrgNumberTree"] = org_number_tree_list
@@ -147,8 +147,8 @@ class Property(BaseModel):
             yield ESRecord(rec, self.get_type())
 
     @staticmethod
-    def query_get_properties(start, limit):
-        q = """Select TOP {0} Organization.ID as ID,
+    def query_get_properties():
+        return """Select TOP (?) Organization.ID as ID,
 Organization.Number as Number,
 Organization.Display_Name as Name,
 Organization.Guest_Room_Count as GuestRooms,
@@ -173,10 +173,8 @@ Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organiza
 Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
 Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
 Where Organization.Org_Category_Type_ID = 3
-    AND Organization.ID > {1}
+    AND Organization.ID > ?
 ORDER BY Organization.ID ASC"""
-        q = q.format(limit, start)
-        return q
 
     @staticmethod
     def query_get_property_org_values():
@@ -200,8 +198,8 @@ ORDER BY Organization.ID ASC"""
                   ORDER BY Org_Relation_Cache.Depth DESC"""
 
     @staticmethod
-    def query_get_service_areas(org_id):
-        q = """SELECT Organization.ID as ID,
+    def query_get_service_areas():
+        return """SELECT Organization.ID as ID,
                       Organization.Number as Number,
                       Organization.Display_Name as Name,
                       Org_Value.Value as ZoneType,
@@ -211,18 +209,16 @@ FROM Org_Relation_Cache WITH (NOLOCK)
 JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 LEFT JOIN Radius_Active_Usage r WITH (NOLOCK) ON r.Organization_ID = Child_Org_ID
-WHERE Org_Relation_Cache.Parent_Org_ID = {0}
+WHERE Org_Relation_Cache.Parent_Org_ID = ?
     AND Organization.Org_Category_Type_ID = 4
 GROUP BY Organization.ID,
          Organization.Number,
          Organization.Display_Name,
          Org_Value.Value"""
-        q = q.format(org_id)
-        return q
 
     @staticmethod
-    def query_get_service_area_devices(org_id):
-        q = """SELECT NAS_Device.NAS_ID as NASID,
+    def query_get_service_area_devices():
+        return """SELECT NAS_Device.NAS_ID as NASID,
                       NAS_Device.Radius_NAS_ID as RadiusNASID,
                       NAS_Device_Type.Name as HostType,
                       NAS_Device.VLAN_Range_Start as VLANRangeStart,
@@ -230,23 +226,19 @@ GROUP BY Organization.ID,
                       NAS_Device.Net_IP as NetIP
 FROM NAS_Device WITH (NOLOCK)
 LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
-WHERE Organization_ID = {0}"""
-        q = q.format(org_id)
-        return q
+WHERE Organization_ID = ?"""
 
     @staticmethod
-    def query_get_org_number_tree(org_id):
-        q = """SELECT o.Number as OrgNumberTree
+    def query_get_org_number_tree():
+        return """SELECT o.Number as OrgNumberTree
                FROM Org_Relation_Cache c
                JOIN Organization o on o.ID = c.Parent_Org_ID
-               WHERE c.Child_Org_ID = {0}
+               WHERE c.Child_Org_ID = ?
                UNION
                SELECT o.Number as OrgNumberTree
                FROM Org_Relation_Cache c
                JOIN Organization o on o.ID = c.Child_Org_ID
-               WHERE c.Parent_Org_ID = {0}"""
-        q = q.format(org_id)
-        return q
+               WHERE c.Parent_Org_ID = ?"""
 
     @staticmethod
     def query_get_active_counts():
@@ -257,8 +249,8 @@ WHERE Organization_ID = {0}"""
                   WHERE o.Parent_Org_ID = ?"""
 
     @staticmethod
-    def query_get_service_area_serviceplans(org_id):
-        q = """SELECT            
+    def query_get_service_area_serviceplans():
+        return """SELECT            
                 Organization.ID as Owner_Org_ID,
                 Zone_Plan.Plan_Number AS Number,
                 Zone_Plan.Name AS Name, 
@@ -292,6 +284,5 @@ WHERE Organization_ID = {0}"""
                 JOIN Organization ON Organization.ID = Org_Zone.Organization_ID
                 JOIN Org_Relation_Cache ON Org_Relation_Cache.Child_Org_ID = Organization.ID
             WHERE 
-                Org_Relation_Cache.Parent_Org_ID = {0}"""
-        q = q.format(org_id)
-        return q
+                Org_Relation_Cache.Parent_Org_ID = ?"""
+

@@ -34,9 +34,9 @@ class Device(BaseModel):
         return Device._date_field
 
     def get_devices(self, start, limit, start_date='1900-01-01'):
-        q = self.query_one(start_date, start, limit)
+        q = self.query_one()
 
-        for row in list(self.fetch_dict(q)):
+        for row in list(self.fetch_dict(q, limit, start, start_date)):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
@@ -54,8 +54,8 @@ class Device(BaseModel):
             yield ESRecord(row, self.get_type())
 
     @staticmethod
-    def query_one(start_date, start_ct_id, limit):
-        q = """SELECT TOP({1})
+    def query_one():
+        return """SELECT TOP (?)
 Client_Tracking.ID AS ID,
 Client_Tracking.Date AS Date,
 Client_Tracking.IP_Address AS IP,
@@ -76,15 +76,12 @@ LEFT JOIN Browser_Type WITH (NOLOCK) ON Browser_Type.ID = Client_Tracking.Browse
 LEFT JOIN Member WITH (NOLOCK) ON Member.ID = Client_Tracking.Member_ID
 LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Client_Tracking.Organization_ID
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
-WHERE Client_Tracking.ID >= {0} AND Client_Tracking.Date > '{2}'
-ORDER BY Client_Tracking.ID ASC
-"""
-        q = q.format(start_ct_id, limit, start_date)
-        return q
+WHERE Client_Tracking.ID >= ? AND Client_Tracking.Date > ?
+ORDER BY Client_Tracking.ID ASC"""
 
     @staticmethod
     def query_get_org_number_tree():
         return """SELECT o.Number AS AncestorOrgNumberTree
-                  FROM Org_Relation_Cache c
-                  JOIN Organization o ON o.ID = c.Parent_Org_ID
-                  WHERE c.Child_Org_ID = ?"""
+                      FROM Org_Relation_Cache c
+                      JOIN Organization o ON o.ID = c.Parent_Org_ID
+                      WHERE c.Child_Org_ID = ?"""

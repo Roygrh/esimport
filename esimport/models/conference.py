@@ -29,17 +29,18 @@ class Conference(BaseModel):
         return Conference._date_field
 
     def get_conferences(self, start, limit, start_date='1900-01-01'):
-        logger.debug("Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
-                     .format(start, start_date, limit))
+        logger.debug(
+            "Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
+            .format(start, start_date, limit))
 
-        q1 = self.query_get_conferences(start_date, start, limit)
+        q1 = self.query_get_conferences()
 
         h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
               'Code', 'MemberID', 'MemberNumber', 'MemberStatus', 'SSID', 'StartDateUTC', 'EndDateUTC',
-	          'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
+              'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
               'TotalOutputBytes', 'TotalSessionTime', 'GroupBandwidthLimit']
 
-        for rec1 in list(self.fetch(q1, h1)):
+        for rec1 in list(self.fetch(q1, limit, start, start_date, column_names=h1)):
             # set all datetime objects to utc timezone
             for key, value in rec1.items():
                 if isinstance(value, datetime):
@@ -47,22 +48,22 @@ class Conference(BaseModel):
 
             rec1['UpdateTime'] = datetime.now(timezone.utc)
 
-            q2 = self.query_get_additional_access_codes(rec1['ID'])
+            q2 = self.query_get_additional_access_codes()
 
             # Update the CodeList with the main Code first
             code_list = [rec1.get('Code')]
-            
+
             # Update the MemberNumberList with the main MemberNumber first
             member_number_list = [rec1.get('MemberNumber')]
-            
+
             # Initialize AccessCodes with the main memberID and member number
             access_codes_list = [{
-                    "Code": rec1.get('Code'),
-                    "MemberNumber": rec1.get('MemberNumber'),
-                    "MemberID": rec1.get('MemberID')
+                "Code": rec1.get('Code'),
+                "MemberNumber": rec1.get('MemberNumber'),
+                "MemberID": rec1.get('MemberID')
             }]
 
-            for rec2 in list(self.fetch(q2, None)):
+            for rec2 in list(self.fetch(q2, rec1['ID'])):
                 code_list.append(rec2.Code)
                 member_number_list.append(rec2.MemberNumber)
                 access_codes_list.append({
@@ -78,8 +79,8 @@ class Conference(BaseModel):
             yield ESRecord(rec1, self.get_type())
 
     @staticmethod
-    def query_get_conferences(start_date, start_sa_id, limit):
-        q = """SELECT TOP ({1})
+    def query_get_conferences():
+        return """SELECT TOP (?)
 Scheduled_Access.ID AS ID,
 Scheduled_Access.Event_Name AS Name,
 Scheduled_Access.Date_Created_UTC AS DateCreatedUTC,
@@ -106,19 +107,14 @@ LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Scheduled_Access.Organ
 LEFT JOIN Network_Configuration WITH (NOLOCK) ON Network_Configuration.Scheduled_Access_ID = Scheduled_Access.ID
 LEFT JOIN Network_Access WITH (NOLOCK) ON Network_Access.ID = Scheduled_Access.Network_Access_ID
 LEFT JOIN Network_Access_Limits WITH (NOLOCK) ON Network_Access_Limits.ID = Network_Access.Network_Access_Limits_ID
-WHERE Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > '{2}'
-ORDER BY Scheduled_Access.ID ASC
-"""
-        q = q.format(start_sa_id, limit, start_date)
-        return q
+WHERE Scheduled_Access.ID >= ? AND Scheduled_Access.Date_Created_UTC > ?
+ORDER BY Scheduled_Access.ID ASC"""
 
     @staticmethod
-    def query_get_additional_access_codes(sa_id):
-        q = """SELECT Display_Name AS Code,
+    def query_get_additional_access_codes():
+        return """SELECT Display_Name AS Code,
                       Member.Number AS MemberNumber,
                       Member.ID AS MemberID
                FROM Member WITH (NOLOCK)
                JOIN Scheduled_Access_Member ON Scheduled_Access_Member.Member_ID = Member.ID
-               WHERE Scheduled_Access_Member.Scheduled_Access_ID = {0}"""
-        q = q.format(sa_id)
-        return q
+               WHERE Scheduled_Access_Member.Scheduled_Access_ID = ?"""
