@@ -36,7 +36,7 @@ class Device(BaseModel):
     def get_devices(self, start, limit, start_date='1900-01-01'):
         q = self.query_one()
 
-        for row in self.fetch_dict(q, limit, start, start_date):
+        for row in list(self.fetch_dict(q, limit, start, start_date)):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
@@ -44,6 +44,12 @@ class Device(BaseModel):
                         del row[key]  # As there's no `Date` field in ElevenAPI's Device model
                     else:
                         row[key] = set_utc_timezone(row[key])
+
+            org_number_tree = []
+            org_number_tree_query = self.query_get_org_number_tree()
+            for org in list(self.fetch(org_number_tree_query, row['ID'])):
+                org_number_tree.append(org[0])
+            row['AncestorOrgNumberTree'] = org_number_tree
 
             yield ESRecord(row, self.get_type())
 
@@ -72,3 +78,10 @@ LEFT JOIN Organization WITH (NOLOCK) ON Organization.ID = Client_Tracking.Organi
 LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
 WHERE Client_Tracking.ID >= ? AND Client_Tracking.Date > ?
 ORDER BY Client_Tracking.ID ASC"""
+
+    @staticmethod
+    def query_get_org_number_tree():
+        return """SELECT o.Number AS AncestorOrgNumberTree
+                      FROM Org_Relation_Cache c
+                      JOIN Organization o ON o.ID = c.Parent_Org_ID
+                      WHERE c.Child_Org_ID = ?"""
