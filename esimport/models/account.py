@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 class Account(BaseModel):
     _type = "account"
     _date_field = 'DateModifiedUTC'
+    _index_name_date_field = 'Created'
 
     @staticmethod
     def get_type():
@@ -28,6 +29,10 @@ class Account(BaseModel):
     @staticmethod
     def get_key_date_field():
         return Account._date_field
+
+    @staticmethod
+    def get_index_date_field():
+        return Account._index_name_date_field
 
     def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
         q = self.query_records_by_account_id()
@@ -46,7 +51,7 @@ class Account(BaseModel):
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
-            yield ESRecord(row, self.get_type())
+            yield ESRecord(row, self.get_type(), row[self.get_index_date_field()])
 
     def find_duration(self, row):
         if row.get('ConsumableTime') is not None:

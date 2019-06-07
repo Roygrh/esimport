@@ -5,9 +5,9 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
-from esimport import settings
-
 import logging
+from esimport import settings
+from ..utils import date_to_index_name
 logger = logging.getLogger(__name__)
 
 
@@ -16,17 +16,19 @@ class ESRecord:
     record = None
 
     meta_fields = {
-        "_op_type": "update",
-        "_index": settings.ES_INDEX
+        "_op_type": "update"
     }
 
-    def __init__(self, record, doc_type):
+    def __init__(self, record, doc_type, index_date):
         self.record = record
         self.doc_type = doc_type
+        self.index_date = index_date
 
     def es(self, record_id=None):
+        index_name = "elevenos-{}".format(date_to_index_name(self.index_date))
         rec = self.meta_fields.copy()
         rec.update({
+            "_index": index_name,
             "_type": self.doc_type,
             "_id": record_id or self.record.get('ID'),
             "doc_as_upsert": True,

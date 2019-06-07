@@ -31,15 +31,18 @@ def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
                     if retries > 0:
                         retries -= 1
                         logger.info('Retry {0} of {1} in {2} seconds'
-                              .format((retry - retries), retry, retries_wait))
+                                    .format((retry - retries), retry, retries_wait))
                         time.sleep(retries_wait)
                         if retry_incremental:
                             retries_wait += retry_wait
                     else:
                         sentry_client.captureException()
                         raise err
+
         return f
+
     return tryIt
+
 
 def convert_utc_to_local_time(time, tzone):
     if time is None:
@@ -49,20 +52,24 @@ def convert_utc_to_local_time(time, tzone):
     local_datetime = time.astimezone(tz.gettz(tzone))
     return local_datetime.replace(tzinfo=tz.gettz(tzone))
 
+
 def convert_pacific_to_utc(time):
     if time is None:
         return None
 
-    assert isinstance(time, datetime) and time.tzinfo == tz.gettz('America/Los_Angeles'), "Time zone is not set to America/Los_Angeles."
+    assert isinstance(time, datetime) and time.tzinfo == tz.gettz(
+        'America/Los_Angeles'), "Time zone is not set to America/Los_Angeles."
     utc_datetime = time.astimezone(tz.gettz('UTC'))
     return utc_datetime.replace(tzinfo=tz.gettz('UTC'))
+
 
 def set_pacific_timezone(time):
     if time is None:
         return None
-        
+
     assert isinstance(time, datetime), "Object is not a datetime object."
     return time.replace(tzinfo=tz.gettz('America/Los_Angeles'))
+
 
 def set_utc_timezone(time):
     if time is None:
@@ -70,3 +77,7 @@ def set_utc_timezone(time):
 
     assert isinstance(time, datetime), "Object is not a datetime object."
     return time.replace(tzinfo=timezone.utc)
+
+
+def date_to_index_name(time):
+    return time.strftime('%Y-%m')
