@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 class Device(BaseModel):
     _type = "device"
     _date_field = "DateUTC"
+    _index_name_date_field = "DateUTC"
 
     # These dates are in 'America/Los_Angeles' format
     dates_from_pacific = {"Date": "DateUTC"}
@@ -51,7 +52,7 @@ class Device(BaseModel):
                 org_number_tree.append(org[0])
             row['AncestorOrgNumberTree'] = org_number_tree
 
-            yield ESRecord(row, self.get_type())
+            yield ESRecord(row, self.get_type(), index_date=row[self._index_name_date_field])
 
     @staticmethod
     def query_one():

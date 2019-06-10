@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 class Session(BaseModel):
     _type = "session"
     _date_field = "LogoutTime"
+    _index_name_date_field = "LogoutTime"
 
     @staticmethod
     def get_type():
@@ -35,7 +36,7 @@ class Session(BaseModel):
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
-            yield ESRecord(row, self.get_type())
+            yield ESRecord(row, self.get_type(), index_date=row[self._index_name_date_field])
 
     @staticmethod
     def query_sessions(historical):
