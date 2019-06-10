@@ -396,10 +396,27 @@ class new_index(object):
 
         }
 
+        template_body = {
+            "template": "elevenos*",
+            "settings": create_index["settings"],
+            "mappings": {
+                "account": {
+                    "properties": account_mapping["properties"]
+                },
+                "session": {
+                    "properties": session_mapping["properties"]
+                },
+                "device": {
+                    "properties": device_mapping["properties"]
+                }
+            }
+        }
+
         es.indices.create(index=index_name, body=create_index)
         es.indices.refresh(index=index_name)
         es.indices.put_mapping(index=index_name, doc_type="property", body=property_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
+        # es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
+        # es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
+        # es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
         es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)
+        es.indices.put_template(name="elevenos", body=template_body)
