@@ -415,6 +415,9 @@ class new_index(object):
         sessions_template_body = {
             "template": "sessions*",
             "settings": create_index["settings"],
+            "aliases": {
+                "sessions-current": {}
+            },
             "mappings": {
                 "session": {
                     "properties": session_mapping["properties"]
@@ -425,6 +428,9 @@ class new_index(object):
         devices_template_body = {
             "template": "devices*",
             "settings": create_index["settings"],
+            "aliases": {
+                "devices-current": {}
+            },
             "mappings": {
                 "device": {
                     "properties": device_mapping["properties"]
