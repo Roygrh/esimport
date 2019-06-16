@@ -14,6 +14,9 @@ from esimport import settings
 from constants import (PROD_WEST_ENV, PROD_EAST_ENV)
 
 es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+# TODO: remove the following
+# es = Elasticsearch('https://search-esimport-sam-soqnnkljo7skwizpvfm5kc3qpq.us-west-2.es.amazonaws.com/')
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ class new_index(object):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-    def create_index(self, index_name=settings.ES_INDEX):
+    def create_index(self):
 
         if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
             create_index = {
@@ -396,27 +399,52 @@ class new_index(object):
 
         }
 
-        template_body = {
-            "template": "elevenos*",
+        accounts_template_body = {
+            "template": "accounts*",
             "settings": create_index["settings"],
+            "aliases": {
+                "accounts-current": {}
+            },
             "mappings": {
                 "account": {
                     "properties": account_mapping["properties"]
-                },
+                }
+            }
+        }
+
+        sessions_template_body = {
+            "template": "sessions*",
+            "settings": create_index["settings"],
+            "mappings": {
                 "session": {
                     "properties": session_mapping["properties"]
-                },
+                }
+            }
+        }
+
+        devices_template_body = {
+            "template": "devices*",
+            "settings": create_index["settings"],
+            "mappings": {
                 "device": {
                     "properties": device_mapping["properties"]
                 }
             }
         }
 
-        es.indices.create(index=index_name, body=create_index)
-        es.indices.refresh(index=index_name)
-        es.indices.put_mapping(index=index_name, doc_type="property", body=property_mapping)
+        # property index
+        es.indices.create(index="properties", body=create_index)
+        es.indices.refresh(index="properties")
+        es.indices.put_mapping(index="properties", doc_type="property", body=property_mapping)
+        # conference index
+        es.indices.create(index="conferences", body=create_index)
+        es.indices.refresh(index="conferences")
+        es.indices.put_mapping(index="conferences", doc_type="conference", body=conference_mapping)
         # es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
         # es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
         # es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)
-        es.indices.put_template(name="elevenos", body=template_body)
+        # es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)
+        es.indices.put_template(name="accounts", body=accounts_template_body)
+        es.indices.put_template(name="sessions", body=sessions_template_body)
+        es.indices.put_template(name="devices", body=devices_template_body)
+

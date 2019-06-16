@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 class Conference(BaseModel):
     _type = "conference"
     _date_field = "UpdateTime"
+    _index = "conferences"
 
     @staticmethod
     def get_type():
@@ -27,6 +28,10 @@ class Conference(BaseModel):
     @staticmethod
     def get_key_date_field():
         return Conference._date_field
+
+    @staticmethod
+    def get_index():
+        return Conference._index
 
     def get_conferences(self, start, limit, start_date='1900-01-01'):
         logger.debug(
@@ -76,7 +81,7 @@ class Conference(BaseModel):
             rec1['MemberNumberList'] = member_number_list
             rec1['AccessCodes'] = access_codes_list
 
-            yield ESRecord(rec1, self.get_type())
+            yield ESRecord(rec1, self.get_type(), self.get_index())
 
     @staticmethod
     def query_get_conferences():

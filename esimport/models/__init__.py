@@ -19,16 +19,17 @@ class ESRecord:
         "_op_type": "update"
     }
 
-    def __init__(self, record, doc_type, index_date=None):
+    def __init__(self, record, doc_type, index_prefix, index_date=None):
         self.record = record
         self.doc_type = doc_type
+        self.index_prefix = index_prefix
         self.index_date = index_date
 
     def es(self, record_id=None):
         if self.index_date:
-            index_name = "elevenos-{}".format(date_to_index_name(self.index_date))
+            index_name = "{0}-{1}".format(self.index_prefix, date_to_index_name(self.index_date))
         else:
-            index_name = settings.ES_INDEX
+            index_name = self.index_prefix
 
         rec = self.meta_fields.copy()
         rec.update({

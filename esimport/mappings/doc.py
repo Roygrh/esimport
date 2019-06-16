@@ -59,6 +59,8 @@ class DocumentMapping(object):
         logger.info("Setting up ES connection")
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT, timeout=self.esTimeout)
+        # TODO: remove the following
+        # self.es = Elasticsearch('https://search-esimport-sam-soqnnkljo7skwizpvfm5kc3qpq.us-west-2.es.amazonaws.com/')
 
         self.cache_client = CacheClient()
 
@@ -67,10 +69,19 @@ class DocumentMapping(object):
         return ""
 
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
+    def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
+        return helpers.bulk(es, actions, request_timeout=timeout)
+
+    # FIXME: remove this method and put retry in what's calling it
+    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
+        if self.model.get_type() in ['property', 'conference']:
+            index_name = self.model.get_index()
+        else:
+            index_name = 'current-{}'.format(self.model.get_index())
         logger.debug("Finding max id from index: %s, type: %s" % (
-            settings.ES_INDEX, self.model.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=self.model.get_type(),
+            index_name, self.model.get_type()))
+        filters = dict(index=index_name, doc_type=self.model.get_type(),
                        body={
                            "aggs": {
                                "max_id": {
@@ -92,16 +103,11 @@ class DocumentMapping(object):
             sentry_client.captureException()
         return 0
 
-    # FIXME: remove this method and put retry in what's calling it
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
-    def bulk_add_or_update(self, es, actions, retries=settings.ES_RETRIES, timeout=settings.ES_TIMEOUT):
-        return helpers.bulk(es, actions, request_timeout=timeout)
-
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def get_es_count(self):
         logger.debug("Finding records count from index: %s, type: %s" % (
-            settings.ES_INDEX, self.model.get_type()))
-        filters = dict(index=settings.ES_INDEX, doc_type=self.model.get_type())
+            self.model.get_index(), self.model.get_type()))
+        filters = dict(index=self.model.get_index(), doc_type=self.model.get_type())
         response = self.es.count(**filters)
         try:
             return response['count']
@@ -126,19 +132,19 @@ class DocumentMapping(object):
     Get the most recent date requested from elasticsearch
     """
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
-    def get_most_recent_date(self, date_field, doc_type):
+    def get_most_recent_date(self, index_name, date_field, doc_type):
         q = {
-                "aggs": {
-                    "most_recent_date": {
-                        "max": {
-                            "field": str(date_field)
-                        }
+            "aggs": {
+                "most_recent_date": {
+                    "max": {
+                        "field": str(date_field)
                     }
-                },
-                "size": 0
-            }
+                }
+            },
+            "size": 0
+        }
 
-        response = self.es.search(index=settings.ES_INDEX, doc_type=doc_type, body=q, request_timeout=60)
+        response = self.es.search(index=index_name, doc_type=doc_type, body=q, request_timeout=60)
         most_recent_date_es = response['aggregations']['most_recent_date'].get('value_as_string', None)
         most_recent_date = parser.parse(most_recent_date_es) if most_recent_date_es else datetime.utcnow()
         return most_recent_date.replace(tzinfo=None)
@@ -165,10 +171,10 @@ class DocumentMapping(object):
                 recent_date = parser.parse(recent_date, ignoretz=True)
                 minutes_behind = (now - recent_date).total_seconds() / 60
                 api.Metric.send(metric=metric_setting, points=minutes_behind)
-                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
-                                                                                                                metric_setting, 
-                                                                                                                minutes_behind, 
-                                                                                                                now))
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT,
+                                                                                                                 metric_setting,
+                                                                                                                 minutes_behind,
+                                                                                                                 now))
             else:
                 logger.error('ESDataCheck - {0} metric does not exist in cache.'.format(doc_type))
 
