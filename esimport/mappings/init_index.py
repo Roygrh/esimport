@@ -14,9 +14,6 @@ from esimport import settings
 from constants import (PROD_WEST_ENV, PROD_EAST_ENV)
 
 es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
-# TODO: remove the following
-# es = Elasticsearch('https://search-esimport-sam-soqnnkljo7skwizpvfm5kc3qpq.us-west-2.es.amazonaws.com/')
-
 
 logger = logging.getLogger(__name__)
 
@@ -182,73 +179,191 @@ class new_index(object):
 
         account_mapping = {
             "properties": {
-                "Activated": {"type": "date"},
-                "ActivatedLocal": {"type": "date"},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "CardType": {"type": "keyword", "ignore_above": 16},
-                "ConnectCode": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword",
-                                        "ignore_above": 128
-                                    }
-                                }
-                                },
-                "ConsumableTime": {"type": "integer"},
-                "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Created": {"type": "date"},
-                "CreatedLocal": {"type": "date"},
-                "CreditCardNumber": {"type": "integer"},
-                "Currency": {"type": "keyword", "ignore_above": 8},
-                "DateModifiedUTC": {"type": "date"},
-                "DiscountCode": {"type": "text",
-                                 "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
-                "DownCap": {"type": "integer"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "LastName": {"type": "text"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MarketingContact": {"type": "text"},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "Name": {"type": "text",
-                         "fields": {
-                             "keyword": {
-                                 "type": "keyword",
-                                 "ignore_above": 128
-                             }
-                         }
-                         },
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "PayMethod": {"type": "keyword"},
-                "Price": {"type": "float"},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "PurchaseMacAddress": {"type": "keyword", "ignore_above": 18},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "RoomNumber": {"type": "keyword"},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "ServicePlan": {"type": "text",
-                                "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
-                "ServicePlanNumber": {"type": "keyword", "ignore_above": 64},
-                "SpanTime": {"type": "integer"},
-                "SpanUnit": {"type": "keyword", "ignore_above": 16},
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UpCap": {"type": "integer"},
-                "UpsellAccountID": {"type": "long"},
-                "VLAN": {"type": "integer"},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }
-                             }
-                             }
+                "Activated": {
+                    "type": "date"
+                },
+                "ActivatedLocal": {
+                    "type": "date"
+                },
+                "Brand": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "CardType": {
+                    "type": "keyword",
+                    "ignore_above": 16
+                },
+                "ConnectCode": {
+                    "type": "text"
+                },
+                "ConsumableTime": {
+                    "type": "integer"
+                },
+                "ConsumableUnit": {
+                    "type": "keyword",
+                    "ignore_above": 16
+                },
+                "CorporateBrand": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Country": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "Created": {
+                    "type": "date"
+                },
+                "CreatedLocal": {
+                    "type": "date"
+                },
+                "CreditCardNumber": {
+                    "type": "integer"
+                },
+                "Currency": {
+                    "type": "keyword",
+                    "ignore_above": 8
+                },
+                "DateModifiedUTC": {
+                    "type": "date"
+                },
+                "DiscountCode": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "DownCap": {
+                    "type": "integer"
+                },
+                "ExtPropId": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "ID": {
+                    "type": "long"
+                },
+                "LastName": {
+                    "type": "text"
+                },
+                "MARSHA_Code": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "MarketingContact": {
+                    "type": "text"
+                },
+                "MemberNumber": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
+                "Name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "NetworkAccessEndDateUTC": {
+                    "type": "date"
+                },
+                "NetworkAccessStartDateUTC": {
+                    "type": "date"
+                },
+                "OwnershipGroup": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "PayMethod": {
+                    "type": "keyword"
+                },
+                "Price": {
+                    "type": "float"
+                },
+                "PropertyName": {
+                    "type": "text"
+                },
+                "PropertyNumber": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "Provider": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "PurchaseMacAddress": {
+                    "type": "keyword",
+                    "ignore_above": 18
+                },
+                "Region": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "RoomNumber": {
+                    "type": "keyword"
+                },
+                "ServiceArea": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "ServicePlan": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "ServicePlanNumber": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "SpanTime": {
+                    "type": "integer"
+                },
+                "SpanUnit": {
+                    "type": "keyword",
+                    "ignore_above": 16
+                },
+                "Status": {
+                    "type": "keyword",
+                    "ignore_above": 16
+                },
+                "SubRegion": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "TaxRate": {
+                    "type": "float"
+                },
+                "TimeZone": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
+                "UpCap": {
+                    "type": "integer"
+                },
+                "UpsellAccountID": {
+                    "type": "long"
+                },
+                "VLAN": {
+                    "type": "integer"
+                },
+                "ZoneType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                }
             }
         }
 
@@ -257,12 +372,15 @@ class new_index(object):
                 "Brand": {"type": "keyword", "ignore_above": 64},
                 "BytesIn": {"type": "long"},
                 "BytesOut": {"type": "long"},
-                "CalledStation": {"type": "text",
-                                  "fields": {
-                                      "keyword": {
-                                          "type": "keyword",
-                                          "ignore_above": 128
-                                      }}},
+                "CalledStation": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
                 "CorporateBrand": {"type": "keyword", "ignore_above": 128},
                 "Country": {"type": "keyword", "ignore_above": 64},
                 "ExtPropId": {"type": "keyword", "ignore_above": 64},
@@ -274,59 +392,80 @@ class new_index(object):
                 "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
                 "MacAddress": {"type": "keyword", "ignore_above": 18},
                 "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "Name": {"type": "text",
-                         "fields": {
-                             "keyword": {
-                                 "type": "keyword",
-                                 "ignore_above": 128
-                             }}},
-                "NasIdentifier": {"type": "text",
-                                  "fields": {
-                                      "keyword": {
-                                          "type": "keyword",
-                                          "ignore_above": 256
-                                      }}},
+                "Name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "NasIdentifier": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
                 "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
                 "PropertyName": {"type": "text"},
                 "PropertyNumber": {"type": "keyword", "ignore_above": 12},
                 "Provider": {"type": "keyword", "ignore_above": 128},
                 "Region": {"type": "keyword", "ignore_above": 64},
                 "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "ServicePlan": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword",
-                                        "ignore_above": 128
-                                    }}},
-                "SessionID": {"type": "text",
-                              "fields": {
-                                  "keyword": {
-                                      "type": "keyword",
-                                      "ignore_above": 128
-                                  }}},
+                "ServicePlan": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "SessionID": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
                 "SessionLength": {"type": "integer"},
                 "SubRegion": {"type": "keyword", "ignore_above": 64},
                 "TaxRate": {"type": "float"},
-                "TerminationReason": {"type": "text",
-                                      "fields": {
-                                          "keyword": {
-                                              "type": "keyword",
-                                              "ignore_above": 128
-                                          }}},
+                "TerminationReason": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
                 "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UserName": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}},
+                "UserName": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
                 "VLAN": {"type": "integer"},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}}
+                "ZoneType": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                }
             }
         }
 
@@ -453,4 +592,3 @@ class new_index(object):
         es.indices.put_template(name="accounts", body=accounts_template_body)
         es.indices.put_template(name="sessions", body=sessions_template_body)
         es.indices.put_template(name="devices", body=devices_template_body)
-
