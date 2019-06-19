@@ -51,84 +51,233 @@ class new_index(object):
 
         property_mapping = {
             "properties": {
-                "ActiveDevices": {"type": "integer"},
-                "ActiveMembers": {"type": "integer"},
+                "ActiveDevices": {
+                    "type": "long"
+                },
+                "ActiveMembers": {
+                    "type": "long"
+                },
                 "Address": {
                     "type": "nested",
                     "properties": {
-                        "AddressLine1": {"type": "text"},
-                        "AddressLine2": {"type": "text"},
-                        "City": {"type": "keyword"},
-                        "Area": {"type": "keyword"},
-                        "PostalCode": {"type": "keyword"},
-                        "CountryName": {"type": "text"}
+                        "AddressLine1": {
+                            "type": "text"
+                        },
+                        "AddressLine2": {
+                            "type": "text"
+                        },
+                        "Area": {
+                            "type": "keyword"
+                        },
+                        "City": {
+                            "type": "keyword"
+                        },
+                        "CountryName": {
+                            "type": "text"
+                        },
+                        "PostalCode": {
+                            "type": "keyword"
+                        }
                     }
                 },
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "CreatedUTC": {"type": "date"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "GoLiveUTC": {"type": "date"},
-                "GuestRooms": {"type": "integer"},
-                "Lite": {"type": "boolean"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MeetingRooms": {"type": "integer"},
-                "Name": {"type": "text"},
-                "Number": {"type": "keyword", "ignore_above": 12},
-                "OrgNumberTree": {"type": "keyword"},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Pan": {"type": "boolean"},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "ServiceAreaObjects": {"type": "nested",
-                                       "properties": {
-                                           "Number": {"type": "keyword"},
-                                           "Name": {"type": "text"},
-                                           "ZoneType": {"type": "keyword"},
-                                           "ActiveMembers": {"type": "integer"},
-                                           "ActiveDevices": {"type": "integer"},
-                                           "Hosts": {"type": "nested",
-                                                     "properties": {
-                                                         "NASID": {"type": "keyword"},
-                                                         "RadiusNASID": {"type": "text"},
-                                                         "HostType": {"type": "text"},
-                                                         "VLANRangeStart": {"type": "integer"},
-                                                         "VLANRangeEnd": {"type": "integer"},
-                                                         "NetIP": {"type": "keyword"}
-                                                     }
-                                                     },
-                                           "ServicePlans": {
-                                               "type": "nested",
-                                               "properties": {
-                                                   "Number": {"type": "keyword"},
-                                                   "Name": {"type": "keyword"},
-                                                   "Description": {"type": "text"},
-                                                   "Price": {"type": "float"},
-                                                   "UpKbs": {"type": "integer"},
-                                                   "DownKbs": {"type": "integer"},
-                                                   "IdleTimeout": {"type": "integer"},
-                                                   "ConnectionLimit": {"type": "integer"},
-                                                   "RadiusClass": {"type": "keyword"},
-                                                   "GroupBandwidthLimit": {"type": "boolean"},
-                                                   "Type": {"type": "keyword"},
-                                                   "PlanTime": {"type": "integer"},
-                                                   "PlanUnit": {"type": "keyword"},
-                                                   "LifespanTime": {"type": "integer"},
-                                                   "LifespanUnit": {"type": "keyword"},
-                                                   "CurrencyCode": {"type": "keyword"},
-                                                   "Status": {"type": "keyword"},
-                                                   "OrgCode": {"type": "keyword"},
-                                                   "DateCreatedUTC": {"type": "date"}
-                                               }
-                                           }
-                                       }
-                                       },
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UpdateTime": {"type": "date"},
+                "Brand": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "CorporateBrand": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Country": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "CreatedUTC": {
+                    "type": "date"
+                },
+                "CurrencyCode": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "ExtPropId": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "GoLiveUTC": {
+                    "type": "date"
+                },
+                "GuestRooms": {
+                    "type": "integer"
+                },
+                "ID": {
+                    "type": "long"
+                },
+                "Lite": {
+                    "type": "boolean"
+                },
+                "MARSHA_Code": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "MeetingRooms": {
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "text"
+                },
+                "Number": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "OrgNumberTree": {
+                    "type": "keyword"
+                },
+                "OwnershipGroup": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Pan": {
+                    "type": "boolean"
+                },
+                "Provider": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Region": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "ServiceAreaObjects": {
+                    "type": "nested",
+                    "properties": {
+                        "ActiveDevices": {
+                            "type": "integer"
+                        },
+                        "ActiveMembers": {
+                            "type": "integer"
+                        },
+                        "Hosts": {
+                            "type": "nested",
+                            "properties": {
+                                "HostType": {
+                                    "type": "text"
+                                },
+                                "NASID": {
+                                    "type": "keyword"
+                                },
+                                "NetIP": {
+                                    "type": "keyword"
+                                },
+                                "RadiusNASID": {
+                                    "type": "text"
+                                },
+                                "VLANRangeEnd": {
+                                    "type": "integer"
+                                },
+                                "VLANRangeStart": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "Name": {
+                            "type": "text"
+                        },
+                        "Number": {
+                            "type": "keyword"
+                        },
+                        "ServicePlans": {
+                            "type": "nested",
+                            "properties": {
+                                "ConnectionLimit": {
+                                    "type": "integer"
+                                },
+                                "CurrencyCode": {
+                                    "type": "keyword"
+                                },
+                                "DateCreatedUTC": {
+                                    "type": "date"
+                                },
+                                "Description": {
+                                    "type": "text"
+                                },
+                                "DownKbs": {
+                                    "type": "integer"
+                                },
+                                "GroupBandwidthLimit": {
+                                    "type": "boolean"
+                                },
+                                "IdleTimeout": {
+                                    "type": "integer"
+                                },
+                                "LifespanTime": {
+                                    "type": "integer"
+                                },
+                                "LifespanUnit": {
+                                    "type": "keyword"
+                                },
+                                "Name": {
+                                    "type": "keyword"
+                                },
+                                "Number": {
+                                    "type": "keyword"
+                                },
+                                "OrgCode": {
+                                    "type": "keyword"
+                                },
+                                "PlanTime": {
+                                    "type": "integer"
+                                },
+                                "PlanUnit": {
+                                    "type": "keyword"
+                                },
+                                "Price": {
+                                    "type": "float"
+                                },
+                                "RadiusClass": {
+                                    "type": "keyword"
+                                },
+                                "Status": {
+                                    "type": "keyword"
+                                },
+                                "Type": {
+                                    "type": "keyword"
+                                },
+                                "UpKbs": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "ZoneType": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "ServiceAreas": {
+                    "type": "keyword"
+                },
+                "Status": {
+                    "type": "keyword",
+                    "ignore_above": 16
+                },
+                "SubRegion": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "TaxRate": {
+                    "type": "float"
+                },
+                "TimeZone": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
+                "UpdateTime": {
+                    "type": "date"
+                },
                 "ZoneType": {
                     "type": "text",
                     "fields": {
