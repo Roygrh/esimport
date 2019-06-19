@@ -543,68 +543,174 @@ class new_index(object):
                 "AccessCodes": {
                     "type": "nested",
                     "properties": {
-                        "Code": {"type": "keyword"},
-                        "MemberNumber": {"type": "keyword"},
-                        "MemberID": {"type": "long"}
+                        "Code": {
+                            "type": "keyword"
+                        },
+                        "MemberID": {
+                            "type": "long"
+                        },
+                        "MemberNumber": {
+                            "type": "keyword"
+                        }
                     }
                 },
-                "UpdateTime": {"type": "date"},
-                "Name": {"type": "text"},
-                "DateCreatedLocal": {"type": "date"},
-                "DateCreatedUTC": {"type": "date"},
-                "StartDateLocal": {"type": "date"},
-                "StartDateUTC": {"type": "date"},
-                "EndDateLocal": {"type": "date"},
-                "EndDateUTC": {"type": "date"},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "Code":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 128
-                         }}},
-                "CodeList":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 128
-                         }}},
-                "MemberNumberList": {"type": "keyword"},
-                "MemberID": {"type": "long"},
-                "MemberNumber": {"type": "keyword"},
-                "MemberStatus": {"type": "keyword"},
-                "SSID":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 64
-                         }}},
-                "ConnectionLimit": {"type": "integer"},
-                "GroupBandwidthLimit": {"type": "boolean"},
-                "DownKbs": {"type": "integer"},
-                "UpKbs": {"type": "integer"},
-                "UserCount": {"type": "integer"},
-                "TotalInputBytes": {"type": "long"},
-                "TotalOutputBytes": {"type": "long"},
-                "TotalSessionTime": {"type": "long"},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"}
+                "Brand": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "Code": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "CodeList": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 128
+                        }
+                    }
+                },
+                "ConnectionLimit": {
+                    "type": "long"
+                },
+                "CorporateBrand": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Country": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "DateCreatedLocal": {
+                    "type": "date"
+                },
+                "DateCreatedUTC": {
+                    "type": "date"
+                },
+                "DownKbs": {
+                    "type": "long"
+                },
+                "EndDateLocal": {
+                    "type": "date"
+                },
+                "EndDateUTC": {
+                    "type": "date"
+                },
+                "ExtPropId": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "GroupBandwidthLimit": {
+                    "type": "boolean"
+                },
+                "ID": {
+                    "type": "long"
+                },
+                "MARSHA_Code": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "MemberID": {
+                    "type": "long"
+                },
+                "MemberNumber": {
+                    "type": "keyword"
+                },
+                "MemberNumberList": {
+                    "type": "keyword"
+                },
+                "MemberStatus": {
+                    "type": "keyword"
+                },
+                "Name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "OwnershipGroup": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "PropertyName": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "PropertyNumber": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "Provider": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Region": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "SSID": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 64
+                        }
+                    }
+                },
+                "ServiceArea": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "StartDateLocal": {
+                    "type": "date"
+                },
+                "StartDateUTC": {
+                    "type": "date"
+                },
+                "SubRegion": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "TaxRate": {
+                    "type": "float"
+                },
+                "TimeZone": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
+                "TotalInputBytes": {
+                    "type": "float"
+                },
+                "TotalOutputBytes": {
+                    "type": "float"
+                },
+                "TotalSessionTime": {
+                    "type": "float"
+                },
+                "UpKbs": {
+                    "type": "long"
+                },
+                "UpdateTime": {
+                    "type": "date"
+                },
+                "UserCount": {
+                    "type": "long"
+                }
             }
-
         }
 
         accounts_template_body = {
