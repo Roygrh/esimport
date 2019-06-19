@@ -587,9 +587,16 @@ class new_index(object):
 
         session_mapping = {
             "properties": {
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "BytesIn": {"type": "long"},
-                "BytesOut": {"type": "long"},
+                "Brand": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "BytesIn": {
+                    "type": "long"
+                },
+                "BytesOut": {
+                    "type": "long"
+                },
                 "CalledStation": {
                     "type": "text",
                     "fields": {
@@ -599,17 +606,45 @@ class new_index(object):
                         }
                     }
                 },
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "ID": {"type": "long"},
-                "LoginTime": {"type": "date"},
-                "LoginTimeLocal": {"type": "date"},
-                "LogoutTime": {"type": "date"},
-                "LogoutTimeLocal": {"type": "date"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MacAddress": {"type": "keyword", "ignore_above": 18},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
+                "CorporateBrand": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Country": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "ExtPropId": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "ID": {
+                    "type": "long"
+                },
+                "LoginTime": {
+                    "type": "date"
+                },
+                "LoginTimeLocal": {
+                    "type": "date"
+                },
+                "LogoutTime": {
+                    "type": "date"
+                },
+                "LogoutTimeLocal": {
+                    "type": "date"
+                },
+                "MARSHA_Code": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "MacAddress": {
+                    "type": "keyword",
+                    "ignore_above": 18
+                },
+                "MemberNumber": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
                 "Name": {
                     "type": "text",
                     "fields": {
@@ -628,12 +663,29 @@ class new_index(object):
                         }
                     }
                 },
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
+                "OwnershipGroup": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "PropertyName": {
+                    "type": "text"
+                },
+                "PropertyNumber": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
+                "Provider": {
+                    "type": "keyword",
+                    "ignore_above": 128
+                },
+                "Region": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "ServiceArea": {
+                    "type": "keyword",
+                    "ignore_above": 12
+                },
                 "ServicePlan": {
                     "type": "text",
                     "fields": {
@@ -652,9 +704,16 @@ class new_index(object):
                         }
                     }
                 },
-                "SessionLength": {"type": "integer"},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
+                "SessionLength": {
+                    "type": "integer"
+                },
+                "SubRegion": {
+                    "type": "keyword",
+                    "ignore_above": 64
+                },
+                "TaxRate": {
+                    "type": "float"
+                },
                 "TerminationReason": {
                     "type": "text",
                     "fields": {
@@ -664,7 +723,10 @@ class new_index(object):
                         }
                     }
                 },
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
+                "TimeZone": {
+                    "type": "keyword",
+                    "ignore_above": 32
+                },
                 "UserName": {
                     "type": "text",
                     "fields": {
@@ -674,7 +736,9 @@ class new_index(object):
                         }
                     }
                 },
-                "VLAN": {"type": "integer"},
+                "VLAN": {
+                    "type": "integer"
+                },
                 "ZoneType": {
                     "type": "text",
                     "fields": {
