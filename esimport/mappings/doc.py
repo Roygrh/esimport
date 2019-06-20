@@ -78,7 +78,7 @@ class DocumentMapping(object):
         if self.model.get_type() in ['property', 'conference']:
             index_name = self.model.get_index()
         else:
-            index_name = 'current-{}'.format(self.model.get_index())
+            index_name = '{}-current'.format(self.model.get_index())
         logger.debug("Finding max id from index: %s, type: %s" % (
             index_name, self.model.get_type()))
         filters = dict(index=index_name, doc_type=self.model.get_type(),
