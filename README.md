@@ -9,38 +9,38 @@ cat <<EOF > local_settings.py
 import os
 
 # Are we inside Docker?
-INSIDE_DOCKER = os.getenv('INSIDE_DOCKER') in ['1', 'y', 'yes', 'true']
+INSIDE_DOCKER = os.getenv("INSIDE_DOCKER") in ["1", "y", "yes", "true"]
 
 # General
-ENVIRONMENT = 'dev'
+ENVIRONMENT = "dev"
 
 DATABASES = {
-    'default': {
-        'DSN': 'Eleven_OS' if not INSIDE_DOCKER else 'Eleven_OS', # either DSN or HOST
-        'HOST': 'localhost' if not INSIDE_DOCKER else 'mssql',
-        'PORT': '1433',
-        'NAME': 'Eleven_OS',
-        'USER': 'sa',
-        'PASSWORD': 'DistroDev@11', # you probably have something else as a password
+    "default": {
+        "DSN": "Eleven_OS" if not INSIDE_DOCKER else "Eleven_OS",  # either DSN or HOST
+        "HOST": "localhost" if not INSIDE_DOCKER else "mssql",
+        "PORT": "1433",
+        "NAME": "Eleven_OS",
+        "USER": "sa",
+        "PASSWORD": "DistroDev@11",  # you probably have something else as a password
     }
 }
 
 if INSIDE_DOCKER:
-   # No need to specify a driver
+    # No need to specify a driver
     MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
 else:
-    #MSSQL_DSN = "Driver={FreeTDS};Server=%(HOST)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s"
+    # MSSQL_DSN = "Driver={FreeTDS};Server=%(HOST)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s"
     MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
 
 # MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
-ES_HOST = 'localhost' if not INSIDE_DOCKER else 'elasticsearch'
-ES_INDEX = 'elevenos'
+ES_HOST = "localhost" if not INSIDE_DOCKER else "elasticsearch"
+ES_INDEX = "elevenos"
 ES_TIMEOUT = 1
 ES_RETRIES = 1
 ES_RETRIES_WAIT = 1
 ES_BULK_LIMIT = 10
 
-REDIS_HOST = 'localhost' if not INSIDE_DOCKER else 'redis'
+REDIS_HOST = "localhost" if not INSIDE_DOCKER else "redis"
 
 # Wait between database queries execution (seconds)
 DATABASE_CALLS_WAIT = 1
