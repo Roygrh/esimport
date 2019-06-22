@@ -5,7 +5,7 @@ The overall task is to move data from our T-SQL database into ElasticSearch.
 ## Create settings file
 
 ```bash
-cat <<< '
+cat <<EOF > local_settings.py
 import os
 
 # Are we inside Docker?
@@ -55,7 +55,7 @@ DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = False
 ES_CALLS_RETRIES = 1
 ES_CALLS_RETRIES_WAIT = 1
 ES_CALLS_RETRIES_WAIT_INCREMENTAL = False
-' > local_settings.py
+EOF
 ```
 
 ## HOW TO USE?
@@ -96,7 +96,7 @@ $ pytest esimport/tests/test_conferencemapping_es.py
 
 ## Using docker-compose
 
-Docker-compose can be used to spin up SQLServer, Redis and ElasticSearch. 
+Docker-compose can be used to spin up SQLServer, Redis and ElasticSearch.
 You can start these services with `make start-environment` or `docker-compose up redis mssql elasticsearch`.
 
 Once these services are up, you can access them like so:
@@ -108,5 +108,5 @@ If you want to run ESImport from inside a docker container as well, issue `make 
 It will set up the whole dev-stack from docker-compose.yml and leave you in a shell from where you can run the unit tests
 and esimport update/sync (see section above).
 
-If you set up the stack with `make start-environment` or `docker-compose up redis mssql elasticsearch` you can still add the 
+If you set up the stack with `make start-environment` or `docker-compose up redis mssql elasticsearch` you can still add the
 esimport or kibana container afterwards with `docker-compose run --rm --service-ports <service-name>`.
