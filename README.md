@@ -4,6 +4,8 @@ The overall task is to move data from our T-SQL database into ElasticSearch.
 
 ## Create settings file
 
+Note that DSN string configure driver and server for connection outside Docker. This configuration in DSN string may be unnecessary if odbc configuration in system specified appropriate default driver. See script `ESImport/docker/setup_db.bash`.
+
 ```bash
 cat <<EOF > local_settings.py
 import os
@@ -30,7 +32,7 @@ if INSIDE_DOCKER:
     MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
 else:
     # MSSQL_DSN = "Driver={FreeTDS};Server=%(HOST)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s"
-    MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
+    MSSQL_DSN = "DRIVER={ODBC Driver 17 for SQL Server};server=%(HOST)s;DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
 
 # MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
 ES_HOST = "localhost" if not INSIDE_DOCKER else "elasticsearch"
