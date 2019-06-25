@@ -400,6 +400,10 @@ class TestAccountMappingElasticSearch(TestCase):
         self.assertFalse(es.indices.exists(index=_index))
 
     def test_date_modified_update(self):
+        # TODO: although this test is "fixed" - passed without errors, it probably should test
+        #  that if column `Date_Modified_UTC` in MSSQL changed, esimport detect that and update data in ES.
+        #  Curently this test is fixed by using `update()` method that uses `Date_Created_UTC` column to select data.
+
         # backload db to elasticsearch
         self.am.backload(start_date='1900-01-01')
         self.pm.backload()
