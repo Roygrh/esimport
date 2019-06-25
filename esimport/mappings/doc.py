@@ -165,9 +165,9 @@ class DocumentMapping(object):
                 recent_date = parser.parse(recent_date, ignoretz=True)
                 minutes_behind = (now - recent_date).total_seconds() / 60
                 api.Metric.send(metric=metric_setting, points=minutes_behind)
-                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT, 
-                                                                                                                metric_setting, 
-                                                                                                                minutes_behind, 
+                logger.debug('ESDataCheck - Host: {0} - Metric: {1} - Minutes Behind: {2:.2f} - Now: {3}'.format(settings.ENVIRONMENT,
+                                                                                                                metric_setting,
+                                                                                                                minutes_behind,
                                                                                                                 now))
             else:
                 logger.error('ESDataCheck - {0} metric does not exist in cache.'.format(doc_type))

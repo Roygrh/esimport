@@ -60,7 +60,7 @@ def convert_pacific_to_utc(time):
 def set_pacific_timezone(time):
     if time is None:
         return None
-        
+
     assert isinstance(time, datetime), "Object is not a datetime object."
     return time.replace(tzinfo=tz.gettz('America/Los_Angeles'))
 
