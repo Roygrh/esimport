@@ -11,7 +11,7 @@ stages:
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
   DOCKER_DRIVER: overlay
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
 before_script:
   - apk add --update --no-cache python py-pip git wget
