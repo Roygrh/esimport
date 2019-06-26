@@ -33,6 +33,8 @@ class new_index(object):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def create_index(self):
+        # TODO: fix tests, if index already exist this method will throw exception.
+        #  And during tesing this method are being called multiple times
 
         if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
             create_index = {
@@ -980,3 +982,9 @@ class new_index(object):
         es.indices.put_template(name="accounts", body=accounts_template_body)
         es.indices.put_template(name="sessions", body=sessions_template_body)
         es.indices.put_template(name="devices", body=devices_template_body)
+
+        doc = {'id': '1'}
+        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
+        es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
+
+

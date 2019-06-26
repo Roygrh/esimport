@@ -17,6 +17,7 @@ import chardet
 from mock import MagicMock
 
 from esimport.mappings.property import PropertyMapping
+from esimport.models.property import Property
 from esimport import settings
 from esimport.mappings.init_index import new_index
 import datetime
@@ -33,10 +34,13 @@ def compare_dict(first, second):
 
         return True
 
+
 class TestPropertyMapping(TestCase):
-
-
     def setUp(self):
+        es = Elasticsearch()
+        es.indices.delete(index='properties', ignore=[404])
+        es.indices.delete(index='conferences', ignore=[404])
+
         test_dir = os.getcwd()
         host = settings.DATABASES['default']['HOST']
         uid = settings.DATABASES['default']['USER']
@@ -71,7 +75,7 @@ class TestPropertyMapping(TestCase):
         time.sleep(2)
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
         property_id_es = [property['_source']['ID'] for property in res]
         property_id_es.sort()
 
@@ -84,7 +88,7 @@ class TestPropertyMapping(TestCase):
         time.sleep(2)
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
 
         addresses = res[0]['_source']['Address']
 
@@ -134,7 +138,7 @@ class TestPropertyMapping(TestCase):
             service_area_lookup[str(prop.ID)] = service_areas_arr
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
 
         for prop in res:
             # import pdb
@@ -163,7 +167,7 @@ class TestPropertyMapping(TestCase):
                 'CountryName': prop.CountryName
             }
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
 
         for prop in res:
             self.assertEqual(set(prop['_source']['Address']), set(addresses[prop['_id']]))
