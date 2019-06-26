@@ -1,16 +1,27 @@
-import os
-import glob
-import subprocess
-import pyodbc
-from esimport import settings
+import argparse
+import random
+import string
 from datetime import datetime, timedelta
 from esimport.mappings.account import AccountMapping
 
-test_dir = os.getcwd()
-# host = settings.DATABASES['default']['HOST']
+parser = argparse.ArgumentParser()
+parser.add_argument('-n', help='Number of demo data')
+args = parser.parse_args()
+number = int(args.n)
+
 am = AccountMapping()
 am.setup()
 
+# A list of dates spread out in past 10 months from now
+dt = datetime.now()
+dt_list = []
+for i in range(10):
+    dt = dt - timedelta(days=31)
+    dt_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+    dt_list.append(dt_str)
+dt_list = list(reversed(dt_list))
+
+# SQL query for inserting account related demo data
 account_sql = """INSERT INTO [dbo].[Zone_Plan_Account]
         (Member_ID, Zone_Plan_ID, Purchase_Price, 
         Purchase_Price_Currency_ID, Network_Access_Limits_ID, 
@@ -22,26 +33,60 @@ account_sql = """INSERT INTO [dbo].[Zone_Plan_Account]
         '{}', '2018-04-05 10:31:46.768',
         1, 1, NULL, 1)"""
 
+# SQL queries for inserting session related demo data
+radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Acct_Event
+                    (Session_ID, Radius_Event_ID)
+                    VALUES
+                    ('{session_id}', '{radius_event_id}')"""
+radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Stop_Event
+                        (Radius_Acct_Event_ID, Acct_Terminate_Cause, 
+                        Acct_Session_Time, Acct_Output_Octets, 
+                        Acct_Input_Octets)
+                        VALUES
+                        ('{radius_event_id}', 1, 9354, 43787611, 24313077)"""
+radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Event_History(User_Name, 
+                            Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, 
+                            VLAN, Calling_Station_Id, Date_UTC)
+                            VALUES
+                            ('username{user_id}', 1, 1, 'E8-1D-A8-20-1B-88', 
+                            'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, 
+                            '5C-52-1E-60-6A-17', '{date_utc}')"""
+radius_event_sql = """INSERT INTO Radius.dbo.Radius_Event (User_Name, 
+                    Member_ID, Organization_ID, Date_UTC, NAS_Identifier, 
+                    Called_Station_Id, VLAN, Calling_Station_Id)
+                    VALUES
+                    ('username{user_id}', 1, 1, 
+                    '{date_utc}', 
+                    'E8-1D-A8-20-1B-88', 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 
+                    95, '5C-52-1E-60-6A-17')"""
+
+# for _ in range(number):
+#     dt_str = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+#     am.model.execute(account_sql.format(dt_str)).commit()
+#     dt_now = dt_now - timedelta(days=31)
+
+letters = string.ascii_uppercase
 dt_now = datetime.now()
-for _ in range(10):
-    dt_str = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-    am.model.execute(account_sql.format(dt_str)).commit()
-    dt_now = dt_now - timedelta(days=31)
 
-# for sql in os.listdir(test_dir+'/esimport/tests/fixtures/sql/'):
-#     if '.sql' in sql:
-#         script = test_dir + "/esimport/tests/fixtures/sql/"+sql
-#         subprocess.check_call(["sqlcmd", "-S", host, "-i", script, "-U", uid, "-P", pwd, "-d", db],
-#                                 stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+counter = 1
 
-# for sql in glob.glob(test_dir + '/esimport/tests/fixtures/sql/*.sql'):
-#     with open(sql, 'r') as inp:
-#         sqlQuery = ''
-#         for line in inp:
-#             if 'GO' not in line:
-#                 sqlQuery = sqlQuery + line
-#         r = am.model.execute(sqlQuery).commit()
-#         am.model.conn.reset()
-#     inp.close()
+for dt in dt_list:
+    for i in range(number//10):
+        # Zone_Plan_Account sql
+        am.model.execute(account_sql.format(dt)).commit()
+        # Radius_Acct_Event sql
+        random_str = ''.join(random.choice(letters) for _ in range(10))
+        sql = radius_acct_event_sql.format(session_id=random_str, radius_event_id=counter)
+        am.model.execute(sql).commit()
+        # Radius_Stop_Event sql
+        sql = radius_stop_event_sql.format(radius_event_id=counter)
+        am.model.execute(sql).commit()
+        # Radius_Event_History sql
+        sql = radius_event_history_sql.format(user_id=counter, date_utc=dt)
+        am.model.execute(sql).commit()
+        # Radius_Event sql
+        sql = radius_event_sql.format(user_id=counter, date_utc=dt)
+        am.model.execute(sql).commit()
+        counter += 1
 
 print("Done!")

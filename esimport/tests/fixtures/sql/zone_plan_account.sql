@@ -40,16 +40,16 @@ GO
 -- Payment_Method_ID, Purchase_MAC_Address, Activation_Date_UTC, Date_Created_UTC, Date_Modified_UTC
 
 -- PUT DATA INSERT SCRIPTS BELOW
-SET IDENTITY_INSERT Zone_Plan_Account ON
-INSERT INTO [dbo].[Zone_Plan_Account](ID, Member_ID, Zone_Plan_ID, Purchase_Price, Purchase_Price_Currency_ID, 
-					Network_Access_Limits_ID, Payment_Method_ID, Purchase_MAC_Address, Activation_Date_UTC, Date_Created_UTC, 
-					Date_Modified_UTC, PMS_Charge_ID, Zone_Plan_Account_Status_ID, Upsell_Zone_Plan_Account_ID, Purchase_Org_ID)
-VALUES
-	(1, 1, 1, 12.95, 1, 1, 1, '34-C0-59-D8-31-08', '2014-01-04 07:38:24.370', '2014-01-04 07:38:24.357', '2018-04-05 10:31:46.768', 1, 1, NULL, 1),
-	(2, 2, 1, 12.95, 1, 5, 2, '4C-B1-99-0A-4A-96', '2014-01-04 07:38:52.080', '2014-01-04 07:38:52.070', '2018-04-05 10:32:45.537', 2, 1, NULL, 1),
-	(3, 3, 1, 5, 1, 8, 4, '14-10-9F-DF-53-83', '2018-06-27 22:24:11:147', '2014-01-04 07:48:47.143', '2018-04-05 10:33:19.594', 3, 1, NULL, 2),
-	(4, 3, 2, 12.95, 1, 8, 1, '14-10-9F-DF-53-83', '2018-06-27 22:24:11:147', '2014-01-04 07:48:47.143', '2018-04-05 10:33:19.594', 3, 1, 3, 2)
-GO
+-- SET IDENTITY_INSERT Zone_Plan_Account ON
+-- INSERT INTO [dbo].[Zone_Plan_Account](ID, Member_ID, Zone_Plan_ID, Purchase_Price, Purchase_Price_Currency_ID,
+-- 					Network_Access_Limits_ID, Payment_Method_ID, Purchase_MAC_Address, Activation_Date_UTC, Date_Created_UTC,
+-- 					Date_Modified_UTC, PMS_Charge_ID, Zone_Plan_Account_Status_ID, Upsell_Zone_Plan_Account_ID, Purchase_Org_ID)
+-- VALUES
+-- 	(1, 1, 1, 12.95, 1, 1, 1, '34-C0-59-D8-31-08', '2014-01-04 07:38:24.370', '2014-01-04 07:38:24.357', '2018-04-05 10:31:46.768', 1, 1, NULL, 1),
+-- 	(2, 2, 1, 12.95, 1, 5, 2, '4C-B1-99-0A-4A-96', '2014-01-04 07:38:52.080', '2014-01-04 07:38:52.070', '2018-04-05 10:32:45.537', 2, 1, NULL, 1),
+-- 	(3, 3, 1, 5, 1, 8, 4, '14-10-9F-DF-53-83', '2018-06-27 22:24:11:147', '2014-01-04 07:48:47.143', '2018-04-05 10:33:19.594', 3, 1, NULL, 2),
+-- 	(4, 3, 2, 12.95, 1, 8, 1, '14-10-9F-DF-53-83', '2018-06-27 22:24:11:147', '2014-01-04 07:48:47.143', '2018-04-05 10:33:19.594', 3, 1, 3, 2)
+-- GO
 
 -- INSERT INTO [dbo].[Zone_Plan_Account](Member_ID, Zone_Plan_ID, Purchase_Price, Purchase_Price_Currency_ID, Network_Access_Limits_ID, Payment_Method_ID, Purchase_MAC_Address, Activation_Date_UTC, Date_Created_UTC, Date_Modified_UTC, PMS_Charge_ID, Zone_Plan_Account_Status_ID)
 -- 	VALUES(1, 2, 4, 1, 2, 1, '34-C0-59-D8-31-08', '2014-01-04 07:38:26.620', '2014-01-04 07:38:26.607', '2018-04-05 10:31:58.679', 1, 1)
