@@ -60,10 +60,15 @@ radius_event_sql = """INSERT INTO Radius.dbo.Radius_Event (User_Name,
                     'E8-1D-A8-20-1B-88', 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 
                     95, '5C-52-1E-60-6A-17')"""
 
-# for _ in range(number):
-#     dt_str = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-#     am.model.execute(account_sql.format(dt_str)).commit()
-#     dt_now = dt_now - timedelta(days=31)
+# SQL query for inserting device related demo data
+client_tracking_sql = """INSERT INTO [dbo].[Client_Tracking] 
+                        (Date, Organization_ID, IP_Address, 
+                        MAC_Address, Platform_Type_ID, Browser_Type_ID, 
+                        Member_ID, Client_Device_Type_ID, User_Agent_Raw)
+                        VALUES
+                        ('{date_utc}', 1, '172.168.1.11', 
+                        '62:8D:2F:6A:F0:78', 1, 1, 1, 1, 
+                        'Chrome/60.0.3112.113')"""
 
 letters = string.ascii_uppercase
 dt_now = datetime.now()
@@ -86,6 +91,9 @@ for dt in dt_list:
         am.model.execute(sql).commit()
         # Radius_Event sql
         sql = radius_event_sql.format(user_id=counter, date_utc=dt)
+        am.model.execute(sql).commit()
+        # Client_Tracking sql
+        sql = client_tracking_sql.format(date_utc=dt)
         am.model.execute(sql).commit()
         counter += 1
 
