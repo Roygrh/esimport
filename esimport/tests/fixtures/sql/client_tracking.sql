@@ -33,15 +33,15 @@ CREATE TABLE [dbo].[Client_Tracking](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [dbo].[Client_Tracking] ON;
-
-INSERT INTO [dbo].[Client_Tracking] (ID, Date, Organization_ID, IP_Address, MAC_Address, Platform_Type_ID, Browser_Type_ID, Member_ID, Client_Device_Type_ID, User_Agent_Raw)
-VALUES 
-	(1, '2014-01-04 07:38:24.370', 1, '172.168.1.11', '62:8D:2F:6A:F0:78', 1, 1, 1, 1, 'Chrome/60.0.3112.113'),
-	(2, '2014-01-04 08:40:24.370', 2, '172.168.1.12', 'F5:C4:05:2A:D4:9A', 2, 2, 2, 2, 'Gecko/20070802 Firefox'),
-	(3, '2014-01-04 08:45:24.370', 3, '172.168.1.15', 'F0:6D:3D:7B:66:F4', 1, 1, 3, 1, 'Chrome/60.0.3112.113'),
-	(4, '2014-01-04 09:50:24.370', 4, '172.168.1.21', '94:4B:F5:7C:FC:8E', 2, 2, 1, 2, 'Gecko/20070802 Firefox')
-GO
+-- SET IDENTITY_INSERT [dbo].[Client_Tracking] ON;
+--
+-- INSERT INTO [dbo].[Client_Tracking] (ID, Date, Organization_ID, IP_Address, MAC_Address, Platform_Type_ID, Browser_Type_ID, Member_ID, Client_Device_Type_ID, User_Agent_Raw)
+-- VALUES
+-- 	(1, '2014-01-04 07:38:24.370', 1, '172.168.1.11', '62:8D:2F:6A:F0:78', 1, 1, 1, 1, 'Chrome/60.0.3112.113'),
+-- 	(2, '2014-01-04 08:40:24.370', 2, '172.168.1.12', 'F5:C4:05:2A:D4:9A', 2, 2, 2, 2, 'Gecko/20070802 Firefox'),
+-- 	(3, '2014-01-04 08:45:24.370', 3, '172.168.1.15', 'F0:6D:3D:7B:66:F4', 1, 1, 3, 1, 'Chrome/60.0.3112.113'),
+-- 	(4, '2014-01-04 09:50:24.370', 4, '172.168.1.21', '94:4B:F5:7C:FC:8E', 2, 2, 1, 2, 'Gecko/20070802 Firefox')
+-- GO
 -- ALTER TABLE [dbo].[Client_Tracking] ADD  CONSTRAINT [DF_Client_Tracking_Date]  DEFAULT (getdate()) FOR [Date]
 -- GO
 -- ALTER TABLE [dbo].[Client_Tracking] ADD  CONSTRAINT [DF_Client_Tracking_Date_UTC]  DEFAULT (getutcdate()) FOR [Date_UTC]
