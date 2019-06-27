@@ -108,7 +108,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if 'TimeZone' in _action:
             for pfik, pfiv in self.dates_to_localize:
                 _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
-
         account.update(_action)
 
     """
