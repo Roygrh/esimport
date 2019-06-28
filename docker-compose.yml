@@ -21,6 +21,7 @@ services:
     entrypoint: bash
     volumes:
       - "./esimport:/esimport/esimport"
+      - "./tools:/esimport/tools"
 
   redis:
     image: "redis:alpine"

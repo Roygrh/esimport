@@ -1,13 +1,23 @@
 import argparse
 import random
+import signal
 import string
+import time
 from datetime import datetime, timedelta
+
+import click
+
 from esimport.mappings.account import AccountMapping
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-n', help='Number of demo data')
-args = parser.parse_args()
-number = int(args.n)
+state = {'counter': 0} # placed a dict here instead of a gloabl int variable, since dict are mutable while ints are not
+
+def exit_():
+    count = state.get('counter')
+    click.secho(f"\nDone! fed the DB with {count} records", fg="green")
+    exit(0)
+
+signal.signal(signal.SIGINT, lambda sig, frame: exit_())
+
 
 am = AccountMapping()
 am.setup()
@@ -73,28 +83,58 @@ client_tracking_sql = """INSERT INTO [dbo].[Client_Tracking]
 letters = string.ascii_uppercase
 dt_now = datetime.now()
 
-counter = 1
 
-for dt in dt_list:
-    for i in range(number//10):
-        # Zone_Plan_Account sql
-        am.model.execute(account_sql.format(dt)).commit()
-        # Radius_Acct_Event sql
-        random_str = ''.join(random.choice(letters) for _ in range(10))
-        sql = radius_acct_event_sql.format(session_id=random_str, radius_event_id=counter)
-        am.model.execute(sql).commit()
-        # Radius_Stop_Event sql
-        sql = radius_stop_event_sql.format(radius_event_id=counter)
-        am.model.execute(sql).commit()
-        # Radius_Event_History sql
-        sql = radius_event_history_sql.format(user_id=counter, date_utc=dt)
-        am.model.execute(sql).commit()
-        # Radius_Event sql
-        sql = radius_event_sql.format(user_id=counter, date_utc=dt)
-        am.model.execute(sql).commit()
-        # Client_Tracking sql
-        sql = client_tracking_sql.format(date_utc=dt)
-        am.model.execute(sql).commit()
-        counter += 1
+@click.command()
+@click.option('-n', '--number', type=int, help='Number of records to feed the DB with.')
+@click.option('--nostop', is_flag=True, help='Continously feed the DB.')
+def feed(number, nostop):
+    
+    
+    if number and nostop:
+        click.secho("-n and --nostop are mutually exclusive.", fg="red", err=True)
+        exit(1)
 
-print("Done!")
+    if not number and not nostop:
+        click.secho("Either -n or --nostop option has to be given.", fg="red", err=True)
+        ctx = click.get_current_context()
+        click.echo(ctx.get_help())
+        exit(1)
+
+    click.echo("Inserting demo data...")
+
+    while True:
+
+        for dt in dt_list:
+
+            # Zone_Plan_Account sql
+            am.model.execute(account_sql.format(dt)).commit()
+            # Radius_Acct_Event sql
+            random_str = ''.join(random.choice(letters) for _ in range(10))
+            sql = radius_acct_event_sql.format(session_id=random_str, radius_event_id=state['counter'])
+            am.model.execute(sql).commit()
+            # Radius_Stop_Event sql
+            sql = radius_stop_event_sql.format(radius_event_id=state['counter'])
+            am.model.execute(sql).commit()
+            # Radius_Event_History sql
+            sql = radius_event_history_sql.format(user_id=state['counter'], date_utc=dt)
+            am.model.execute(sql).commit()
+            # Radius_Event sql
+            sql = radius_event_sql.format(user_id=state['counter'], date_utc=dt)
+            am.model.execute(sql).commit()
+            # Client_Tracking sql
+            sql = client_tracking_sql.format(date_utc=dt)
+            am.model.execute(sql).commit()
+            state['counter'] += 1
+
+            if number and state['counter'] >= number:
+                break
+
+        if not nostop and state['counter'] >= number:
+            break
+        
+        time.sleep(3)
+        
+    exit_()
+
+if __name__ == "__main__":
+    feed()
