@@ -108,3 +108,6 @@ tempDSN
 
 # S3 config files
 .config/
+
+# MSODBC / UnixODBC .rpm files
+*.rpm 
