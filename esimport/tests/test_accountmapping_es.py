@@ -89,7 +89,7 @@ class TestAccountMappingElasticSearch(TestCase):
 
 
         # needs ES_HOME set to where elastic search is downloaded
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
         # self.am.es = self.es
         # self.am.pm.es = self.es
 

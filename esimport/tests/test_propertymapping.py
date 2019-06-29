@@ -37,7 +37,7 @@ def compare_dict(first, second):
 
 class TestPropertyMapping(TestCase):
     def setUp(self):
-        es = Elasticsearch()
+        es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
         es.indices.delete(index='properties', ignore=[404])
         es.indices.delete(index='conferences', ignore=[404])
 

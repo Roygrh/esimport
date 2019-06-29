@@ -1,18 +1,18 @@
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
+from elasticsearch import Elasticsearch, helpers
 
+from esimport import settings
 from esimport.models import ESRecord
 from esimport.models.account import Account
-from esimport.models.property import Property
 from esimport.models.conference import Conference
 from esimport.models.device import Device
+from esimport.models.property import Property
 from esimport.models.session import Session
 from esimport.tests_new.integration.records_fixtures import *
 
 
 @pytest.fixture(scope="module")
 def es():
-    return Elasticsearch()
+    return Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
 
 
 @pytest.fixture()

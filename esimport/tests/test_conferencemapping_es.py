@@ -49,7 +49,7 @@ class TestConferenceMappingElasticSearch(TestCase):
                 inp = inp_b.decode(the_encoding).replace('GO', '')
                 self.cm.model.execute(inp)
 
-        self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+        self.es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
 
         # create index
         self.es.indices.create(index=settings.ES_INDEX, ignore=400)
