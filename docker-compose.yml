@@ -20,7 +20,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     entrypoint: bash
     volumes:
-      - "./esimport:/esimport/esimport"
+      - "./:/esimport"
 
   redis:
     image: "redis:alpine"
