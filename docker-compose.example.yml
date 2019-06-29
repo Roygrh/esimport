@@ -1,12 +1,14 @@
+# Copy this file into a docker-compose.yml file, and customize it to your needs
+# Do not forget to also adjust your local_settings.py file accordingly 
+
 version: '3'
 
 services:
-
-  # esimport can be run inside a docker container as weel, feel free to uncomment this
-  # and adjust you local_settings.py file accordingly 
+  
   esimport:
     container_name: esimport
     build: .
+    # Uncomment the following line to load your special environment variables
     # env_file: .env
     links:
       - redis
@@ -40,6 +42,14 @@ services:
     ports:
       - '9200:9200'
 
+  # Comment the following service if you want to use an external MS SQL Server
+  # DistroDev has a shared SQL Server already loaded with some demo data you can use at:
+  # ------------------------
+  # HOST/IP: 54.214.70.162
+  # Username: sa
+  # Password: DistroDev@11
+  # ------------------------
+  # feel free to create your own DB within this server, e.g. Eleven_OS_YOURNAME
   mssql:
     image: microsoft/mssql-server-linux:2017-CU5
     container_name: esimport-mssql
@@ -50,10 +60,11 @@ services:
     ports:
       - '1433:1433'
     # Note: MsSQL Docker image does not support volumes on Mac machines, you might
-    # need to uncoment volumes if you're using a Mac box.
+    # need to comment volumes if you're using a Mac box.
     volumes:
       - 'mssql:/var/opt/mssql'
 
+  # If you prefer working with Kibana, uncomment this:
   # kibana:
   #   container_name: esimport-kibana
   #   image: kibana
