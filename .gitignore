@@ -110,3 +110,6 @@ tempDSN
 
 # MSODBC / UnixODBC .rpm files
 *.rpm 
+
+# Ignore the dev's docker-compose.yml file
+docker-compose.yml

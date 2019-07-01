@@ -6,12 +6,14 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import pprint
 import logging
+import pprint
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import RequestError
+
+from constants import PROD_EAST_ENV, PROD_WEST_ENV
 from esimport import settings
-from constants import (PROD_WEST_ENV, PROD_EAST_ENV)
 
 es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
@@ -932,7 +934,11 @@ class new_index(object):
             "template": "accounts*",
             "settings": create_index["settings"],
             "aliases": {
-                "accounts-current": {}
+                "accounts-current": {
+                    "filter" : {
+                        "type" : {"value" : "account" }
+                    },
+                }
             },
             "mappings": {
                 "account": {
@@ -958,7 +964,11 @@ class new_index(object):
             "template": "devices*",
             "settings": create_index["settings"],
             "aliases": {
-                "devices-current": {}
+                "devices-current": {
+                    "filter" : {
+                        "type" : {"value" : "device" }
+                    },
+                }
             },
             "mappings": {
                 "device": {
@@ -967,24 +977,59 @@ class new_index(object):
             }
         }
 
-        # property index
-        es.indices.create(index="properties", body=create_index)
-        es.indices.refresh(index="properties")
-        es.indices.put_mapping(index="properties", doc_type="property", body=property_mapping)
-        # conference index
-        es.indices.create(index="conferences", body=create_index)
-        es.indices.refresh(index="conferences")
-        es.indices.put_mapping(index="conferences", doc_type="conference", body=conference_mapping)
-        # es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
-        # es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
-        # es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
-        # es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)
-        es.indices.put_template(name="accounts", body=accounts_template_body)
-        es.indices.put_template(name="sessions", body=sessions_template_body)
-        es.indices.put_template(name="devices", body=devices_template_body)
+        # Create the new (static) indices
+        new_indices = {
+            'properties': {'doc_type': 'property', 'body': property_mapping},
+            'conferences': {'doc_type': 'conference', 'body': conference_mapping}
+        }
+
+        for index_name, props in new_indices.items():
+            try:
+                es.indices.create(index=index_name, body=create_index)
+                es.indices.refresh(index=index_name)
+                es.indices.put_mapping(index=index_name, doc_type=props['doc_type'], body=props['body'])
+                logger.info(f"Created {index_name} index")
+            except RequestError as e:
+                if e.error != 'index_already_exists_exception':
+                    raise
+
+                err_msg = str(e)
+                logger.warning(f"Failed to create {index_name} index, got {err_msg}")
+
+        # Create index templates for dynamic indices (our date-partitioned indices)
+        index_templates = {
+            'accounts': accounts_template_body,
+            'sessions': sessions_template_body,
+            'devices': devices_template_body
+        }
+
+        for template_name, body in index_templates.items():
+            es.indices.put_template(name=template_name, body=body)
+            logger.info(f"Created/Updated {template_name} template")
 
         doc = {'id': '1'}
         es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
         es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
+        # Temporary commented out because test currently does not create `elevenos` index
+        # # Create our new aliases that groups dynamic indices together by their index/document type
+        # aliases = {
+        #     "account": "accounts-current",
+        #     "device": "devices-current",
+        #     "session": "sessions-current"
+        # }
 
+        # for type_, alias in aliases.items():
+        #     es.indices.update_aliases(body={
+        #         "actions" : [
+        #             {
+        #                 "add" : {
+        #                     "index" : "elevenos",
+        #                     "alias" : alias,
+        #                     "filter" : {"type": { "value" : type_}}
+        #                 }
+        #             }
+        #         ]
+        #     })
+        #     logger.info(f"Updated {alias} alias to include 'elevenos' index")
+        #
