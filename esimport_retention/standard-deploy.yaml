@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Lambda function that implement retention poslicy for ElasticSearch data (esimport)
+Parameters:
+  DeployS3Bucket:
+    Description: S3 bucket name with lambda function code
+    Type: String
+  LambdaS3Key:
+    Description: S3 key that point to zip archive with function code
+    Type: String
+  EsRetentionPolicyMonths:
+    Description: How many months use as retention period
+    Type: Number
+  EsUrls:
+    Description: list of URLs that point to ElasticSearch cluster/clusters
+    Type: String
+  IndicesPrefixes:
+    Description: Indices prefixes that will be processed
+    Type: String
+  SentryDsn:
+    Description: DSN for Sentry service
+    Type: String
+  LogLevel:
+    Description: Log level for lambda function
+    Type: String
+    Default: 'INFO'
+
+
+Resources:
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub 'esimport-retention-${AWS::StackName}'
+      Action: 'lambda:InvokeFunction'
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt
+        - EsimportRetentionTrigger
+        - Arn
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'lambda-role-${AWS::StackName}'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+  LambdaEsimportRetention:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'esimport-retention-${AWS::StackName}'
+      Description: esimport retention
+      Runtime: python3.7
+      Code:
+        S3Bucket: !Ref DeployS3Bucket
+        S3Key: !Ref LambdaS3Key
+      Handler: esimport_retention.lambda_handler
+      MemorySize: 128
+      Timeout: 30
+      Role:
+        Fn::GetAtt:
+          - LambdaRole
+          - Arn
+      Environment:
+        Variables:
+          ES_RETENTION_POLICY_MONTHS: !Ref EsRetentionPolicyMonths
+          ES_URLS: !Ref EsUrls
+          SENTRY_DSN: !Ref SentryDsn
+          ES_RETENTION_INDICES_PREFIXES: !Ref IndicesPrefixes
+          LOG_LEVEL: !Ref LogLevel
+  EsimportRetentionTrigger:
+    Type: AWS::Events::Rule
+    DependsOn: LambdaEsimportRetention
+    Properties:
+      Description: Trigger esimport-retention function
+      Name: !Sub 'EsimportRetentionTrigger-${AWS::StackName}'
+      ScheduleExpression: cron(1 0-7/1 15 * ? *)
+      State: 'ENABLED'
+      Targets:
+        - Arn: !GetAtt
+          - LambdaEsimportRetention
+          - Arn
+          Id: esimport_retention_trigger
