@@ -52,9 +52,12 @@ class Device(BaseModel):
                         row[key] = set_utc_timezone(row[key])
 
             org_number_tree = []
-            org_number_tree_query = self.query_get_org_number_tree()
-            for org in list(self.fetch(org_number_tree_query, row['ID'])):
-                org_number_tree.append(org[0])
+            
+            # FIXME: this is very slow, causing the devices records to stay way behind on PROD
+            # find a better way to attach the org_number tree for devices. this must NOT be done for EACH device!
+            # org_number_tree_query = self.query_get_org_number_tree()
+            # for org in list(self.fetch(org_number_tree_query, row['ID'])):
+            #     org_number_tree.append(org[0])
             row['AncestorOrgNumberTree'] = org_number_tree
 
             yield ESRecord(row, self.get_type(), self.get_index(), index_date=row[self._index_name_date_field])
