@@ -6,6 +6,7 @@ from unittest import TestCase
 from elasticsearch import Elasticsearch
 
 from esimport.mappings.session import SessionMapping
+from esimport.models.session import Session
 from esimport import settings
 from esimport.mappings.init_index import new_index
 
@@ -18,6 +19,10 @@ class TestSessionMappingElasticsearch(TestCase):
         uid = settings.DATABASES['default']['USER']
         pwd = settings.DATABASES['default']['PASSWORD']
         db = settings.DATABASES['default']['NAME']
+
+        es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
+        es.indices.delete(index='properties', ignore=[404])
+        es.indices.delete(index='conferences', ignore=[404])
 
         self.sm = SessionMapping()
         self.sm.setup()
@@ -47,13 +52,13 @@ class TestSessionMappingElasticsearch(TestCase):
         sync = lambda _sm: _sm.sync('2018-06-27')
         t = threading.Thread(target=sync, args=(sm,), daemon=True)
         t.start()
-        time.sleep(2)
+        time.sleep(5)
         # increase pagination size to 12 as there's 12 rows of session in db
         q = {
                 "size": 12,
                 "query": {"term": {"_type": "session"}}
         }
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index='sessions-2018-06', body=q)['hits']['hits']
         session_id_es = [session['_source']['ID'] for session in res]
         session_id_es.sort()
         s = self.sm.model.execute('''SELECT ID FROM Radius.dbo.Radius_Stop_Event''').fetchall()
@@ -77,7 +82,7 @@ class TestSessionMappingElasticsearch(TestCase):
         time.sleep(2)
 
         q = {'query': {'term': {'_type': self.sm.model._type}}}
-        res = self.es.search(index=settings.ES_INDEX, body=q)['hits']['hits']
+        res = self.es.search(index='sessions-current', body=q)['hits']['hits']
 
         session_records = [record['_source'] for record in res]
         for record in session_records:
@@ -105,5 +110,5 @@ FROM [INFORMATION_SCHEMA].[TABLES]
 WHERE [TABLE_TYPE] = 'BASE TABLE';
 EXEC SP_EXECUTESQL @sql;""")
 
-        if self.es.indices.exists(index=settings.ES_INDEX):
-            self.es.indices.delete(index=settings.ES_INDEX, ignore=400)
+        if self.es.indices.exists(index=Session.get_index()):
+            self.es.indices.delete(index=Session.get_index(), ignore=400)

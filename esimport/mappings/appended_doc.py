@@ -51,7 +51,6 @@ class PropertyAppendedDocumentMapping(DocumentMapping):
     """
     def get_site_values(self, org_number):
         _action = {}
-
         prop = self.pm.get_property_by_org_number(org_number)
         if prop:
             for pfik, pfiv in self.property_fields_include:

@@ -26,6 +26,8 @@ class Property(BaseModel):
     def get_type():
         return Property._type
 
+    # TODO: this method name does not match with related method in Account class
+    #  probably its should be uniformed
     @staticmethod
     def get_key_date_field():
         return Property._date_field
