@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 from esimport.mappings.session import SessionMapping
 from esimport.models.session import Session
 from esimport import settings
-from esimport.mappings.init_index import new_index
+from esimport.mappings.init_index import NewIndex
 
 
 class TestSessionMappingElasticsearch(TestCase):
@@ -41,7 +41,7 @@ class TestSessionMappingElasticsearch(TestCase):
         # self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
         self.es = self.sm.es
 
-        ni = new_index()
+        ni = NewIndex()
         ni.setup()
         ni.create_index()
 

@@ -42,11 +42,11 @@ def create_elevenos_aliases(es, logger):
         logger.info(f"Updated {alias} alias to include 'elevenos' index")
 
 
-class new_index(object):
+class NewIndex(object):
     es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def __init__(self):
-        super(new_index, self).__init__()
+        super(NewIndex, self).__init__()
         self.step_size = settings.ES_BULK_LIMIT
         self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
         self.db_wait = settings.DATABASE_CALLS_WAIT

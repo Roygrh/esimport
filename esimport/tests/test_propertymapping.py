@@ -19,7 +19,7 @@ from mock import MagicMock
 from esimport.mappings.property import PropertyMapping
 from esimport.models.property import Property
 from esimport import settings
-from esimport.mappings.init_index import new_index
+from esimport.mappings.init_index import NewIndex
 import datetime
 
 
@@ -61,7 +61,7 @@ class TestPropertyMapping(TestCase):
 
         self.es = self.pm.es
 
-        ni = new_index()
+        ni = NewIndex()
         ni.setup()
         ni.create_index()
 
