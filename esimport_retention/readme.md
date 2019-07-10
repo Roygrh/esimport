@@ -77,11 +77,11 @@ python -m esimport_snapshot_cli \
 ```bash
 bash ./deploy.sh \
     <CloudFormation stack name> \
-    <S3 Bucket Name> \
+    <S3 Bucket Name, to store lambda function code> \
     <Retention policy in months> \
     <ES endpoints/urls, comma separated strings> \
     <Sentry dsn> \
-    <Indices prefixes, comm separated strings> \
+    <Indices prefixes, comma separated strings> \
     <Snapshot repo name>
     <Desired LOGLEVE>
 ````
