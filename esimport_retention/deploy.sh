@@ -10,6 +10,7 @@
 #	http://admin:asdf@localhost:9200,http://admin:asdf@localhost:92001 \
 #	<Sentry dsn> \
 #	devices,accounts,sessions \
+#	<Snapshot repo name>
 #	DEBUG
 
 
@@ -22,6 +23,7 @@ if [[ $# -lt 6 ]]
     echo '$4 - Urls to ElasticSearch clusters/servers, delimited by commas'
     echo '$5 - Sentry DSN'
     echo '$6 - Indices prefixes that will be processed, strings delimited by commas'
+    echo '$7 - Repo name'
     echo '$7 - Optional, log level'
     exit
 fi
@@ -32,13 +34,17 @@ retention_policy=$3 # number in months
 es_urls=$4 # ElasticSearch urls delimited by comma
 sentry_dsn=$5
 indices_prefixes=$6
-log_level=$7
+repo_name=$7
+log_level=$8
 
 base_package='esimport_retention'
 
 mkdir -p package
 
 pip install -r requirements.txt --target ./package
+cp -f esimport_retention_core.py ./package/
+cp -f esimport_snapshot_creation.py ./package/
+cp -f esimport_snapshot_verifier.py ./package/
 cp -f esimport_retention.py ./package/
 
 pushd package
@@ -62,4 +68,5 @@ aws cloudformation deploy \
     EsUrls="${es_urls}" \
     SentryDsn=${sentry_dsn} \
     IndicesPrefixes=${indices_prefixes} \
+    RepoName=${repo_name} \
     LogLevel=${log_level}
