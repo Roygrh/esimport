@@ -883,7 +883,7 @@ accounts_template_body = {
             "filter": {
                 "type": {"value": "account"}
             },
-        }
+        },
     },
     "mappings": {
         "account": {
@@ -920,4 +920,15 @@ devices_template_body = {
             "properties": device_mapping["properties"]
         }
     }
+}
+elevenos_aliases_config= {
+    "account": "accounts-current",
+    "device": "devices-current",
+    "session": "sessions-current"
+}
+
+index_templates = {
+    'accounts': accounts_template_body,
+    'sessions': sessions_template_body,
+    'devices': devices_template_body
 }

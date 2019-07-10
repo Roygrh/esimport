@@ -14,11 +14,32 @@ from elasticsearch.exceptions import RequestError, NotFoundError
 
 from constants import PROD_EAST_ENV, PROD_WEST_ENV
 from esimport import settings
-from esimport.mappings.indices_definitions import *
+from esimport.mappings.indices_definitions import conference_mapping
+from esimport.mappings.indices_definitions import elevenos_aliases_config
+from esimport.mappings.indices_definitions import index_templates
+from esimport.mappings.indices_definitions import property_mapping
 
 es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 logger = logging.getLogger(__name__)
+
+
+def create_elevenos_aliases(es, logger):
+    # Create our new aliases that groups dynamic indices together by their index/document type
+
+    for type_, alias in elevenos_aliases_config.items():
+        es.indices.update_aliases(body={
+            "actions": [
+                {
+                    "add" : {
+                        "index": "elevenos",
+                        "alias": alias,
+                        "filter": {"type": {"value": type_}}
+                    }
+                }
+            ]
+        })
+        logger.info(f"Updated {alias} alias to include 'elevenos' index")
 
 
 class new_index(object):
@@ -82,11 +103,6 @@ class new_index(object):
                 logger.warning(f"Failed to create {index_name} index, got {err_msg}")
 
         # Create index templates for dynamic indices (our date-partitioned indices)
-        index_templates = {
-            'accounts': accounts_template_body,
-            'sessions': sessions_template_body,
-            'devices': devices_template_body
-        }
 
         for template_name, body in index_templates.items():
             body.update(create_index)
@@ -97,24 +113,5 @@ class new_index(object):
         es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
         es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
-        # Create our new aliases that groups dynamic indices together by their index/document type
-        aliases = {
-            "account": "accounts-current",
-            "device": "devices-current",
-            "session": "sessions-current"
-        }
-
-        for type_, alias in aliases.items():
-            es.indices.update_aliases(body={
-                "actions": [
-                    {
-                        "add" : {
-                            "index": "elevenos",
-                            "alias": alias,
-                            "filter": {"type": {"value": type_}}
-                        }
-                    }
-                ]
-            })
-            logger.info(f"Updated {alias} alias to include 'elevenos' index")
+        create_elevenos_aliases(es, logger)
 
