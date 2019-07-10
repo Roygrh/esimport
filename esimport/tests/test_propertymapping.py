@@ -172,11 +172,6 @@ class TestPropertyMapping(TestCase):
         for prop in res:
             self.assertEqual(set(prop['_source']['Address']), set(addresses[prop['_id']]))
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="Temporary disable. It is not clear what is being compared in the final loop. "
-        "popr_mapping consist of only 2 dicts but sa['ServicePlans'] has many elements"
-        )
     def test_service_plans_in_service_area(self):
         time.sleep(2)
 

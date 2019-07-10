@@ -10,7 +10,7 @@ import logging
 import pprint
 
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import RequestError
+from elasticsearch.exceptions import RequestError, NotFoundError
 
 from constants import PROD_EAST_ENV, PROD_WEST_ENV
 from esimport import settings
@@ -977,6 +977,15 @@ class new_index(object):
             }
         }
 
+        # Create `elevenos` index if it not exits, it requires for tests
+
+        index_name = 'elevenos'
+        try:
+            es.indices.get(index=index_name)
+        except NotFoundError as err:
+            es.indices.create(index='elevenos', body=create_index)
+
+
         # Create the new (static) indices
         new_indices = {
             'properties': {'doc_type': 'property', 'body': property_mapping},
@@ -1011,25 +1020,24 @@ class new_index(object):
         es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
         es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
-        # Temporary commented out because test currently does not create `elevenos` index
-        # # Create our new aliases that groups dynamic indices together by their index/document type
-        # aliases = {
-        #     "account": "accounts-current",
-        #     "device": "devices-current",
-        #     "session": "sessions-current"
-        # }
+        # Create our new aliases that groups dynamic indices together by their index/document type
+        aliases = {
+            "account": "accounts-current",
+            "device": "devices-current",
+            "session": "sessions-current"
+        }
 
-        # for type_, alias in aliases.items():
-        #     es.indices.update_aliases(body={
-        #         "actions" : [
-        #             {
-        #                 "add" : {
-        #                     "index" : "elevenos",
-        #                     "alias" : alias,
-        #                     "filter" : {"type": { "value" : type_}}
-        #                 }
-        #             }
-        #         ]
-        #     })
-        #     logger.info(f"Updated {alias} alias to include 'elevenos' index")
-        #
+        for type_, alias in aliases.items():
+            es.indices.update_aliases(body={
+                "actions": [
+                    {
+                        "add" : {
+                            "index": "elevenos",
+                            "alias": alias,
+                            "filter": {"type": {"value": type_}}
+                        }
+                    }
+                ]
+            })
+            logger.info(f"Updated {alias} alias to include 'elevenos' index")
+
