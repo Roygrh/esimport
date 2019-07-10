@@ -1,6 +1,5 @@
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch import helpers
 
-from esimport import settings
 from esimport.models import ESRecord
 from esimport.models.account import Account
 from esimport.models.conference import Conference
@@ -8,58 +7,16 @@ from esimport.models.device import Device
 from esimport.models.property import Property
 from esimport.models.session import Session
 from esimport.tests_new.integration.records_fixtures import *
-
-
-@pytest.fixture(scope="module")
-def es():
-    return Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
-
-
-@pytest.fixture()
-def empty_es_indexes(es):
-    indexes_names = es.indices.get_settings(index="*").keys()
-    for index_name in indexes_names:
-        es.indices.delete(index=index_name)
-
-    yield
-
-    indexes_names = es.indices.get_settings(index="*").keys()
-    for index_name in indexes_names:
-        es.indices.delete(index=index_name)
-
-
-@pytest.fixture()
-def empty_es_aliases(es):
-    # ignoring 404 because before test start may not exists
-    es.indices.delete_alias(index="_all", name="_all", ignore=[404])
-
-    yield
-
-    es.indices.delete_alias(index="_all", name="_all")
+from esimport.tests_new.integration.basic_fixtures import *
+from esimport.mappings.indices_definitions import index_templates
 
 
 @pytest.fixture()
 def es_templates(es):
-    test_settings = {"settings": {"number_of_shards": 9, "number_of_replicas": 1}}
-    template_collection = {
-        "accounts": {
-            "template": "accounts*",
-            "settings": test_settings,
-            "aliases": {"accounts-current": {}},
-        },
-        "sessions": {
-            "template": "sessions*",
-            "settings": test_settings,
-            "aliases": {"sessions-current": {}},
-        },
-        "devices": {
-            "template": "devices*",
-            "settings": test_settings,
-            "aliases": {"devices-current": {}},
-        },
-    }
-    for template_id, body in template_collection.items():
-        es.put_template(id=template_id, body=body)
+    index_base_settings = {"settings": {"number_of_shards": 9, "number_of_replicas": 1}}
+    for template_name, template_body in index_templates.items():
+        template_body.update(index_base_settings)
+        es.indices.put_template(name=template_name, body=template_body)
 
 
 class TestDynamicIndex:
@@ -134,6 +91,7 @@ class TestDynamicIndex:
         )
 
         helpers.bulk(es, [device_record.es()])
+
         indexes_names = es.indices.get_settings(index="*").keys()
         assert sample_session["expected_index"] in indexes_names
 
@@ -150,6 +108,7 @@ class TestDynamicIndex:
         property_record = ESRecord(doc, Property.get_type(), Property.get_index())
 
         helpers.bulk(es, [property_record.es()])
+
         indexes_names = es.indices.get_settings(index="*").keys()
         assert sample_property["expected_index"] in indexes_names
 
@@ -159,5 +118,6 @@ class TestDynamicIndex:
         conference_record = ESRecord(doc, Conference.get_type(), Conference.get_index())
 
         helpers.bulk(es, [conference_record.es()])
+
         indexes_names = es.indices.get_settings(index="*").keys()
         assert sample_conference["expected_index"] in indexes_names
