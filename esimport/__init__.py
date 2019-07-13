@@ -17,7 +17,7 @@ from esimport import settings
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.session import SessionMapping
 from esimport.mappings.property import PropertyMapping
-from esimport.mappings.init_index import new_index
+from esimport.mappings.init_index import NewIndex
 from esimport.mappings.device import DeviceMapping
 from esimport.mappings.conference import ConferenceMapping
 from esimport.models.account import Account
@@ -127,6 +127,6 @@ def esdatacheck(mapping_name):
 @cli.command()
 # @click.argument('index_name')
 def create():
-    ni = new_index()
+    ni = NewIndex()
     ni.setup()
     ni.create_index()
