@@ -69,9 +69,9 @@ class PropertyMapping(DocumentMapping):
     def get_existing_properties(self, start, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start))
-        records = self.es.search(index=settings.ES_INDEX, doc_type=Property.get_type(),
+        records = self.es.search(index=Property.get_index(), doc_type=Property.get_type(),
                                  sort="ID:asc", size=limit,
-                                 q="ID:[{0} TO *]".format(start), 
+                                 q="ID:[{0} TO *]".format(start),
                                  request_timeout=60)
         for record in records['hits']['hits']:
             yield record.get('_source')
@@ -136,9 +136,9 @@ class PropertyMapping(DocumentMapping):
 
             logger.info("Fetching record from ES for Org Number: {0}.".format(org_number))
             record = None
-            records = self.es.search(index=settings.ES_INDEX, 
-                                     doc_type=Property.get_type(), 
-                                     size=1, 
+            records = self.es.search(index=Property.get_index(),
+                                     doc_type=Property.get_type(),
+                                     size=1,
                                      body=es_property_query)
 
             for rec in records['hits']['hits']:

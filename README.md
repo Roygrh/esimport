@@ -1,114 +1,63 @@
 # ElasticSearch Import Project
 
-The overall task is to move data from our T-SQL database into ElasticSearch.
+The overall task is to move data from Eleven's T-SQL database into ElasticSearch.
 
-## Create settings file
+## Setup and contributing
 
-Note that DSN string configure driver and server for connection outside Docker. This configuration in DSN string may be unnecessary if odbc configuration in system specified appropriate default driver. See script `ESImport/docker/setup_db.bash`.
+We encourage docker-based development workflow, this project includes a [Dockerfile](Dockerfile) that uses the same Linux distrobution as production. 
 
-```bash
-cat <<EOF > local_settings.py
-import os
+Doing so, we make sure all devs have almost the same environment, services and system dependencies versions, and esimport behaves the same to all
+of us. 
 
-# Are we inside Docker?
-INSIDE_DOCKER = os.getenv("INSIDE_DOCKER") in ["1", "y", "yes", "true"]
+- Copy `_docker-compose.example.yml` file into `docker-compose.yml`.
+- Copy `_local_settings.example.py` file into `local_settings.py` file. 
+- In a separate terminal window, run: `make start-environment`, this will start up ElasticSearch, Redis and MS SQL Server.
+- Run `make shell`. This will drop you in a bash shell in a separate docker container, with `esimport` CLI available and tests ready to invoke. You can modify the code-base without running `make shell` again, just modify and re-invoke `esimport` or tests within the same shell.
 
-# General
-ENVIRONMENT = "dev"
 
-DATABASES = {
-    "default": {
-        "DSN": "Eleven_OS" if not INSIDE_DOCKER else "Eleven_OS",  # either DSN or HOST
-        "HOST": "localhost" if not INSIDE_DOCKER else "mssql",
-        "PORT": "1433",
-        "NAME": "Eleven_OS",
-        "USER": "sa",
-        "PASSWORD": "DistroDev@11",  # you probably have something else as a password
-    }
-}
+## Usage
 
-if INSIDE_DOCKER:
-    # No need to specify a driver
-    MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
-else:
-    # MSSQL_DSN = "Driver={FreeTDS};Server=%(HOST)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s"
-    MSSQL_DSN = "DRIVER={ODBC Driver 17 for SQL Server};server=%(HOST)s;DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;Database=%(NAME)s;trusted_connection=no"
-
-# MSSQL_DSN = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
-ES_HOST = "localhost" if not INSIDE_DOCKER else "elasticsearch"
-ES_INDEX = "elevenos"
-ES_TIMEOUT = 1
-ES_RETRIES = 1
-ES_RETRIES_WAIT = 1
-ES_BULK_LIMIT = 10
-
-REDIS_HOST = "localhost" if not INSIDE_DOCKER else "redis"
-
-# Wait between database queries execution (seconds)
-DATABASE_CALLS_WAIT = 1
-
-# Reset database connection (seconds) giving esimport a chance to
-# pickup any DNS changes that have propagated since the last connection
-DATABASE_CONNECTION_RESET_LIMIT = 300
-
-DATABASE_CALLS_RETRIES = 1
-DATABASE_CALLS_RETRIES_WAIT = 1
-DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = False
-ES_CALLS_RETRIES = 1
-ES_CALLS_RETRIES_WAIT = 1
-ES_CALLS_RETRIES_WAIT_INCREMENTAL = False
-EOF
-```
-
-## HOW TO USE?
+esimport syncs (or updates) 05 types of documents to Elasticsearch, accounts, conferences, devices, properties and sessions. This can be done with:
 
 ```bash
-$ pip install ssh://git@bitbucket.org/distrodev/esimport.git
-$ export PYTHONPATH=/path/to/local_settings.py
-$ esimport sync
+$ esimport sync [account|device|session|property]
 ```
+
+and:
 
 ```bash
-$ esimport sync --start-date 2014-01-01
+$ esimport update conference
 ```
 
-#### Update existing records in ElasticSearch
+e.g. 
+- `esimport sync device` (notice device is not in the plural form).
+- `esimport update conference` (also not in plural)
+
+All of the above commands accept `--start-date` argument, e.g.
 
 ```bash
-$ esimport update account
+$ esimport sync session --start-date 2018-01-01
 ```
 
-```bash
-$ esimport update conference --start-date 2018-05-01
-```
+You may want to start with `esimport sync property` first, since the rest of document types may rely on the presence of some properties.
 
-## HOW TO RUN TESTS?
+## How to run tests?
 
-Start an ElasticSearch server and then run following commands.
+Just invoke `tox` or `pytest`. 
 
-```bash
-$ export PYTHONPATH=/path/to/local_settings.py
-$ tox
-```
+To run a specific tests, invoke `pytest esimport/tests/test_conferencemapping_es.py`.
 
-```bash
-$ export PYTHONPATH=/path/to/local_settings.py
-$ pytest esimport/tests/test_conferencemapping_es.py
-```
+Make sure, you're inside a shell with `make shell` and ES, Redis and MSSQL are up with `make start-environment`.
 
-## Using docker-compose
+### Using esimport outside Docker
 
-Docker-compose can be used to spin up SQLServer, Redis and ElasticSearch.
-You can start these services with `make start-environment` or `docker-compose up redis mssql elasticsearch`.
+docker-compose can be used to spin up MSSQL Server, Redis or ElasticSearch only, without necessarily the esimport service. You can start any of these services at will with `docker-compose up redis mssql elasticsearch`, drop any service name from the command to NOT spin it (e.g. it's installed on your machine).
 
-Once these services are up, you can access them like so:
+Once these services are up, you can access them from your host machine like so:
 - ElasticSearch: `localhost:9200`
 - MSSQL Server: `localhost:1433`, user: `sa`, password: `DistroDev@11` (You have to create the databases: Eleven_OS, Radius)
-- Redis: `localhost:6379`
+- Redis: `localhost:6379`.
 
-If you want to run ESImport from inside a docker container as well, issue `make shell` inside the project root directory.
-It will set up the whole dev-stack from docker-compose.yml and leave you in a shell from where you can run the unit tests
-and esimport update/sync (see section above).
+### Only esimport inside Docker
 
-If you set up the stack with `make start-environment` or `docker-compose up redis mssql elasticsearch` you can still add the
-esimport or kibana container afterwards with `docker-compose run --rm --service-ports <service-name>`.
+You may want to run only `esimport` service inside docker, while instructing it to use the Elasticsearch, Redis and MSSQL Server of your host machine. In this case you have to pass `--net="host"` to your `docker run` command, or add `network_mode: "host"` to your `docker-compose.yml` file.

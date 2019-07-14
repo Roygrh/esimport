@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 class Device(BaseModel):
     _type = "device"
     _date_field = "DateUTC"
+    _index_name_date_field = "DateUTC"
+    _index = "devices"
 
     # These dates are in 'America/Los_Angeles' format
     dates_from_pacific = {"Date": "DateUTC"}
@@ -32,6 +34,10 @@ class Device(BaseModel):
     @staticmethod
     def get_key_date_field():
         return Device._date_field
+
+    @staticmethod
+    def get_index():
+        return Device._index
 
     def get_devices(self, start, limit, start_date='1900-01-01'):
         q = self.query_one()
@@ -54,7 +60,7 @@ class Device(BaseModel):
             #     org_number_tree.append(org[0])
             row['AncestorOrgNumberTree'] = org_number_tree
 
-            yield ESRecord(row, self.get_type())
+            yield ESRecord(row, self.get_type(), self.get_index(), index_date=row[self._index_name_date_field])
 
     @staticmethod
     def query_one():

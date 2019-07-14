@@ -6,23 +6,47 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import pprint
 import logging
+import pprint
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import RequestError, NotFoundError
+
+from constants import PROD_EAST_ENV, PROD_WEST_ENV
 from esimport import settings
-from constants import (PROD_WEST_ENV, PROD_EAST_ENV)
+from esimport.mappings.indices_definitions import conference_mapping
+from esimport.mappings.indices_definitions import elevenos_aliases_config
+from esimport.mappings.indices_definitions import index_templates
+from esimport.mappings.indices_definitions import property_mapping
 
 es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
 logger = logging.getLogger(__name__)
 
 
-class new_index(object):
+def create_elevenos_aliases(es, logger):
+    # Create our new aliases that groups dynamic indices together by their index/document type
+
+    for type_, alias in elevenos_aliases_config.items():
+        es.indices.update_aliases(body={
+            "actions": [
+                {
+                    "add" : {
+                        "index": "elevenos",
+                        "alias": alias,
+                        "filter": {"type": {"value": type_}}
+                    }
+                }
+            ]
+        })
+        logger.info(f"Updated {alias} alias to include 'elevenos' index")
+
+
+class NewIndex(object):
     es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def __init__(self):
-        super(new_index, self).__init__()
+        super(NewIndex, self).__init__()
         self.step_size = settings.ES_BULK_LIMIT
         self.pp = pprint.PrettyPrinter(indent=2, depth=10)  # pragma: no cover
         self.db_wait = settings.DATABASE_CALLS_WAIT
@@ -32,7 +56,9 @@ class new_index(object):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-    def create_index(self, index_name=settings.ES_INDEX):
+    def create_index(self):
+        # TODO: fix tests, if index already exist this method will throw exception.
+        #  And during tesing this method are being called multiple times
 
         if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
             create_index = {
@@ -49,357 +75,43 @@ class new_index(object):
                 }
             }
 
-        property_mapping = {
-            "properties": {
-                "ActiveDevices": {"type": "integer"},
-                "ActiveMembers": {"type": "integer"},
-                "Address": {
-                    "type": "nested",
-                    "properties": {
-                        "AddressLine1": {"type": "text"},
-                        "AddressLine2": {"type": "text"},
-                        "City": {"type": "keyword"},
-                        "Area": {"type": "keyword"},
-                        "PostalCode": {"type": "keyword"},
-                        "CountryName": {"type": "text"}
-                    }
-                },
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "CreatedUTC": {"type": "date"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "GoLiveUTC": {"type": "date"},
-                "GuestRooms": {"type": "integer"},
-                "Lite": {"type": "boolean"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MeetingRooms": {"type": "integer"},
-                "Name": {"type": "text"},
-                "Number": {"type": "keyword", "ignore_above": 12},
-                "OrgNumberTree": {"type": "keyword"},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Pan": {"type": "boolean"},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "ServiceAreaObjects": {"type": "nested",
-                                       "properties": {
-                                           "Number": {"type": "keyword"},
-                                           "Name": {"type": "text"},
-                                           "ZoneType": {"type": "keyword"},
-                                           "ActiveMembers": {"type": "integer"},
-                                           "ActiveDevices": {"type": "integer"},
-                                           "Hosts": {"type": "nested",
-                                                     "properties": {
-                                                         "NASID": {"type": "keyword"},
-                                                         "RadiusNASID": {"type": "text"},
-                                                         "HostType": {"type": "text"},
-                                                         "VLANRangeStart": {"type": "integer"},
-                                                         "VLANRangeEnd": {"type": "integer"},
-                                                         "NetIP": {"type": "keyword"}
-                                                     }
-                                                     },
-                                           "ServicePlans": {
-                                               "type": "nested",
-                                               "properties": {
-                                                   "Number": {"type": "keyword"},
-                                                   "Name": {"type": "keyword"},
-                                                   "Description": {"type": "text"},
-                                                   "Price": {"type": "float"},
-                                                   "UpKbs": {"type": "integer"},
-                                                   "DownKbs": {"type": "integer"},
-                                                   "IdleTimeout": {"type": "integer"},
-                                                   "ConnectionLimit": {"type": "integer"},
-                                                   "RadiusClass": {"type": "keyword"},
-                                                   "GroupBandwidthLimit": {"type": "boolean"},
-                                                   "Type": {"type": "keyword"},
-                                                   "PlanTime": {"type": "integer"},
-                                                   "PlanUnit": {"type": "keyword"},
-                                                   "LifespanTime": {"type": "integer"},
-                                                   "LifespanUnit": {"type": "keyword"},
-                                                   "CurrencyCode": {"type": "keyword"},
-                                                   "Status": {"type": "keyword"},
-                                                   "OrgCode": {"type": "keyword"},
-                                                   "DateCreatedUTC": {"type": "date"}
-                                               }
-                                           }
-                                       }
-                                       },
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UpdateTime": {"type": "date"},
-                "ZoneType": {
-                    "type": "text",
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 128
-                        }
-                    }
-                },
-            }
+        # Create `elevenos` index if it not exits, it requires for tests
+
+        index_name = 'elevenos'
+        try:
+            es.indices.get(index=index_name)
+        except NotFoundError as err:
+            es.indices.create(index='elevenos', body=create_index)
+
+        # Create the new (static) indices
+        new_indices = {
+            'properties': {'doc_type': 'property', 'body': property_mapping},
+            'conferences': {'doc_type': 'conference', 'body': conference_mapping}
         }
 
-        device_mapping = {
-            "properties": {
-                "AncestorOrgNumberTree": {"type": "keyword"},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "Browser": {"type": "keyword", "ignore_above": 32},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "DateLocal": {"type": "date"},
-                "DateUTC": {"type": "date"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "IP": {"type": "keyword", "ignore_above": 56},
-                "MAC": {"type": "keyword", "ignore_above": 18},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MemberID": {"type": "long"},
-                "MemberNumber": {"type": "keyword"},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Platform": {"type": "keyword", "ignore_above": 32},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "ZoneType": {
-                    "type": "text",
-                    "fields": {
-                        "keyword": {
-                            "type": "keyword",
-                            "ignore_above": 128
-                        }
-                    }
-                }
-            }
-        }
+        for index_name, props in new_indices.items():
+            try:
+                es.indices.create(index=index_name, body=create_index)
+                es.indices.refresh(index=index_name)
+                es.indices.put_mapping(index=index_name, doc_type=props['doc_type'], body=props['body'])
+                logger.info(f"Created {index_name} index")
+            except RequestError as e:
+                if e.error != 'index_already_exists_exception':
+                    raise
 
-        account_mapping = {
-            "properties": {
-                "Activated": {"type": "date"},
-                "ActivatedLocal": {"type": "date"},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "CardType": {"type": "keyword", "ignore_above": 16},
-                "ConnectCode": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword",
-                                        "ignore_above": 128
-                                    }
-                                }
-                                },
-                "ConsumableTime": {"type": "integer"},
-                "ConsumableUnit": {"type": "keyword", "ignore_above": 16},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Created": {"type": "date"},
-                "CreatedLocal": {"type": "date"},
-                "CreditCardNumber": {"type": "integer"},
-                "Currency": {"type": "keyword", "ignore_above": 8},
-                "DateModifiedUTC": {"type": "date"},
-                "DiscountCode": {"type": "text",
-                                 "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
-                "DownCap": {"type": "integer"},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "LastName": {"type": "text"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MarketingContact": {"type": "text"},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "Name": {"type": "text",
-                         "fields": {
-                             "keyword": {
-                                 "type": "keyword",
-                                 "ignore_above": 128
-                             }
-                         }
-                         },
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "PayMethod": {"type": "keyword"},
-                "Price": {"type": "float"},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "PurchaseMacAddress": {"type": "keyword", "ignore_above": 18},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "RoomNumber": {"type": "keyword"},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "ServicePlan": {"type": "text",
-                                "fields": {"keyword": {"type": "keyword", "ignore_above": 128}}},
-                "ServicePlanNumber": {"type": "keyword", "ignore_above": 64},
-                "SpanTime": {"type": "integer"},
-                "SpanUnit": {"type": "keyword", "ignore_above": 16},
-                "Status": {"type": "keyword", "ignore_above": 16},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UpCap": {"type": "integer"},
-                "UpsellAccountID": {"type": "long"},
-                "VLAN": {"type": "integer"},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }
-                             }
-                             }
-            }
-        }
+                err_msg = str(e)
+                logger.warning(f"Failed to create {index_name} index, got {err_msg}")
 
-        session_mapping = {
-            "properties": {
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "BytesIn": {"type": "long"},
-                "BytesOut": {"type": "long"},
-                "CalledStation": {"type": "text",
-                                  "fields": {
-                                      "keyword": {
-                                          "type": "keyword",
-                                          "ignore_above": 128
-                                      }}},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "ID": {"type": "long"},
-                "LoginTime": {"type": "date"},
-                "LoginTimeLocal": {"type": "date"},
-                "LogoutTime": {"type": "date"},
-                "LogoutTimeLocal": {"type": "date"},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "MacAddress": {"type": "keyword", "ignore_above": 18},
-                "MemberNumber": {"type": "keyword", "ignore_above": 32},
-                "Name": {"type": "text",
-                         "fields": {
-                             "keyword": {
-                                 "type": "keyword",
-                                 "ignore_above": 128
-                             }}},
-                "NasIdentifier": {"type": "text",
-                                  "fields": {
-                                      "keyword": {
-                                          "type": "keyword",
-                                          "ignore_above": 256
-                                      }}},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "ServicePlan": {"type": "text",
-                                "fields": {
-                                    "keyword": {
-                                        "type": "keyword",
-                                        "ignore_above": 128
-                                    }}},
-                "SessionID": {"type": "text",
-                              "fields": {
-                                  "keyword": {
-                                      "type": "keyword",
-                                      "ignore_above": 128
-                                  }}},
-                "SessionLength": {"type": "integer"},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TaxRate": {"type": "float"},
-                "TerminationReason": {"type": "text",
-                                      "fields": {
-                                          "keyword": {
-                                              "type": "keyword",
-                                              "ignore_above": 128
-                                          }}},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "UserName": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}},
-                "VLAN": {"type": "integer"},
-                "ZoneType": {"type": "text",
-                             "fields": {
-                                 "keyword": {
-                                     "type": "keyword",
-                                     "ignore_above": 128
-                                 }}}
-            }
-        }
+        # Create index templates for dynamic indices (our date-partitioned indices)
 
-        conference_mapping = {
-            "properties": {
-                "AccessCodes": {
-                    "type": "nested",
-                    "properties": {
-                        "Code": {"type": "keyword"},
-                        "MemberNumber": {"type": "keyword"},
-                        "MemberID": {"type": "long"}
-                    }
-                },
-                "UpdateTime": {"type": "date"},
-                "Name": {"type": "text"},
-                "DateCreatedLocal": {"type": "date"},
-                "DateCreatedUTC": {"type": "date"},
-                "StartDateLocal": {"type": "date"},
-                "StartDateUTC": {"type": "date"},
-                "EndDateLocal": {"type": "date"},
-                "EndDateUTC": {"type": "date"},
-                "ServiceArea": {"type": "keyword", "ignore_above": 12},
-                "Code":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 128
-                         }}},
-                "CodeList":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 128
-                         }}},
-                "MemberNumberList": {"type": "keyword"},
-                "MemberID": {"type": "long"},
-                "MemberNumber": {"type": "keyword"},
-                "MemberStatus": {"type": "keyword"},
-                "SSID":
-                    {"type": "text",
-                     "fields": {
-                         "keyword": {
-                             "type": "keyword",
-                             "ignore_above": 64
-                         }}},
-                "ConnectionLimit": {"type": "integer"},
-                "GroupBandwidthLimit": {"type": "boolean"},
-                "DownKbs": {"type": "integer"},
-                "UpKbs": {"type": "integer"},
-                "UserCount": {"type": "integer"},
-                "TotalInputBytes": {"type": "long"},
-                "TotalOutputBytes": {"type": "long"},
-                "TotalSessionTime": {"type": "long"},
-                "PropertyName": {"type": "text"},
-                "PropertyNumber": {"type": "keyword", "ignore_above": 12},
-                "CorporateBrand": {"type": "keyword", "ignore_above": 128},
-                "Brand": {"type": "keyword", "ignore_above": 64},
-                "OwnershipGroup": {"type": "keyword", "ignore_above": 128},
-                "Provider": {"type": "keyword", "ignore_above": 128},
-                "MARSHA_Code": {"type": "keyword", "ignore_above": 64},
-                "ExtPropId": {"type": "keyword", "ignore_above": 64},
-                "Country": {"type": "keyword", "ignore_above": 64},
-                "Region": {"type": "keyword", "ignore_above": 64},
-                "SubRegion": {"type": "keyword", "ignore_above": 64},
-                "TimeZone": {"type": "keyword", "ignore_above": 32},
-                "TaxRate": {"type": "float"}
-            }
+        for template_name, body in index_templates.items():
+            body.update(create_index)
+            es.indices.put_template(name=template_name, body=body)
+            logger.info(f"Created/Updated {template_name} template")
 
-        }
+        doc = {'id': '1'}
+        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
+        es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
-        es.indices.create(index=index_name, body=create_index)
-        es.indices.refresh(index=index_name)
-        es.indices.put_mapping(index=index_name, doc_type="property", body=property_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="device", body=device_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="account", body=account_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="session", body=session_mapping)
-        es.indices.put_mapping(index=index_name, doc_type="conference", body=conference_mapping)
+        create_elevenos_aliases(es, logger)
+
