@@ -3,11 +3,11 @@ services:
   - docker:dind
 
 stages:
+  - esimport_retention
   - build
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
-  - esimport_retention_unit_test
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -72,7 +72,7 @@ production_east_deploy:
   when: manual
 
 esimport_retention_unit_test:
-  stage: esimport_retention_unit_test
+  stage: esimport_retention
   when: manual
   script:
     - apk add --no-cache python3
@@ -84,6 +84,37 @@ esimport_retention_unit_test:
       --cov=.
       --cov-report=term-missing
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+
+esimport_retention_integration_test:
+  stage: esimport_retention
+  when: manual
+  script:
+    - apk add --no-cache python3
+    - cd esimport_retention
+    - pip3 install awscli
+    - pip3 install -r ./requirements.txt
+    - pip3 install -r ./dev-requirements.txt
+    - bash run-integration-tests.sh
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+
+esimport_retention_deploy:
+  stage: esimport_retention
+  when: manual
+  script:
+    - apk add --no-cache python3
+    - cd esimport_retention
+    - pip3 install awscli
+    - >
+      bash ./deploy.sh \
+      <CloudFormation stack name> \
+      <S3 Bucket Name, to store lambda function code> \
+      <Retention policy in months> \
+      <ES endpoints/urls, comma separated strings> \
+      <Sentry dsn> \
+      <Indices prefixes, comma separated strings> \
+      <Snapshot repo name>
+      <Desired LOGLEVEl>
+
 
 
 
