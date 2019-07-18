@@ -5,10 +5,10 @@
 2. To verify state of snapshots that were create from indices dedicated to data from previous month.
 3. Remove indices which older than defined retantion policy (in months), but only if snapshots exists for such indices.
 
-Each functions will be triggerd by cron defined schedule
+Each functions will be triggered by cron defined schedule
 1. Snapshot creation on the 5th day in each month
 2. Snapshot verifier on the 6th day in each month
-3. Old indices deletetion on 15th day in each month
+3. Old indices deletion on 15th day in each month
 
 Exception that will may happens during lambda function execution will be recorded in Sentry service
 
@@ -32,10 +32,7 @@ To run unit tests use this command
 
 ```bash
 python -m pytest tests/unit_tests -x\
-    --cov=esimport_retention_core\
-    --cov=esimport_snapshot_creation\
-    --cov=esimport_snapshot_verifier\
-    --cov=esimport_retention\
+    --cov=. \
     --cov-report=term-missing
 ```
 

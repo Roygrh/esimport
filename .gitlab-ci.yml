@@ -7,6 +7,7 @@ stages:
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
+  - esimport_retention_unit_test
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -69,3 +70,20 @@ production_east_deploy:
   only:
     - master
   when: manual
+
+esimport_retention_unit_test:
+  stage: esimport_retention_unit_test
+  when: manual
+  script:
+    - apk add --no-cache python3
+    - cd esimport_retention
+    - pip3 install -r ./requirements.txt
+    - pip3 install -r ./dev-requirements.txt
+    - >
+      python3 -m pytest tests/unit_tests -x
+      --cov=.
+      --cov-report=term-missing
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+
+
+
