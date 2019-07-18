@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 class Session(BaseModel):
     _type = "session"
     _date_field = "LogoutTime"
+    _index_name_date_field = "LogoutTime"
+    _index = "sessions"
 
     @staticmethod
     def get_type():
@@ -28,6 +30,10 @@ class Session(BaseModel):
     def get_key_date_field():
         return Session._date_field
 
+    @staticmethod
+    def get_index():
+        return Session._index
+
     def get_sessions(self, start_id, limit, start_date='1900-01-01', historical=True):
         q = self.query_sessions(historical)
         for row in self.fetch_dict(q, limit, start_id, start_id, limit, start_date):
@@ -35,7 +41,7 @@ class Session(BaseModel):
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
-            yield ESRecord(row, self.get_type())
+            yield ESRecord(row, self.get_type(), self.get_index(), index_date=row[self._index_name_date_field])
 
     @staticmethod
     def query_sessions(historical):

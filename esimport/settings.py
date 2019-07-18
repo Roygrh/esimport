@@ -86,7 +86,4 @@ DATADOG_DEVICE_METRIC = 'esimport.device.minutes_behind'
 DATADOG_PROPERTY_METRIC = 'esimport.property.minutes_behind'
 DATADOG_SESSION_METRIC = 'esimport.session.minutes_behind'
 
-try:
-    from local_settings import *
-except:
-    raise
+from local_settings import *

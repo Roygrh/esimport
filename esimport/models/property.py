@@ -20,14 +20,21 @@ class Property(BaseModel):
 
     _type = "property"
     _date_field = "UpdateTime"
+    _index = "properties"
 
     @staticmethod
     def get_type():
         return Property._type
 
+    # TODO: this method name does not match with related method in Account class
+    #  probably its should be uniformed
     @staticmethod
     def get_key_date_field():
         return Property._date_field
+
+    @staticmethod
+    def get_index():
+        return Property._index
 
     def get_properties(self, start, limit):
         logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
@@ -144,7 +151,7 @@ class Property(BaseModel):
 
             rec["UpdateTime"] = datetime.now(timezone.utc)
 
-            yield ESRecord(rec, self.get_type())
+            yield ESRecord(rec, self.get_type(), self.get_index())
 
     @staticmethod
     def query_get_properties():

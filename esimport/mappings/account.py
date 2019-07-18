@@ -57,8 +57,9 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if start_date and start_date != '1900-01-01':
             start_date = parser.parse(start_date)
         else:
-            # otherwise, get the most recent starting point from data in Elasticsearch (use Created to prevent gaps in data)
-            start_date = self.get_most_recent_date('Created', Account.get_type())
+            # otherwise, get the most recent starting point from data in Elasticsearch
+            # (use Created to prevent gaps in data)
+            start_date = self.get_most_recent_date(Account.get_index(), 'Created', Account.get_type())
             logger.info("Data Check - Created: {0}".format(start_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
@@ -83,7 +84,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
                 self.add(account.es(), self.step_size, start_date)
 
-            # send the remainder of accounts to elasticsearch 
+            # send the remainder of accounts to elasticsearch
             self.add(None, 0, start_date)
 
             logger.info("Processed a total of {0} accounts".format(count))
@@ -107,7 +108,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if 'TimeZone' in _action:
             for pfik, pfiv in self.dates_to_localize:
                 _action[pfiv] = convert_utc_to_local_time(account.record[pfik], _action['TimeZone'])
-
         account.update(_action)
 
     """
@@ -117,7 +117,7 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     def get_existing_accounts(self, start_zpa_id, limit):
         logger.debug("Fetching {0} records from ES where ID >= {1}" \
                      .format(limit, start_zpa_id))
-        records = self.es.search(index=settings.ES_INDEX, doc_type=Account.get_type(),
+        records = self.es.search(index=settings.ES_ACCOUNT_INDEX, doc_type=Account.get_type(),
                                  sort="ID:asc", size=limit,
                                  q="ID:[{0} TO *]".format(start_zpa_id))
         for record in records['hits']['hits']:
@@ -155,3 +155,12 @@ class AccountMapping(PropertyAppendedDocumentMapping):
 
         # for cases when all/remaining items count were less than limit
         self.add(None, min(len(self._items), self.step_size))
+
+    # dumb implementation just to make tests works
+    # TODO: fix it
+    def add_accounts(self, start_date):
+        start = 0
+        for count, account in enumerate(self.model.get_accounts_by_created_date(start, self.step_size, start_date)):
+            self.append_site_values(account)
+            self.add(account.es(), self.step_size)
+
