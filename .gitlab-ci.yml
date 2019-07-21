@@ -14,8 +14,8 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
 before_script:
-  - apk add --update --no-cache python py-pip git wget
-  - pip --no-cache-dir install awsebcli awscli
+  - apk add --update --no-cache python3 git wget
+  - pip3 --no-cache-dir install awsebcli awscli
   - mkdir ~/.aws/
   - wget https://packages.microsoft.com/rhel/7/prod/msodbcsql17-17.3.1.1-1.x86_64.rpm -O msodbcsql17.rpm
   - wget http://mirror.centos.org/centos/7/os/x86_64/Packages/unixODBC-2.3.1-11.el7.x86_64.rpm -O unixODBC.rpm
