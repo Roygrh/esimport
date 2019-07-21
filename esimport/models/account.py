@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class Account(BaseModel):
     _type = 'account'
     _date_field = 'DateModifiedUTC'
-    _index_name_date_field = 'Created'
+    _index_name_date_field = 'DateModifiedUTC'
     _index = 'accounts'
 
     @staticmethod
