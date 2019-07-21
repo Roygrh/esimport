@@ -19,7 +19,7 @@ from esimport.mappings.indices_definitions import elevenos_aliases_config
 from esimport.mappings.indices_definitions import index_templates
 from esimport.mappings.indices_definitions import property_mapping
 
-es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
+es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ def create_elevenos_aliases(es, logger):
 
 
 class NewIndex(object):
-    es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def __init__(self):
         super(NewIndex, self).__init__()
@@ -57,31 +56,53 @@ class NewIndex(object):
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
     def create_index(self):
-        # TODO: fix tests, if index already exist this method will throw exception.
-        #  And during tesing this method are being called multiple times
 
-        if settings.ENVIRONMENT in [PROD_WEST_ENV, PROD_EAST_ENV]:
-            create_index = {
+        one_shard_index_settings = {
+            "settings": {
+                "number_of_shards": 1,
+                "number_of_replicas": 1
+            }
+        }
+
+        # properties and conferences are continiously being updated (not "appended" like sessions ..etc), thus their indices
+        # have always an "indexing overhead" to be accounted for, for this, we initially give them 02 shards. Even though their
+        # index size is very small, this would give enough room for distributing and speeding up queries against conferences and properties.
+        two_shards_index_settings = {
+            "settings": {
+                "number_of_shards": 2,
+                "number_of_replicas": 1
+            }
+        }
+
+        # sessions need special handling in terms of shards
+        six_shards_index_settings = {
+            "settings": {
+                "number_of_shards": 6,
+                "number_of_replicas": 1
+            }
+        }
+
+        indices_config = {
+            "elevenos": {
                 "settings": {
                     "number_of_shards": 24,
                     "number_of_replicas": 1
                 }
-            }
-        else:
-            create_index = {
-                "settings": {
-                    "number_of_shards": 9,
-                    "number_of_replicas": 1
-                }
-            }
+            },
+            "properties": two_shards_index_settings,
+            "conferences": two_shards_index_settings,
+            "sessions": six_shards_index_settings,
+            "accounts": one_shard_index_settings, 
+            "devices": one_shard_index_settings,
+        }
 
-        # Create `elevenos` index if it not exits, it requires for tests
+        # Create `elevenos` index if it does not exist, required for tests
 
         index_name = 'elevenos'
         try:
             es.indices.get(index=index_name)
         except NotFoundError as err:
-            es.indices.create(index='elevenos', body=create_index)
+            es.indices.create(index='elevenos', body=indices_config["elevenos"])
 
         # Create the new (static) indices
         new_indices = {
@@ -91,7 +112,7 @@ class NewIndex(object):
 
         for index_name, props in new_indices.items():
             try:
-                es.indices.create(index=index_name, body=create_index)
+                es.indices.create(index=index_name, body=indices_config[index_name])
                 es.indices.refresh(index=index_name)
                 es.indices.put_mapping(index=index_name, doc_type=props['doc_type'], body=props['body'])
                 logger.info(f"Created {index_name} index")
@@ -102,10 +123,10 @@ class NewIndex(object):
                 err_msg = str(e)
                 logger.warning(f"Failed to create {index_name} index, got {err_msg}")
 
-        # Create index templates for dynamic indices (our date-partitioned indices)
 
+        # Create index templates for dynamic indices (our date-partitioned indices)
         for template_name, body in index_templates.items():
-            body.update(create_index)
+            body.update(indices_config[template_name])
             es.indices.put_template(name=template_name, body=body)
             logger.info(f"Created/Updated {template_name} template")
 
@@ -114,4 +135,3 @@ class NewIndex(object):
         es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
         create_elevenos_aliases(es, logger)
-
