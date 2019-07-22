@@ -1,0 +1,144 @@
+import logging
+
+from datetime import datetime
+from datetime import timezone
+from datetime import timedelta
+
+from os import environ
+
+import boto3
+import datadog
+import sentry_sdk
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+from urllib3.util import parse_url
+
+FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger(__name__)
+
+DATADOG_API_KEY = environ.get("DATADOG_API_KEY")
+ENVIRONMENT = environ.get("DATADOG_ENV")
+ES_URL = environ.get("ES_URL")
+SENTRY_DSN = environ.get("SENTRY_DSN")
+DATETIME_ISOFORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
+
+
+doc_types = {
+    "account": ("accounts-current", "Created", "esimport.account.minutes_behind"),
+    "conference": ("conferences", "UpdateTime", "esimport.conference.minutes_behind"),
+    "device": ("devices-current", "DateUTC", "esimport.device.minutes_behind"),
+    "property": ("properties", "UpdateTime", "esimport.property.minutes_behind"),
+    "session": ("sessions-current", "LogoutTime", "esimport.session.minutes_behind"),
+}
+
+# how far back to look, in minutes
+LOOK_BACK_FOR_X_MINUTES = int(environ.get("LOOK_BACK_FOR_X_MINUTES"))
+sentry_sdk.init(SENTRY_DSN)
+
+
+try:
+    _log_level = environ.get("LOG_LEVEL")
+    LOG_LEVEL = logging.getLevelName(_log_level)
+    logger.setLevel(LOG_LEVEL)
+except ValueError as _err:
+    logger.setLevel(logging.INFO)
+
+
+def get_awsauth(region: str, temporary_creds: bool = False) -> AWS4Auth:
+    credentials = boto3.Session().get_credentials()
+    session_creds = None
+    if temporary_creds is True:
+        session_creds = credentials.token
+    awsauth = AWS4Auth(
+        credentials.access_key,
+        credentials.secret_key,
+        region,
+        "es",
+        session_token=session_creds,
+    )
+    return awsauth
+
+
+def get_signed_es(host: str, awsauth: AWS4Auth) -> Elasticsearch:
+    es = Elasticsearch(
+        hosts=[{"host": host, "port": 443}],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection,
+    )
+    return es
+
+
+def parse_es_url(url: str) -> tuple:
+    try:
+        region = url.split(".")[-4]
+        return region, parse_url(url).host
+    except Exception as err:
+        logger.exception("Check config for ES_URL!!!")
+        raise err
+
+
+class EsimportDatadogLogger:
+    def __init__(self):
+        datadog.initialize(api_key=DATADOG_API_KEY, host_name=ENVIRONMENT)
+        es_region, es_host = parse_es_url(ES_URL)
+        awsauth = get_awsauth(es_region, temporary_creds=True)
+        self.es = get_signed_es(host=es_host, awsauth=awsauth)
+
+    def process(self):
+        try:
+            for doc_type, params in doc_types.items():
+                index_name, date_field_name, metric_name = params
+
+                result = self.get_last_inserted_doc(
+                    self.es, index_name, date_field_name, LOOK_BACK_FOR_X_MINUTES
+                )
+                now = datetime.now(tz=timezone.utc)
+                doc_timedelta = self.extract_doc_datetime(result, date_field_name, now)
+                self.put_metric(
+                    metric_name, int(doc_timedelta.total_seconds() / 60), now
+                )
+        except Exception as err:
+            logger.exception(err)
+            sentry_sdk.capture_exception(err)
+            raise err
+
+    @staticmethod
+    def put_metric(metric_name: str, minutes_behind: int, now: datetime):
+        datadog.api.Metric.send(metric=metric_name, points=minutes_behind)
+        logger.debug(
+            f"ESDataCheck - Host: {ENVIRONMENT} - "
+            f"Metric: {metric_name} - Minutes Behind: {minutes_behind:.2f} - Now: {now}"
+        )
+
+    @staticmethod
+    def get_last_inserted_doc(
+        es: Elasticsearch, index_name: str, date_field: str, minutes_behind: int
+    ):
+        search_body = {
+            "query": {"range": {date_field: {"gte": f"now-{minutes_behind}m"}}},
+            "size": 1,
+            "sort": {date_field: "desc"},
+        }
+        result = es.search(index=index_name, body=search_body)
+        return result
+
+    @staticmethod
+    def extract_doc_datetime(result: dict, date_field_name: str, now: datetime):
+        if result["hits"]["total"] == 0:
+            return timedelta(minutes=LOOK_BACK_FOR_X_MINUTES)
+
+        doc_datetime = datetime.strptime(
+            result["hits"]["hits"][0]["_source"][date_field_name], DATETIME_ISOFORMAT
+        )
+
+        return now - doc_datetime
+
+
+esimport_datadog_logger = EsimportDatadogLogger()
+
+
+def lambda_handler(event, context):
+    esimport_datadog_logger.process()

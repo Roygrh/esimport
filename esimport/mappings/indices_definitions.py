@@ -1,3 +1,4 @@
+# fmt: off
 account_mapping = {
     "properties": {
         "Activated": {
@@ -932,3 +933,4 @@ index_templates = {
     'sessions': sessions_template_body,
     'devices': devices_template_body
 }
+# fmt: on

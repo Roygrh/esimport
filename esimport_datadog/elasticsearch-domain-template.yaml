@@ -1,0 +1,52 @@
+Description: ElasticSeach domain
+Parameters:
+  ESDomainName:
+    Description: ElasticSerch domain name
+    Type: String
+  LambdaRoleArn:
+    Description: ARN of IAM role that will be used as Principal to grant permission for lambda functions
+    Type: String
+    Default: ''
+
+Conditions:
+  RoleARNProvided: !Not [ !Equals [!Ref LambdaRoleArn, ''] ]
+
+Resources:
+  ESDomain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: !Ref ESDomainName
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 10
+        VolumeType: gp2
+      ElasticsearchClusterConfig:
+        InstanceCount: 1
+        InstanceType: m3.medium.elasticsearch
+        ZoneAwarenessEnabled: false
+      ElasticsearchVersion: 5.3
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'es:*'
+            Resource: !Sub 'arn:aws:es:us-west-2:${AWS::AccountId}:domain/${ESDomainName}/*'
+
+          - Effect: Allow
+            Principal:
+              AWS: !If [RoleARNProvided, !Ref LambdaRoleArn, !Sub 'arn:aws:iam::${AWS::AccountId}:root']
+            Action: 'es:*'
+            Resource: !Sub 'arn:aws:es:us-west-2:${AWS::AccountId}:domain/${ESDomainName}/*'
+
+Outputs:
+  ESUrl:
+    Value: !GetAtt [ESDomain, DomainEndpoint]
+    Description: ElasticSearch Domain endpoint that can be used in ES_URLS env variable for esimport lambda functions
+
+
+
+
+
+
