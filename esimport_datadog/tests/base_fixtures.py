@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import timezone
+from os import environ
 
 import pytest
 from elasticsearch import Elasticsearch
@@ -7,7 +8,8 @@ from elasticsearch import Elasticsearch
 
 @pytest.fixture()
 def local_es():
-    return Elasticsearch("localhost:9200")
+    es_host = environ.get('TEST_ES_HOST', 'localhost')
+    return Elasticsearch(f"{es_host}:9200")
 
 
 @pytest.fixture()
