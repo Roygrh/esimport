@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 
 @pytest.fixture()
 def local_es():
-    es_host = environ.get('TEST_ES_HOST', 'localhost')
+    es_host = environ.get("TEST_ES_HOST", "localhost")
     return Elasticsearch(f"{es_host}:9200")
 
 
