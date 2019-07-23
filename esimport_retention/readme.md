@@ -3,7 +3,7 @@
 `standard-deploy.yaml` CloudFormation template that will deploy 3 lambda functions:
 1. To create snapshot for indices that dedicated to data from previous month.
 2. To verify state of snapshots that were create from indices dedicated to data from previous month.
-3. Remove indices which older than defined retantion policy (in months), but only if snapshots exists for such indices.
+3. Remove indices which older than defined retention policy (in months), but only if snapshots exists for such indices.
 
 Each functions will be triggered by cron defined schedule
 1. Snapshot creation on the 5th day in each month
@@ -32,11 +32,19 @@ To run unit tests use this command
 
 ```bash
 python -m pytest tests/unit_tests -x\
-    --cov=. \
+    --cov=esimport_retention_core \
     --cov-report=term-missing
 ```
 
 # Deploy
+
+There is a Circular dependency.
+Lambda function needs to know ElasticSearch urls that can be taken after ElasticSearch stack/stacks will be created.
+But ElasticSearch stack need to know Lambda Role ARN to allow access. Role ARN will be available after CloudFormation stack with Lambda functions will be created.
+So two options:
+- or use template to manually create Lambda IAM Role ARN ` "arn:aws:iam::{AWS Account id}:role/{IAM-ROLE-NAME}"`
+- or first deploy lambda functions with fake EsUrls parameter, copy IAM ROLE ARN, update ElasticSearch Access policies. Then copy ElasticSearch urls and update CloudFormation lambda function stack with correct `EsUrls` parameter
+
 
 1. lambda functions are require snapshot repository. Create it (S3 bucket). To do it you can use this command
 
@@ -46,8 +54,8 @@ bash ./deploy-s3-bucket.sh \
     <S3 bucket name>
 ```
 
-2. ElasticSearch domain need suitable rights to be able register S3 bucket as snapshot repository.
-`elasticsearch-domain-template.yaml` has example of rights.
+2. ElasticSearch domain need suitable rights to be able register S3 bucket as snapshot repository and grant access from lambda function.
+`elasticsearch-domain-template.yaml` has example how to assign appropriate rights.
 First create IAM role, `S3AccessRole` resource from template.
 Next, add to ElasticSearch domain `AccessPolices` policy that grant create IAM role access to ElasticSearch domain.
 Example of such policy also in `elasticsearch-domain-template.yaml` template file

@@ -81,9 +81,9 @@ esimport_retention_unit_test:
     - pip3 install -r ./dev-requirements.txt
     - >
       python3 -m pytest tests/unit_tests -x
-      --cov=.
+      --cov=esimport_retention_core
       --cov-report=term-missing
-  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  coverage: '/esimport_retention_core.py\s+\d+\s+\d+\s+(\d+%)/'
 
 esimport_retention_integration_test:
   stage: esimport_retention

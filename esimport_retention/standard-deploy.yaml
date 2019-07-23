@@ -171,3 +171,8 @@ Resources:
           - Arn
           Id: esimport_snapshot_verifier_trigger
 
+
+Outputs:
+  LambdaRoleARN:
+    Value: !GetAtt [LambdaRole, Arn]
+    Description: Role ARN that should be used as principal in ElasticSearch domain Access Policy config, example below
