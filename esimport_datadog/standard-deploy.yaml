@@ -89,7 +89,7 @@ Resources:
       Description: Trigger esimport-datadog function
       Name: !Sub 'DatadogTrigger-${AWS::StackName}'
       ScheduleExpression: cron(1/3 * * * ? *)
-      State: 'DISABLED'
+      State: 'ENABLED'
       Targets:
         - Arn: !GetAtt
           - LambdaEsimportDatadog
