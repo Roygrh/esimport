@@ -8,6 +8,7 @@ stages:
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
+  - esimport_datadog_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -102,3 +103,23 @@ esimport_datadog_integration_test:
       --cov-report=term-missing
       tests
   coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
+
+esimport_datadog_deploy:
+  stage: esimport_datadog_deploy
+  when: manual
+  before_script:
+    - apk add --update --no-cache python3 zip bash
+    - pip3 --no-cache-dir install awscli
+
+  script:
+    - cd esimport_datadog
+    - >
+      bash ./deploy.sh \
+      <CloudFormation stack name> \
+      <S3 bucket to store lambda function deploy archive> \
+      <Number in minutes, that will be used to in queries to search last inserted doc > \
+      <ElasticsSearch server/cluser url> \
+      <DSN for Sentry> \
+      <Datadog API key> \
+      <Datadog host_name \
+      INFO
