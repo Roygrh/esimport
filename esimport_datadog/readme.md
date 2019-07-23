@@ -21,7 +21,6 @@ To run unit tests use this command
 `bash run-unit-tests.sh`
 
 
-
 # Deploy
 
 1. ElasticSearch domain needs to be configured to allow access from Lambda function.
@@ -49,5 +48,3 @@ bash ./deploy.sh \
 	<Datadog host_name \
 	<Desired LOGLEVEL>
 ````
-
-

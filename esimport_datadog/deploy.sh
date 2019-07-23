@@ -13,13 +13,12 @@
 #	DEBUG
 
 
-# There is a Circular dependency.
-#Lambda function needs to know ElasticSearch url that can be taked after ElasticSearch stack will be created.
+#There is a Circular dependency.
+#Lambda function needs to know ElasticSearch url that can be taken after ElasticSearch stack will be created.
 #But ElasticSearch stack need to know Lambda Role ARN to allow access. Role ARN will be available after CloudFormation stack with Lambda function will be created.
-#So to options:
+#So two options:
 #- or use template to manually create Lambda IAM Role ARN ` "arn:aws:iam::{AWS Account id}:role/{IAM-ROLE-NAME}"`
 #- or first deploy lambda function with fake EsUrl parameter, copy IAM ROLE ARN, update ElasticSearch Access policies. Then copy ElasticSearch url and updated CloudFormation lambda function stack with correct `EsUrl` parameter
-#
 
 if [[ $# -lt 6 ]]
   then
