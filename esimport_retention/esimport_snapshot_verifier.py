@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from datetime import timezone
 from os import environ
 
 import sentry_sdk
@@ -37,7 +38,7 @@ def handler():
             awsauth = get_awsauth(region, temporary_creds=True)
             es = get_signed_es(host=host, awsauth=awsauth)
             for index_name in gen_previous_month_indices_name(
-                ES_RETENTION_INDICES_PREFIXES, datetime.utcnow()
+                ES_RETENTION_INDICES_PREFIXES, datetime.now(tz=timezone.utc)
             ):
                 result = is_snapshot_ok(
                     es, repo_name=SNAPSHOT_REPO_NAME, index_name=index_name

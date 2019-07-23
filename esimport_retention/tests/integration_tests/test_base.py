@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timezone
 from os import environ
 from time import sleep
 
@@ -141,7 +142,7 @@ class TestLambdaHandlers:
 
         # --- indexes exists
         for index_name in gen_previous_month_indices_name(
-            ES_RETENTION_INDICES_PREFIXES, datetime.utcnow()
+            ES_RETENTION_INDICES_PREFIXES, datetime.now(tz=timezone.utc)
         ):
             put_test_document(es, index_name=index_name)
 
@@ -186,7 +187,7 @@ class TestLambdaHandlers:
 
         # --- snapshots exists
         for index_name in gen_previous_month_indices_name(
-            ES_RETENTION_INDICES_PREFIXES, datetime.utcnow()
+            ES_RETENTION_INDICES_PREFIXES, datetime.now(tz=timezone.utc)
         ):
             put_test_document(es, index_name=index_name)
 
@@ -216,7 +217,7 @@ class TestLambdaHandlers:
 
         # --- snapshots does not exists or status of snapshots is not SUCCESS
         last_month_to_keep = get_last_retention_month(
-            datetime.utcnow(), ES_RETENTION_POLICY_MONTHS
+            datetime.now(tz=timezone.utc), ES_RETENTION_POLICY_MONTHS
         )
 
         generated_indexes = []
