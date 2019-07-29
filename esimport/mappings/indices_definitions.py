@@ -875,23 +875,6 @@ property_mapping = {
     }
 }
 
-accounts_template_body = {
-    "template": "accounts*",
-    "settings": None,
-    "aliases": {
-        "accounts-current": {
-            "filter": {
-                "type": {"value": "account"}
-            },
-        },
-    },
-    "mappings": {
-        "account": {
-            "properties": account_mapping["properties"]
-        }
-    }
-}
-
 sessions_template_body = {
     "template": "sessions*",
     "settings": None,
@@ -921,14 +904,61 @@ devices_template_body = {
         }
     }
 }
-elevenos_aliases_config= {
+
+index_templates = {
+    'sessions': sessions_template_body,
+    'devices': devices_template_body
+}
+
+# --- elevenos index config ---
+
+one_shard_index_settings = {
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1
+    }
+}
+
+# properties and conferences are continiously being updated (not "appended" like sessions ..etc), thus their indices
+# have always an "indexing overhead" to be accounted for, for this, we initially give them 02 shards. Even though their
+# index size is very small, this would give enough room for distributing and speeding up queries against conferences and properties.
+two_shards_index_settings = {
+    "settings": {
+        "number_of_shards": 2,
+        "number_of_replicas": 1
+    }
+}
+
+# sessions need special handling in terms of shards
+six_shards_index_settings = {
+    "settings": {
+        "number_of_shards": 6,
+        "number_of_replicas": 1
+    }
+}
+
+
+elevenos_index_config = {
+    "elevenos": {
+        "settings": {
+            "number_of_shards": 24,
+            "number_of_replicas": 1
+        },
+        "mappings": {
+            "account": {
+                "properties": account_mapping["properties"]
+            },
+        }
+    },
+    "properties": two_shards_index_settings,
+    "conferences": two_shards_index_settings,
+    "sessions": six_shards_index_settings,
+    "accounts": one_shard_index_settings,
+    "devices": one_shard_index_settings,
+}
+
+elevenos_aliases_config = {
     "account": "accounts-current",
     "device": "devices-current",
     "session": "sessions-current"
-}
-
-index_templates = {
-    'accounts': accounts_template_body,
-    'sessions': sessions_template_body,
-    'devices': devices_template_body
 }

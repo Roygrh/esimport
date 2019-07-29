@@ -59,7 +59,8 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         else:
             # otherwise, get the most recent starting point from data in Elasticsearch
             # (use Created to prevent gaps in data)
-            index_name = "%s-current" % (Account.get_index(),)
+            # using alias as index name, note that account docs live in `elevenos` index
+            index_name = "accounts-current"
             start_date = self.get_most_recent_date(index_name, 'Created', Account.get_type())
             logger.info("Data Check - Created: {0}".format(start_date))
 

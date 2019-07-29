@@ -11,7 +11,7 @@ def empty_es_aliases(es):
 
     yield
 
-    es.indices.delete_alias(index="_all", name="_all")
+    es.indices.delete_alias(index="_all", name="_all", ignore=[404])
 
 
 @pytest.fixture(scope="module")

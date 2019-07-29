@@ -4,7 +4,6 @@ from time import sleep
 import elasticsearch.exceptions
 from elasticsearch import helpers
 
-from esimport.mappings.indices_definitions import accounts_template_body
 from esimport.mappings.indices_definitions import conference_mapping
 from esimport.mappings.indices_definitions import devices_template_body
 from esimport.mappings.indices_definitions import elevenos_aliases_config
@@ -22,7 +21,6 @@ default_index_props = {"settings": {"number_of_shards": 9, "number_of_replicas":
 @pytest.fixture()
 def indices_templates(es):
     index_templates = {
-        "accounts": accounts_template_body,
         "sessions": sessions_template_body,
         "devices": devices_template_body,
     }
@@ -108,12 +106,11 @@ class TestQueriesResults:
     test_parameters = [
         (
             create_docs_in_elevenos,
-            {"account": "elevenos", "device": "elevenos", "session": "elevenos"},
+            {"device": "elevenos", "session": "elevenos"},
         ),
         (
             create_docs_in_separated_indeces,
             {
-                "account": "accounts-2019-01",
                 "device": "devices-2019-01",
                 "session": "sessions-2019-01",
             },

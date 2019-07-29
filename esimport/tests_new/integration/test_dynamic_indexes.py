@@ -40,7 +40,6 @@ class TestDynamicIndex:
             doc,
             Account.get_type(),
             Account.get_index(),
-            index_date=doc[Account.get_index_date_field()],
         )
 
         helpers.bulk(es, [account_record.es()])
@@ -48,12 +47,7 @@ class TestDynamicIndex:
         indexes_names = es.indices.get_settings(index="*").keys()
         assert sample_account["expected_index"] in indexes_names
 
-        aliases_response = es.indices.get_alias(index=[expected_index_name])
-        assert len(aliases_response[expected_index_name]["aliases"]) == 1
-        assert (
-            sample_account["expected_alias"]
-            in aliases_response[expected_index_name]["aliases"].keys()
-        )
+        # accounts docs will be saved in elevenos index. It does not uses dynamic aliases nothgin to check
 
     @pytest.mark.usefixtures("empty_es_indexes", "empty_es_aliases", "es_templates")
     def test_dynamic_devices_index(self, es, sample_device):
