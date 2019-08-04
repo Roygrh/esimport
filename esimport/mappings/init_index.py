@@ -60,7 +60,8 @@ class NewIndex(object):
         one_shard_index_settings = {
             "settings": {
                 "number_of_shards": 1,
-                "number_of_replicas": 1
+                "number_of_replicas": 1,
+                "max_result_window": 500000
             }
         }
 
@@ -70,7 +71,8 @@ class NewIndex(object):
         two_shards_index_settings = {
             "settings": {
                 "number_of_shards": 2,
-                "number_of_replicas": 1
+                "number_of_replicas": 1,
+                "max_result_window": 500000
             }
         }
 
@@ -78,7 +80,8 @@ class NewIndex(object):
         six_shards_index_settings = {
             "settings": {
                 "number_of_shards": 6,
-                "number_of_replicas": 1
+                "number_of_replicas": 1,
+                "max_result_window": 500000
             }
         }
 
@@ -86,7 +89,8 @@ class NewIndex(object):
             "elevenos": {
                 "settings": {
                     "number_of_shards": 24,
-                    "number_of_replicas": 1
+                    "number_of_replicas": 1,
+                    "max_result_window": 500000
                 }
             },
             "properties": two_shards_index_settings,
