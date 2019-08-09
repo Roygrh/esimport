@@ -4,6 +4,7 @@ from time import sleep
 import elasticsearch.exceptions
 from elasticsearch import helpers
 
+from esimport.mappings.indices_definitions import account_mapping
 from esimport.mappings.indices_definitions import conference_mapping
 from esimport.mappings.indices_definitions import devices_template_body
 from esimport.mappings.indices_definitions import elevenos_aliases_config
@@ -38,6 +39,7 @@ def indices_templates(es):
 @pytest.fixture()
 def test_indices(es):
     new_indices = {
+        "accounts": {"doc_type": "account", "body": account_mapping},
         "properties": {"doc_type": "property", "body": property_mapping},
         "conferences": {"doc_type": "conference", "body": conference_mapping},
     }
@@ -104,21 +106,19 @@ def create_docs_in_separated_indeces(es, indices_vars):
 class TestQueriesResults:
 
     test_parameters = [
-        (
-            create_docs_in_elevenos,
-            {"device": "elevenos", "session": "elevenos"},
-        ),
+        (create_docs_in_elevenos, {"device": "elevenos", "session": "elevenos"}),
         (
             create_docs_in_separated_indeces,
-            {
-                "device": "devices-2019-01",
-                "session": "sessions-2019-01",
-            },
+            {"device": "devices-2019-01", "session": "sessions-2019-01"},
         ),
     ]
 
     @pytest.mark.usefixtures(
-        "empty_es_indexes", "indices_templates", "test_indices", "elevenos_index"
+        "empty_es_templates",
+        "empty_es_indexes",
+        "indices_templates",
+        "test_indices",
+        "elevenos_index",
     )
     @pytest.mark.parametrize("docs_gen_function, indices_vars", test_parameters)
     def test_queries_match(self, es, docs_gen_function, indices_vars):

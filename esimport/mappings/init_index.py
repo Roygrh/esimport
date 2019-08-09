@@ -18,7 +18,7 @@ from esimport.mappings.indices_definitions import account_mapping
 from esimport.mappings.indices_definitions import conference_mapping
 from esimport.mappings.indices_definitions import index_templates
 from esimport.mappings.indices_definitions import property_mapping
-from esimport.mappings.indices_definitions import elevenos_index_config
+from esimport.mappings.indices_definitions import index_config
 from esimport.mappings.indices_definitions import elevenos_aliases_config
 
 es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
@@ -64,19 +64,27 @@ class NewIndex(object):
         try:
             es.indices.get(index=index_name)
         except NotFoundError as err:
-            es.indices.create(index='elevenos', body=elevenos_index_config["elevenos"])
+            es.indices.create(index='elevenos', body=index_config["elevenos"])
 
         create_elevenos_aliases(es, logger)
 
+        # Create index templates for dynamic indices (our date-partitioned indices) + accounts
+        # it has to be created first before any indices (from ElasticSearch documentation)
+        for template_name, body in index_templates.items():
+            body.update(index_config[template_name])
+            es.indices.put_template(name=template_name, body=body)
+            logger.info(f"Created/Updated {template_name} template")
+
         # Create the new (static) indices
         new_indices = {
+            'accounts': {'doc_type': 'account', 'body': account_mapping},
+            'conferences': {'doc_type': 'conference', 'body': conference_mapping},
             'properties': {'doc_type': 'property', 'body': property_mapping},
-            'conferences': {'doc_type': 'conference', 'body': conference_mapping}
         }
 
         for index_name, props in new_indices.items():
             try:
-                es.indices.create(index=index_name, body=elevenos_index_config[index_name])
+                es.indices.create(index=index_name, body=index_config[index_name])
                 es.indices.refresh(index=index_name)
                 es.indices.put_mapping(index=index_name, doc_type=props['doc_type'], body=props['body'])
                 logger.info(f"Created {index_name} index")
@@ -87,15 +95,11 @@ class NewIndex(object):
                 err_msg = str(e)
                 logger.warning(f"Failed to create {index_name} index, got {err_msg}")
 
-        # Create index templates for dynamic indices (our date-partitioned indices)
-        for template_name, body in index_templates.items():
-            body.update(elevenos_index_config[template_name])
-            es.indices.put_template(name=template_name, body=body)
-            logger.info(f"Created/Updated {template_name} template")
-
         doc = {'id': '1'}
-        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
+
+        es.index(index='accounts', doc_type='account', id=1, body=doc)
         es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
+        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
 
 
 

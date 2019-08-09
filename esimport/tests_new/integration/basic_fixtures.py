@@ -30,3 +30,16 @@ def empty_es_indexes(es):
     indexes_names = es.indices.get_settings(index="*").keys()
     for index_name in indexes_names:
         es.indices.delete(index=index_name)
+
+
+@pytest.fixture()
+def empty_es_templates(es):
+    templates_names = es.indices.get_template(name="*", ignore=[404]).keys()
+    for template_name in templates_names:
+        es.indices.delete_template(name=template_name)
+
+    yield
+
+    templates_names = es.indices.get_settings(name="*", ignore=[404]).keys()
+    for template_name in templates_names:
+        es.indices.delete_template(name=template_name)

@@ -75,7 +75,7 @@ class DocumentMapping(object):
     # FIXME: remove this method and put retry in what's calling it
     @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
     def max_id(self):
-        if self.model.get_type() in ['property', 'conference', 'account']:
+        if self.model.get_type() in ['property', 'conference']:
             index_name = self.model.get_index()
         else:
             index_name = '{}-current'.format(self.model.get_index())

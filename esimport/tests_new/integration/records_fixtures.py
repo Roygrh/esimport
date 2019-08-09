@@ -7,7 +7,7 @@ import pytest
 @pytest.fixture()
 def sample_account():
     return {
-        "expected_index": "elevenos",
+        "expected_index": "accounts",
         "expected_alias": "accounts-current",
         "doc": {
             "ID": 1,
