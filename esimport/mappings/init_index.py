@@ -14,10 +14,12 @@ from elasticsearch.exceptions import RequestError, NotFoundError
 
 from constants import PROD_EAST_ENV, PROD_WEST_ENV
 from esimport import settings
+from esimport.mappings.indices_definitions import account_mapping
 from esimport.mappings.indices_definitions import conference_mapping
-from esimport.mappings.indices_definitions import elevenos_aliases_config
 from esimport.mappings.indices_definitions import index_templates
 from esimport.mappings.indices_definitions import property_mapping
+from esimport.mappings.indices_definitions import index_config
+from esimport.mappings.indices_definitions import elevenos_aliases_config
 
 es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
 
@@ -31,7 +33,7 @@ def create_elevenos_aliases(es, logger):
         es.indices.update_aliases(body={
             "actions": [
                 {
-                    "add" : {
+                    "add": {
                         "index": "elevenos",
                         "alias": alias,
                         "filter": {"type": {"value": type_}}
@@ -55,68 +57,34 @@ class NewIndex(object):
         # defaults to localhost:9200
         self.es = Elasticsearch(settings.ES_HOST + ":" + settings.ES_PORT)
 
-    def create_index(self):
-
-        one_shard_index_settings = {
-            "settings": {
-                "number_of_shards": 1,
-                "number_of_replicas": 1,
-                "max_result_window": 500000
-            }
-        }
-
-        # properties and conferences are continiously being updated (not "appended" like sessions ..etc), thus their indices
-        # have always an "indexing overhead" to be accounted for, for this, we initially give them 02 shards. Even though their
-        # index size is very small, this would give enough room for distributing and speeding up queries against conferences and properties.
-        two_shards_index_settings = {
-            "settings": {
-                "number_of_shards": 2,
-                "number_of_replicas": 1,
-                "max_result_window": 500000
-            }
-        }
-
-        # sessions need special handling in terms of shards
-        six_shards_index_settings = {
-            "settings": {
-                "number_of_shards": 6,
-                "number_of_replicas": 1,
-                "max_result_window": 500000
-            }
-        }
-
-        indices_config = {
-            "elevenos": {
-                "settings": {
-                    "number_of_shards": 24,
-                    "number_of_replicas": 1,
-                    "max_result_window": 500000
-                }
-            },
-            "properties": two_shards_index_settings,
-            "conferences": two_shards_index_settings,
-            "sessions": six_shards_index_settings,
-            "accounts": one_shard_index_settings, 
-            "devices": one_shard_index_settings,
-        }
-
+    @staticmethod
+    def create_index():
         # Create `elevenos` index if it does not exist, required for tests
-
         index_name = 'elevenos'
         try:
             es.indices.get(index=index_name)
         except NotFoundError as err:
-            es.indices.create(index='elevenos', body=indices_config["elevenos"])
+            es.indices.create(index='elevenos', body=index_config["elevenos"])
+
+        create_elevenos_aliases(es, logger)
+
+        # Create index templates for dynamic indices (our date-partitioned indices) + accounts
+        # it has to be created first before any indices (from ElasticSearch documentation)
+        for template_name, body in index_templates.items():
+            body.update(index_config[template_name])
+            es.indices.put_template(name=template_name, body=body)
+            logger.info(f"Created/Updated {template_name} template")
 
         # Create the new (static) indices
         new_indices = {
+            'accounts': {'doc_type': 'account', 'body': account_mapping},
+            'conferences': {'doc_type': 'conference', 'body': conference_mapping},
             'properties': {'doc_type': 'property', 'body': property_mapping},
-            'conferences': {'doc_type': 'conference', 'body': conference_mapping}
         }
 
         for index_name, props in new_indices.items():
             try:
-                es.indices.create(index=index_name, body=indices_config[index_name])
+                es.indices.create(index=index_name, body=index_config[index_name])
                 es.indices.refresh(index=index_name)
                 es.indices.put_mapping(index=index_name, doc_type=props['doc_type'], body=props['body'])
                 logger.info(f"Created {index_name} index")
@@ -127,15 +95,11 @@ class NewIndex(object):
                 err_msg = str(e)
                 logger.warning(f"Failed to create {index_name} index, got {err_msg}")
 
-
-        # Create index templates for dynamic indices (our date-partitioned indices)
-        for template_name, body in index_templates.items():
-            body.update(indices_config[template_name])
-            es.indices.put_template(name=template_name, body=body)
-            logger.info(f"Created/Updated {template_name} template")
-
         doc = {'id': '1'}
-        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
-        es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
 
-        create_elevenos_aliases(es, logger)
+        es.index(index='accounts', doc_type='account', id=1, body=doc)
+        es.index(index='devices-2014-01', doc_type='devices', id=1, body=doc)
+        es.index(index='sessions-2018-06', doc_type='sessions', id=1, body=doc)
+
+
+
