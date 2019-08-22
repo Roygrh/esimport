@@ -5,6 +5,7 @@ from time import sleep
 
 import elasticsearch.exceptions
 import pytest
+from dateutil import relativedelta
 from elasticsearch import Elasticsearch
 
 import esimport_retention
@@ -141,8 +142,10 @@ class TestLambdaHandlers:
             esimport_snapshot_creation.handler()
 
         # --- indexes exists
+
+        current_date = datetime.now(tz=timezone.utc)
         for index_name in gen_previous_month_indices_name(
-            ES_RETENTION_INDICES_PREFIXES, datetime.now(tz=timezone.utc)
+            ES_RETENTION_INDICES_PREFIXES, current_date
         ):
             put_test_document(es, index_name=index_name)
 
@@ -161,10 +164,12 @@ class TestLambdaHandlers:
         ]
 
         result = list(map(lambda x: (x["snapshot"], x["state"]), result))
+        previous_month = current_date - relativedelta.relativedelta(months=1)
+        date_suffix = f"{previous_month.year}-{previous_month.month:02d}"
         expected = [
-            ("snapshot_a-a-a-2019-06", "SUCCESS"),
-            ("snapshot_b-b-b-2019-06", "SUCCESS"),
-            ("snapshot_c-c-c-2019-06", "SUCCESS"),
+            (f"snapshot_a-a-a-{date_suffix}", "SUCCESS"),
+            (f"snapshot_b-b-b-{date_suffix}", "SUCCESS"),
+            (f"snapshot_c-c-c-{date_suffix}", "SUCCESS"),
         ]
         assert result == expected
 

@@ -41,7 +41,7 @@ python -m pytest tests -x\
 	--cov=esimport_snapshot_creation\
 	--cov=esimport_snapshot_verifier\
 	--cov=esimport_retention\
-	--cov-report=term-missing\
+	--cov-report=term-missing
 
 
 # CloudFormation stack that define S3 will not be deleted if there are objects in bucket exists - emptying bucket
