@@ -7,8 +7,7 @@
 ################################################################################
 
 import logging
-
-from datetime import datetime, timezone
+from datetime import datetime
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
@@ -18,9 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class Account(BaseModel):
-    _type = 'account'
-    _date_field = 'DateModifiedUTC'
-    _index = 'accounts'
+    _type = "account"
+    _date_field = "DateModifiedUTC"
+    _index = "accounts"
+    _version_date_fieldname = "DateModifiedUTC"
 
     @staticmethod
     def get_type():
@@ -30,7 +30,7 @@ class Account(BaseModel):
     def get_index():
         return Account._index
 
-    def get_accounts_by_created_date(self, start, limit, start_date='1900-01-01'):
+    def get_accounts_by_created_date(self, start, limit, start_date="1900-01-01"):
         q = self.query_records_by_account_id()
         return self.get_accounts(q, limit, start, start_date)
 
@@ -40,20 +40,25 @@ class Account(BaseModel):
 
     def get_accounts(self, query, *args):
         for row in self.fetch_dict(query, *args):
-            row['Duration'] = self.find_duration(row)
+            row["Duration"] = self.find_duration(row)
 
             # Set all datetime objects to utc timezone
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
-            yield ESRecord(row, self.get_type(), self.get_index())
+            yield ESRecord(
+                row, self.get_type(), self.get_index(), row[self._version_date_fieldname]
+            )
 
-    def find_duration(self, row):
-        if row.get('ConsumableTime') is not None:
-            return "{0} {1} {2}".format(row.get('ConsumableTime'), row.get('ConsumableUnit'), "consumable")
-        if row.get('SpanTime') is not None:
-            return "{0} {1}".format(row.get('SpanTime'), row.get('SpanUnit'))
+    @staticmethod
+    def find_duration(row):
+        if row.get("ConsumableTime") is not None:
+            return "{0} {1} {2}".format(
+                row.get("ConsumableTime"), row.get("ConsumableUnit"), "consumable"
+            )
+        if row.get("SpanTime") is not None:
+            return "{0} {1}".format(row.get("SpanTime"), row.get("SpanUnit"))
         else:
             return None
 

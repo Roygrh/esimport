@@ -6,7 +6,6 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-
 from datetime import datetime, timezone
 
 from esimport.models import ESRecord
@@ -20,6 +19,7 @@ class Conference(BaseModel):
     _type = "conference"
     _date_field = "UpdateTime"
     _index = "conferences"
+    _version_date_fieldname = "UpdateTime"
 
     @staticmethod
     def get_type():
@@ -33,17 +33,37 @@ class Conference(BaseModel):
     def get_index():
         return Conference._index
 
-    def get_conferences(self, start, limit, start_date='1900-01-01'):
+    def get_conferences(self, start, limit, start_date="1900-01-01"):
         logger.debug(
-            "Fetching conferences from Scheduled_Access.ID >= {0} AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})"
-            .format(start, start_date, limit))
+            "Fetching conferences from Scheduled_Access.ID >= {0} "
+            "AND Scheduled_Access.Date_Created_UTC > {1} (limit: {2})".format(
+                start, start_date, limit
+            )
+        )
 
         q1 = self.query_get_conferences()
 
-        h1 = ['ID', 'Name', 'DateCreatedUTC', 'ServiceArea',
-              'Code', 'MemberID', 'MemberNumber', 'MemberStatus', 'SSID', 'StartDateUTC', 'EndDateUTC',
-              'ConnectionLimit', 'DownKbs', 'UpKbs', 'UserCount', 'TotalInputBytes',
-              'TotalOutputBytes', 'TotalSessionTime', 'GroupBandwidthLimit']
+        h1 = [
+            "ID",
+            "Name",
+            "DateCreatedUTC",
+            "ServiceArea",
+            "Code",
+            "MemberID",
+            "MemberNumber",
+            "MemberStatus",
+            "SSID",
+            "StartDateUTC",
+            "EndDateUTC",
+            "ConnectionLimit",
+            "DownKbs",
+            "UpKbs",
+            "UserCount",
+            "TotalInputBytes",
+            "TotalOutputBytes",
+            "TotalSessionTime",
+            "GroupBandwidthLimit",
+        ]
 
         for rec1 in list(self.fetch(q1, limit, start, start_date, column_names=h1)):
             # set all datetime objects to utc timezone
@@ -51,37 +71,46 @@ class Conference(BaseModel):
                 if isinstance(value, datetime):
                     rec1[key] = set_utc_timezone(value)
 
-            rec1['UpdateTime'] = datetime.now(timezone.utc)
+            rec1["UpdateTime"] = datetime.now(timezone.utc)
 
             q2 = self.query_get_additional_access_codes()
 
             # Update the CodeList with the main Code first
-            code_list = [rec1.get('Code')]
+            code_list = [rec1.get("Code")]
 
             # Update the MemberNumberList with the main MemberNumber first
-            member_number_list = [rec1.get('MemberNumber')]
+            member_number_list = [rec1.get("MemberNumber")]
 
             # Initialize AccessCodes with the main memberID and member number
-            access_codes_list = [{
-                "Code": rec1.get('Code'),
-                "MemberNumber": rec1.get('MemberNumber'),
-                "MemberID": rec1.get('MemberID')
-            }]
+            access_codes_list = [
+                {
+                    "Code": rec1.get("Code"),
+                    "MemberNumber": rec1.get("MemberNumber"),
+                    "MemberID": rec1.get("MemberID"),
+                }
+            ]
 
-            for rec2 in list(self.fetch(q2, rec1['ID'])):
+            for rec2 in list(self.fetch(q2, rec1["ID"])):
                 code_list.append(rec2.Code)
                 member_number_list.append(rec2.MemberNumber)
-                access_codes_list.append({
-                    "Code": rec2.Code,
-                    "MemberNumber": rec2.MemberNumber,
-                    "MemberID": rec2.MemberID
-                })
+                access_codes_list.append(
+                    {
+                        "Code": rec2.Code,
+                        "MemberNumber": rec2.MemberNumber,
+                        "MemberID": rec2.MemberID,
+                    }
+                )
 
-            rec1['CodeList'] = code_list
-            rec1['MemberNumberList'] = member_number_list
-            rec1['AccessCodes'] = access_codes_list
+            rec1["CodeList"] = code_list
+            rec1["MemberNumberList"] = member_number_list
+            rec1["AccessCodes"] = access_codes_list
 
-            yield ESRecord(rec1, self.get_type(), self.get_index())
+            yield ESRecord(
+                rec1,
+                self.get_type(),
+                self.get_index(),
+                rec1[self._version_date_fieldname],
+            )
 
     @staticmethod
     def query_get_conferences():

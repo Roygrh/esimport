@@ -6,8 +6,12 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-from esimport import settings
+from datetime import timezone
+
+from dateutil.parser import parse
+
 from ..utils import date_to_index_name
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,30 +19,34 @@ class ESRecord:
 
     record = None
 
-    meta_fields = {
-        "_op_type": "update"
-    }
+    meta_fields = {"_op_type": "index"}
 
-    def __init__(self, record, doc_type, index_prefix, index_date=None):
+    def __init__(self, record, doc_type, index_prefix, version_date, index_date=None):
         self.record = record
         self.doc_type = doc_type
         self.index_prefix = index_prefix
         self.index_date = index_date
+        self.version = self.get_version_from_date_field(version_date)
 
     def es(self, record_id=None):
         if self.index_date:
-            index_name = "{0}-{1}".format(self.index_prefix, date_to_index_name(self.index_date))
+            index_name = "{0}-{1}".format(
+                self.index_prefix, date_to_index_name(self.index_date)
+            )
         else:
             index_name = self.index_prefix
 
         rec = self.meta_fields.copy()
-        rec.update({
-            "_index": index_name,
-            "_type": self.doc_type,
-            "_id": record_id or self.record.get('ID'),
-            "doc_as_upsert": True,
-            "doc": self.record
-        })
+        rec.update(
+            {
+                "_index": index_name,
+                "_type": self.doc_type,
+                "_id": record_id or self.record.get("ID"),
+                "doc": self.record,
+                "_version": self.version,
+                "version_type": "external",
+            }
+        )
         return rec
 
     def get(self, name):
@@ -46,3 +54,16 @@ class ESRecord:
 
     def update(self, d):
         return self.record.update(d)
+
+    @staticmethod
+    def get_version_from_date_field(date_str: str):
+        parsed_date = parse(date_str)
+
+        # if datetime object does not have timezone information then `timestamp()` method will treat datetime
+        # object as it in local timezone. If OS timezone will not be set to UTC it may lead to unexpected results.
+        # It is an edge case, but explicitly configure timezone will give stable results.
+        # So if timezone does not parsed then assuming that date belongs to UTC timezone
+        if parsed_date.tzinfo is None:
+            parsed_date.replace(tzinfo=timezone.utc)
+
+        return int(parsed_date.timestamp())

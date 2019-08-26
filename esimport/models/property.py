@@ -6,12 +6,11 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-
 from datetime import datetime, timezone
+
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 from esimport.utils import set_utc_timezone
-
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ class Property(BaseModel):
     _type = "property"
     _date_field = "UpdateTime"
     _index = "properties"
+    _version_date_fieldname = "UpdateTime"
 
     @staticmethod
     def get_type():
@@ -37,8 +37,11 @@ class Property(BaseModel):
         return Property._index
 
     def get_properties(self, start, limit):
-        logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
-                .format(start, limit))
+        logger.debug(
+            "Fetching properties from Organization.ID >= {0} (limit: {1})".format(
+                start, limit
+            )
+        )
 
         q1 = self.query_get_properties()
         for rec in list(self.fetch_dict(q1, limit, start)):
@@ -67,7 +70,7 @@ class Property(BaseModel):
                     "CurrencyCode": service_plan.CurrencyCode,
                     "Status": service_plan.Status,
                     "OrgCode": service_plan.OrgCode,
-                    "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC)
+                    "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC),
                 }
 
                 if not service_plan.Owner_Org_ID in site_level_sps.keys():
@@ -100,7 +103,7 @@ class Property(BaseModel):
                         "HostType": rec5.HostType,
                         "VLANRangeStart": rec5.VLANRangeStart,
                         "VLANRangeEnd": rec5.VLANRangeEnd,
-                        "NetIP":rec5.NetIP
+                        "NetIP": rec5.NetIP,
                     }
                     hosts_list.append(host_dic)
 
@@ -110,7 +113,7 @@ class Property(BaseModel):
                     "ZoneType": rec4.ZoneType,
                     "ActiveMembers": rec4.ActiveMembers,
                     "ActiveDevices": rec4.ActiveDevices,
-                    "Hosts": hosts_list
+                    "Hosts": hosts_list,
                 }
 
                 if rec4.ID in site_level_sps.keys():
@@ -142,7 +145,7 @@ class Property(BaseModel):
                 "City": rec.pop("City"),
                 "Area": rec.pop("Area"),
                 "PostalCode": rec.pop("PostalCode"),
-                "CountryName": rec.pop("CountryName")
+                "CountryName": rec.pop("CountryName"),
             }
 
             for key, value in rec.items():
@@ -151,7 +154,9 @@ class Property(BaseModel):
 
             rec["UpdateTime"] = datetime.now(timezone.utc)
 
-            yield ESRecord(rec, self.get_type(), self.get_index())
+            yield ESRecord(
+                rec, self.get_type(), self.get_index(), row[self._version_date_fieldname]
+            )
 
     @staticmethod
     def query_get_properties():
@@ -194,6 +199,7 @@ ORDER BY Organization.ID ASC"""
     Returns the owning service provider for the given org.  If there are multiple
     service providers in the org lineage, then the most distant ancestor will be used.
     """
+
     @staticmethod
     def query_get_provider():
         return """SELECT TOP 1 Organization.Display_Name as Provider
@@ -292,4 +298,3 @@ WHERE Organization_ID = ?"""
                 JOIN Org_Relation_Cache ON Org_Relation_Cache.Child_Org_ID = Organization.ID
             WHERE 
                 Org_Relation_Cache.Parent_Org_ID = ?"""
-
