@@ -119,6 +119,7 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
+    @pytest.mark.xfail(reason='Upsert operation is deprecated')
     def test_upsert(self):
         _index = f'{Account.get_index()}-{datetime.now().date().strftime("%Y-%m")}'
         _type = Account.get_type()

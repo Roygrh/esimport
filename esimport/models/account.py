@@ -46,7 +46,6 @@ class Account(BaseModel):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
-
             yield ESRecord(
                 row, self.get_type(), self.get_index(), row[self._version_date_fieldname]
             )

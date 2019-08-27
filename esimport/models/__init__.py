@@ -7,10 +7,12 @@
 ################################################################################
 import logging
 from datetime import timezone
+from datetime import datetime
 
 from dateutil.parser import parse
 
 from ..utils import date_to_index_name
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
