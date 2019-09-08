@@ -44,11 +44,13 @@ class ESRecord:
                 "_index": index_name,
                 "_type": self.doc_type,
                 "_id": record_id or self.record.get("ID"),
-                "doc": self.record,
                 "_version": self.version,
-                "version_type": "external",
+                "_version_type": "external",
+                "_source": self.record
+
             }
         )
+
         return rec
 
     def get(self, name):
@@ -68,4 +70,6 @@ class ESRecord:
         if parsed_date.tzinfo is None:
             parsed_date.replace(tzinfo=timezone.utc)
 
-        return int(parsed_date.timestamp())
+        # need microsecond precision because documents can be changed many times during one second period
+        # and for each change we need a new version number
+        return int(parsed_date.timestamp() * 1000000)

@@ -37,8 +37,6 @@ def compare_dict(first, second):
 
 class TestPropertyMapping(TestCase):
     def setUp(self):
-        import pdb
-        pdb.set_trace()
         es = Elasticsearch(f"{settings.ES_HOST}:{settings.ES_PORT}")
         es.indices.delete(index='properties', ignore=[404])
         es.indices.delete(index='conferences', ignore=[404])
@@ -91,8 +89,6 @@ class TestPropertyMapping(TestCase):
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
-        import pdb
-        pdb.set_trace()
         addresses = res[0]['_source']['Address']
 
         address_keys = ['AddressLine1', 'AddressLine2', 'City', 'Area',

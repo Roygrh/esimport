@@ -37,7 +37,7 @@ class TestDynamicIndex:
     )
     def test_dynamic_account_index(self, es, sample_account):
         doc = sample_account["doc"]
-        account_record = ESRecord(doc, Account.get_type(), Account.get_index())
+        account_record = ESRecord(doc, Account.get_type(), Account.get_index() doc[Account._version_date_fieldname])
 
         helpers.bulk(es, [account_record.es()])
 

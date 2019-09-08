@@ -7,30 +7,21 @@
 ################################################################################
 import glob
 import os
-import random
-import subprocess
 import threading
 import time
-from datetime import datetime
-from multiprocessing import Process
 from operator import itemgetter
 from unittest import TestCase
 
 import chardet
 import dateutil.parser
+import pytest
 from elasticsearch import Elasticsearch
 from mock import MagicMock, Mock, patch
 
-import pyodbc
 from esimport import settings, tests
-from esimport.cache import CacheClient
-from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.account import AccountMapping
 from esimport.mappings.property import PropertyMapping
-from esimport.models import ESRecord
 from esimport.models.account import Account
-from esimport.models.base import BaseModel
-import pytest
 
 """
 Separated because takes long to run
@@ -119,54 +110,54 @@ class TestAccountMappingElasticSearch(TestCase):
         es.indices.delete(index=_index, ignore=400)
         self.assertFalse(es.indices.exists(index=_index))
 
-    @pytest.mark.xfail(reason='Upsert operation is deprecated')
-    def test_upsert(self):
-        _index = f'{Account.get_index()}-{datetime.now().date().strftime("%Y-%m")}'
-        _type = Account.get_type()
-        es = self.es
-        es.indices.create(index=_index, ignore=400)
-        self.assertTrue(es.indices.exists(index=_index))
-
-        doc1 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
-                    Created=datetime.now().date(),
-                    Activated=datetime.now().date(),
-                    ServiceArea="FF-471-20", Price=12.95, Currency="USD", PayMethod="",
-                    RoomNumber=101,
-                    PurchaseMacAddress="34-C0-59-D8-31-08",
-                    ServicePlan="One Day Pass", ServicePlanNumber="1dp_02",
-                    UpCap=4096, DownCap=4096,
-                    CreditCardNumber=None, CardType=None, ZoneType="GuestRoom",
-                    DiscountCode="NANO", ConsumableTime=0, ConsumableUnit='Minutes',
-                    SpanTime=0, SpanUnit='Days')
-        acc1 = ESRecord(doc1, Account.get_type(), Account.get_index(), index_date=datetime.now().date())
-        self.am.bulk_add_or_update(es, [acc1.es()], self.am.esRetry, self.am.esTimeout)
-        doc1_saved = es.get(index=_index, doc_type=_type, id=doc1.get('ID')).get('_source', {})
-        doc1_saved_price = float(str(doc1_saved.get('Price')).replace(doc1.get('Currency'), ''))
-
-        doc2 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
-                    Created=datetime.now().date(),
-                    Activated=datetime.now().date(),
-                    ServiceArea="FF-471-20", Price=4, Currency="USD", PayMethod="",
-                    RoomNumber=101,
-                    PurchaseMacAddress="34-C0-59-D8-31-08",
-                    ServicePlan="Weekly Pass", ServicePlanNumber="1week_16",
-                    UpCap=12288, DownCap=12288,
-                    CreditCardNumber=None, CardType=None, ZoneType="Meeting",
-                    DiscountCode="TPASS072", ConsumableTime=0, ConsumableUnit='Minutes',
-                    SpanTime=0, SpanUnit='Days')
-        acc2 = ESRecord(doc2, Account.get_type(), Account.get_index(), index_date=datetime.now().date())
-        self.am.bulk_add_or_update(es, [acc2.es()], self.am.esRetry, self.am.esTimeout)
-        # note: getting by acc1.get('ID') here
-        doc2_saved = es.get(index=_index, doc_type=_type, id=doc2.get('ID')).get('_source', {})
-        doc2_saved_price = float(str(doc2_saved.get('Price')).replace(doc2.get('Currency'), ''))
-
-        self.assertNotEqual(doc1_saved_price, doc2_saved_price)
-        self.assertGreater(doc1_saved_price, doc2_saved_price)
-        self.assertGreater(doc2_saved.get('UpCap'), doc1_saved.get('UpCap'))
-        self.assertGreater(doc2_saved.get('DownCap'), doc1_saved.get('DownCap'))
-
-        es.indices.delete(index=_index, ignore=400)
-        self.assertFalse(es.indices.exists(index=_index))
+    # @pytest.mark.xfail(reason='Upsert operation is deprecated')
+    # def test_upsert(self):
+    #     _index = f'{Account.get_index()}-{datetime.now().date().strftime("%Y-%m")}'
+    #     _type = Account.get_type()
+    #     es = self.es
+    #     es.indices.create(index=_index, ignore=400)
+    #     self.assertTrue(es.indices.exists(index=_index))
+    #
+    #     doc1 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
+    #                 Created=datetime.now().date(),
+    #                 Activated=datetime.now().date(),
+    #                 ServiceArea="FF-471-20", Price=12.95, Currency="USD", PayMethod="",
+    #                 RoomNumber=101,
+    #                 PurchaseMacAddress="34-C0-59-D8-31-08",
+    #                 ServicePlan="One Day Pass", ServicePlanNumber="1dp_02",
+    #                 UpCap=4096, DownCap=4096,
+    #                 CreditCardNumber=None, CardType=None, ZoneType="GuestRoom",
+    #                 DiscountCode="NANO", ConsumableTime=0, ConsumableUnit='Minutes',
+    #                 SpanTime=0, SpanUnit='Days')
+    #     acc1 = ESRecord(doc1, Account.get_type(), Account.get_index(), index_date=datetime.now().date())
+    #     self.am.bulk_add_or_update(es, [acc1.es()], self.am.esRetry, self.am.esTimeout)
+    #     doc1_saved = es.get(index=_index, doc_type=_type, id=doc1.get('ID')).get('_source', {})
+    #     doc1_saved_price = float(str(doc1_saved.get('Price')).replace(doc1.get('Currency'), ''))
+    #
+    #     doc2 = dict(ID=1, Name="cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11", LastName=None,
+    #                 Created=datetime.now().date(),
+    #                 Activated=datetime.now().date(),
+    #                 ServiceArea="FF-471-20", Price=4, Currency="USD", PayMethod="",
+    #                 RoomNumber=101,
+    #                 PurchaseMacAddress="34-C0-59-D8-31-08",
+    #                 ServicePlan="Weekly Pass", ServicePlanNumber="1week_16",
+    #                 UpCap=12288, DownCap=12288,
+    #                 CreditCardNumber=None, CardType=None, ZoneType="Meeting",
+    #                 DiscountCode="TPASS072", ConsumableTime=0, ConsumableUnit='Minutes',
+    #                 SpanTime=0, SpanUnit='Days')
+    #     acc2 = ESRecord(doc2, Account.get_type(), Account.get_index(), index_date=datetime.now().date())
+    #     self.am.bulk_add_or_update(es, [acc2.es()], self.am.esRetry, self.am.esTimeout)
+    #     # note: getting by acc1.get('ID') here
+    #     doc2_saved = es.get(index=_index, doc_type=_type, id=doc2.get('ID')).get('_source', {})
+    #     doc2_saved_price = float(str(doc2_saved.get('Price')).replace(doc2.get('Currency'), ''))
+    #
+    #     self.assertNotEqual(doc1_saved_price, doc2_saved_price)
+    #     self.assertGreater(doc1_saved_price, doc2_saved_price)
+    #     self.assertGreater(doc2_saved.get('UpCap'), doc1_saved.get('UpCap'))
+    #     self.assertGreater(doc2_saved.get('DownCap'), doc1_saved.get('DownCap'))
+    #
+    #     es.indices.delete(index=_index, ignore=400)
+    #     self.assertFalse(es.indices.exists(index=_index))
 
     def test_get_es_count(self):
         _index = Account.get_index()
@@ -206,14 +197,17 @@ class TestAccountMappingElasticSearch(TestCase):
         es = self.es
         es.indices.create(index=_index, ignore=400)
         self.assertTrue(es.indices.exists(index=_index))
-
+        date_modified_utc_str = "2018-05-02T09:15:11.237000+00:00"
+        date_modified_utc = dateutil.parser.parse(date_modified_utc_str)
+        doc_version = int(date_modified_utc.timestamp() * 1000000)
         account_doc = {
-            "_op_type": "update",
+            "_op_type": "index",
             "_index": "esrecord",
             "_type": "account",
             "_id": "1",
-            "doc_as_upsert": True,
-            "doc": {
+            "_version": doc_version,
+            "_version_type": "external",
+            "_source": {
                 "ID": 1,
                 "Name": "cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11",
                 "MemberNumber": "1",
@@ -224,7 +218,7 @@ class TestAccountMappingElasticSearch(TestCase):
                 "Activated": "2014-01-04T07:38:24.370000+00:00",
                 "Created": "2014-01-04T07:38:24.357000+00:00",
                 "UpsellAccountID": None,
-                "DateModifiedUTC": "2018-05-02T09:15:11.237000+00:00",
+                "DateModifiedUTC": date_modified_utc_str,
                 "ServicePlan": "basic day",
                 "ServicePlanNumber": "basic_day_01",
                 "UpCap": 1236,
