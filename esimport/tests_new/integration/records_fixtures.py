@@ -140,6 +140,9 @@ def sample_property():
             "DateCreatedUTC": datetime.datetime(
                 2019, 1, 2, 3, 45, 00, 000000, tzinfo=datetime.timezone.utc
             ),
+            "UpdateTime": datetime.datetime(
+                2019, 1, 2, 3, 45, 00, 1, tzinfo=datetime.timezone.utc
+            ),
         },
     }
 
@@ -153,6 +156,9 @@ def sample_conference():
             "Name": "Event_Name1",
             "DateCreatedUTC": datetime.datetime(
                 2019, 1, 2, 3, 45, 00, 000000, tzinfo=datetime.timezone.utc
+            ),
+            "UpdateTime": datetime.datetime(
+                2019, 1, 2, 3, 45, 00, 1, tzinfo=datetime.timezone.utc
             ),
             "ServiceArea": "FF-471-20",
             "Code": "cc-9886_79C66442-7E37-4B0D-B512-E7D1C9EDFC11",
