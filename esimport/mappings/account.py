@@ -6,30 +6,16 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import sys
-import traceback
-import time
 import logging
-import threading
+import time
 from datetime import datetime, timedelta, timezone
+
 from dateutil import parser
-from operator import itemgetter
 
-from elasticsearch import exceptions
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
-
-from esimport.connectors.mssql import MsSQLConnector
-from esimport.models.base import BaseModel
 from esimport import settings
-from esimport.utils import retry
-from esimport.utils import convert_utc_to_local_time, set_utc_timezone
-from esimport.models import ESRecord
-from esimport.models.account import Account
-from esimport.models.property import Property
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
-
-from extensions import sentry_client
+from esimport.models.account import Account
+from esimport.utils import convert_utc_to_local_time, set_utc_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +43,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         if start_date and start_date != '1900-01-01':
             start_date = parser.parse(start_date)
         else:
-            # otherwise, get the most recent starting point from data in Elasticsearch
-            # (use Created to prevent gaps in data)
-            index_name = "%s-current" % (Account.get_index(),)
-            start_date = self.get_most_recent_date(index_name, 'Created', Account.get_type())
-            logger.info("Data Check - Created: {0}".format(start_date))
+            # otherwise, get the most recent starting point from data in DynamoDB
+            # using the same date field that is used fro versioning
+            latest_date = self.latest_date()
+            logger.info("Data Check - Created: {0}".format(latest_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
 
@@ -83,10 +68,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
                 start_date = account.get('DateModifiedUTC')
                 logger.debug("New Start Date: {0}".format(start_date))
 
-                self.add(account.es(), self.step_size, start_date)
+                self.add(account.es(), start_date)
 
             # send the remainder of accounts to elasticsearch
-            self.add(None, 0, start_date)
+            self.add(None, start_date)
 
             logger.info("Processed a total of {0} accounts".format(count))
             logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(self.db_wait))
@@ -112,19 +97,6 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         account.update(_action)
 
     """
-    Get existing accounts from ElasticSearch
-    """
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT, retry_exception=exceptions.ConnectionError)
-    def get_existing_accounts(self, start_zpa_id, limit):
-        logger.debug("Fetching {0} records from ES where ID >= {1}" \
-                     .format(limit, start_zpa_id))
-        records = self.es.search(index=settings.ES_ACCOUNT_INDEX, doc_type=Account.get_type(),
-                                 sort="ID:asc", size=limit,
-                                 q="ID:[{0} TO *]".format(start_zpa_id))
-        for record in records['hits']['hits']:
-            yield record.get('_source')
-
-    """
     Update Account records in Elasticsearch
     """
     def update(self, start_date):
@@ -132,36 +104,15 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         created_date = None
         max_id = self.max_id()
         while start < max_id:
-            for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
+            for account in self.model.get_accounts_by_created_date(start,  start_date):
                 self.append_site_values(account)
                 start = account.get('ID')
                 created_date = account.get('Created')
-                self.add(account.es(), self.step_size)
+                self.add(account.es())
 
             logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(start, created_date))
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), self.step_size))
+            self.add(None)
 
-    """
-    NON FUNCTIONAL. Needs to be implemented.
-    """
-    def backload(self, start_date):
-        start = 0
-        for account in self.model.get_accounts_by_created_date(start, self.step_size, start_date):
-            acc = account.es()
-            logger.debug("Record found: {0}".format(account.get('ID')))
-            self.add(dict(acc), self.step_size)
-            start = account.get('ID') + 1
-
-        # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
-
-    # dumb implementation just to make tests works
-    # TODO: fix it
-    def add_accounts(self, start_date):
-        start = 0
-        for count, account in enumerate(self.model.get_accounts_by_created_date(start, self.step_size, start_date)):
-            self.append_site_values(account)
-            self.add(account.es(), self.step_size)
 

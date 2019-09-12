@@ -6,13 +6,13 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import time
 import logging
+import time
 
-from esimport.utils import convert_utc_to_local_time
-from esimport.models.conference import Conference
-from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings
+from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport.models.conference import Conference
+from esimport.utils import convert_utc_to_local_time
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             self.add(rec, self.step_size)
 
         # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))
+        self.add(None)
 
         # only wait between DB calls when there is no delay from ES (HTTP requests)
         if count <= 0:
@@ -81,7 +81,7 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
         while True:
             count = 0
             metric_value = None
-            for conference in self.model.get_conferences(start, self.step_size, start_date):
+            for conference in self.model.get_conferences(start, start_date):
                 count += 1
                 logger.debug("Record found: {0}".format(conference.get('ID')))
 
@@ -96,11 +96,11 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
 
                 metric_value = conference.get(self.model.get_key_date_field())
 
-                self.add(conference.es(), self.step_size, metric_value)
+                self.add(conference.es(), metric_value)
                 start = conference.record.get('ID') + 1
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, 0, metric_value)
+            self.add(None, metric_value)
 
             # always wait between DB calls
             time.sleep(self.db_wait)

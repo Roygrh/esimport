@@ -12,18 +12,13 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import time
-import pprint
 import logging
+import time
 
-from elasticsearch import exceptions
-
-from esimport.utils import retry
 from esimport import settings
-from esimport.models.property import Property
-from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.doc import DocumentMapping
-from extensions import sentry_client
+from esimport.models.property import Property
+from esimport.utils import retry
 
 logger = logging.getLogger(__name__)
 
@@ -52,29 +47,29 @@ class PropertyMapping(DocumentMapping):
             for prop in self.model.get_properties(start, 50):
                 count += 1
                 logger.debug("Record found: {0}".format(prop.get('ID')))
-                self.add(dict(prop.es()), 50)
+                self.add(dict(prop.es()))
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, min(len(self._items), 50))
+            self.add(None)
 
             # only wait between DB calls when there is no delay from ES (HTTP requests)
             if count <= 0:
                 logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
                 time.sleep(self.db_wait)
 
-    """
-    Find existing property records in ElasticSearch
-    """
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
-    def get_existing_properties(self, start, limit):
-        logger.debug("Fetching {0} records from ES where ID >= {1}" \
-                     .format(limit, start))
-        records = self.es.search(index=Property.get_index(), doc_type=Property.get_type(),
-                                 sort="ID:asc", size=limit,
-                                 q="ID:[{0} TO *]".format(start),
-                                 request_timeout=60)
-        for record in records['hits']['hits']:
-            yield record.get('_source')
+    # """
+    # Find existing property records in ElasticSearch
+    # """
+    # @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
+    # def get_existing_properties(self, start, limit):
+    #     logger.debug("Fetching {0} records from ES where ID >= {1}" \
+    #                  .format(limit, start))
+    #     records = self.es.search(index=Property.get_index(), doc_type=Property.get_type(),
+    #                              sort="ID:asc", size=limit,
+    #                              q="ID:[{0} TO *]".format(start),
+    #                              request_timeout=60)
+    #     for record in records['hits']['hits']:
+    #         yield record.get('_source')
 
     """
     Continuously update ElasticSearch to have the latest Property data
@@ -97,11 +92,11 @@ class PropertyMapping(DocumentMapping):
 
                 metric_value = prop.get(self.model.get_key_date_field())
 
-                self.add(prop.es(), 50, metric_value)
+                self.add(prop.es(), metric_value)
                 start = prop.record.get('ID')
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, 0, metric_value)
+            self.add(None, metric_value)
 
             elapsed_time = int(time.time() - timer_start)
 
@@ -126,23 +121,8 @@ class PropertyMapping(DocumentMapping):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
             return self.cache_client.get(org_number)
         else:
-            es_property_query = {
-                "query": {
-                    "term": {
-                        "OrgNumberTree": org_number
-                    }
-                }
-            }
-
-            logger.info("Fetching record from ES for Org Number: {0}.".format(org_number))
-            record = None
-            records = self.es.search(index=Property.get_index(),
-                                     doc_type=Property.get_type(),
-                                     size=1,
-                                     body=es_property_query)
-
-            for rec in records['hits']['hits']:
-                record = rec.get('_source')
+            logger.info("Fetching record from DB for Org Number: {0}.".format(org_number))
+            record = self.model.get_property_by_org_number(org_number).get('_source')
 
             if record is None:
                 msg = "Property not found for Org Number: {0}.  Updating cache with a null object"
@@ -155,12 +135,3 @@ class PropertyMapping(DocumentMapping):
             self.cache_client.set(org_number, record)
             return record
 
-    def backload(self):
-        start = 0
-        for prop in self.model.get_properties(start, 50):
-            p = prop.es()
-            logger.debug("Record found: {0}".format(prop.get('ID')))
-            self.add(dict(p), 50)
-
-            # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), 50))

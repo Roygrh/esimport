@@ -6,15 +6,14 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import time
 import logging
-
+import time
 from datetime import datetime, timezone
 
-from esimport.utils import convert_utc_to_local_time
-from esimport.models.session import Session
-from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings
+from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport.models.session import Session
+from esimport.utils import convert_utc_to_local_time
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +65,15 @@ class SessionMapping(PropertyAppendedDocumentMapping):
 
                 most_recent_session_time = session.get("LogoutTime")
 
-                self.add(session.es(), self.step_size, metric_value)
+                self.add(session.es(), metric_value)
                 start = session.get('ID') + 1
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, 0, metric_value)
+            self.add(None, metric_value)
 
             elapsed_time = int(time.time() - timer_start)
 
-            # While we're catching up to the current time, use the historical session data source. 
+            # While we're catching up to the current time, use the historical session data source.
             # Once we're within an hour or there are no records being returned, then
             # switch to the real-time data source.
             minutes_behind = (datetime.now(timezone.utc) - most_recent_session_time).total_seconds() / 60
@@ -96,17 +95,3 @@ class SessionMapping(PropertyAppendedDocumentMapping):
                 self.model.conn.reset()
                 time.sleep(wait)
                 timer_start = time.time()  # reset timer
-
-    """
-    NON FUNCTIONAL. Needs to be implemented.
-    """
-    def backload(self, start_date):
-        start = 0
-        for session in self.model.get_sessions(start, self.step_size, start_date):
-            rec = session.es()
-            logger.debug("Record found: {0}".format(self.pp.pformat(rec)))
-            self.add(dict(rec), self.step_size)
-            start = session.get('ID') + 1
-
-        # for cases when all/remaining items count were less than limit
-        self.add(None, min(len(self._items), self.step_size))

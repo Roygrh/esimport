@@ -6,14 +6,13 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import time
 import logging
-from datetime import timezone
+import time
 
-from esimport.utils import convert_utc_to_local_time, set_utc_timezone
-from esimport.models.device import Device
-from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport import settings
+from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
+from esimport.models.device import Device
+from esimport.utils import convert_utc_to_local_time
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         return settings.DATADOG_DEVICE_METRIC
 
     """
-    Loop to continuously find new Devices and add them to Elasticsearch
+    Loop to continuously find new Devices and push them to AWS SQS
     """
     def sync(self, start_date):
         start = self.max_id() + 1
@@ -44,8 +43,7 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
             count = 0
             metric_value = None
 
-            logger.debug("Get Devices from {0} to {1} since {2}"
-                .format(start, start+self.step_size, start_date))
+            logger.debug("Get Devices from {0} to {1} since {2}".format(start, start+self.step_size, start_date))
 
             for device in self.model.get_devices(start, self.step_size, start_date):
                 count += 1
@@ -60,11 +58,11 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
                 device.update(_action)
                 metric_value = device.get(self.model.get_key_date_field())
 
-                self.add(device.es(), self.step_size, metric_value)
+                self.add(device.es(),metric_value)
                 start = device.get('ID') + 1
 
             # for cases when all/remaining items count were less than limit
-            self.add(None, 0, metric_value)
+            self.add(None, metric_value)
 
             elapsed_time = int(time.time() - timer_start)
 
@@ -73,4 +71,4 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
                 logger.info("[Delay] Reset SQL connection and waiting {0} seconds".format(self.db_wait))
                 self.model.conn.reset()
                 time.sleep(self.db_wait)
-                timer_start=time.time() # reset timer            
+                timer_start = time.time()  # reset timer

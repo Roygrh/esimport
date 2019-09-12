@@ -23,7 +23,7 @@ class ESRecord:
 
     meta_fields = {"_op_type": "index"}
 
-    def __init__(self, record, doc_type, index_prefix, version_date, index_date=None):
+    def __init__(self, record: dict, doc_type:str, index_prefix: str, version_date:str, index_date=None):
         self.record = record
         self.doc_type = doc_type
         self.index_prefix = index_prefix
