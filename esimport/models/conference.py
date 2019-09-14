@@ -109,7 +109,7 @@ class Conference(BaseModel):
                 rec1,
                 self.get_type(),
                 self.get_index(),
-                rec1[self._version_date_fieldname],
+                rec1[self._version_date_fieldname].isoformat(),
             )
 
     @staticmethod

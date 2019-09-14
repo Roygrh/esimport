@@ -160,14 +160,18 @@ class Property(BaseModel):
         for rec in list(self.fetch_dict(q1, limit, start)):
             self.set_additonal_property_info(rec)
             yield ESRecord(
-                rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname]
+                rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname].isoformat()
             )
 
     def get_property_by_org_number(self, org_number: str):
         q1 = self.query_get_property_by_org_id()
-        rec = next(self.fetch_dict(q1, org_number))
+        try:
+            rec = next(self.fetch_dict(q1, org_number))
+        except StopIteration:
+            return None
+
         self.set_additonal_property_info(rec)
-        return ESRecord(rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname])
+        return ESRecord(rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname].isoformat())
 
     @staticmethod
     def query_get_properties():

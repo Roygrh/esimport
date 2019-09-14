@@ -70,7 +70,7 @@ class Device(BaseModel):
                 self.get_type(),
                 self.get_index(),
                 row[self._version_date_fieldname],
-                index_date=row[self._index_name_date_field],
+                index_date=row[self._index_name_date_field].isoformat(),
             )
 
     @staticmethod

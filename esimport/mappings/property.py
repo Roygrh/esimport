@@ -18,7 +18,6 @@ import time
 from esimport import settings
 from esimport.mappings.doc import DocumentMapping
 from esimport.models.property import Property
-from esimport.utils import retry
 
 logger = logging.getLogger(__name__)
 
@@ -111,10 +110,6 @@ class PropertyMapping(DocumentMapping):
                 if count == 0:
                     start = 0
 
-    """
-    Use ElasticSearch Property data to find the site associated with a organization number
-    """
-    @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
     def get_property_by_org_number(self, org_number):
 
         if self.cache_client.exists(org_number):
@@ -122,11 +117,13 @@ class PropertyMapping(DocumentMapping):
             return self.cache_client.get(org_number)
         else:
             logger.info("Fetching record from DB for Org Number: {0}.".format(org_number))
-            record = self.model.get_property_by_org_number(org_number).get('_source')
+            record = self.model.get_property_by_org_number(org_number)
 
             if record is None:
                 msg = "Property not found for Org Number: {0}.  Updating cache with a null object"
                 logger.warning(msg.format(org_number))
+            else:
+                record = record.get('_source')
 
             # set the property in the cache.  If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES

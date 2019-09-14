@@ -20,6 +20,7 @@ from dateutil import parser
 from esimport import settings
 from esimport.cache import CacheClient
 from esimport.connectors.mssql import MsSQLConnector
+from esimport.utils import esimport_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class DocumentMapping(object):
 
     def __init__(self):
         self.dyndb_table_name = 'latest_ids'
-        self._version_date_fieldname = None
+        self._version_date_fieldname = None # TODO replace with method
         self.init_sqs_connection()
         self._items = list()
 
@@ -142,7 +143,7 @@ class DocumentMapping(object):
 
         return response['Item'].get('latest_id', 0)
 
-    def latest_date(self):
+    def latest_date(self) -> str:
         response = self.dynamodb_table.get_item(
             TableName=self.dyndb_table_name,
             Key={'doctype': self.model._type},
@@ -159,7 +160,7 @@ class DocumentMapping(object):
             self.somethings_metric(metric_value)
             return
 
-        json_repr = json.dumps(item)
+        json_repr = esimport_json_dumps(item)
         bytes_size = len(json_repr.encode('utf-8'))
 
         if self.current_size + bytes_size < self.max_size:
