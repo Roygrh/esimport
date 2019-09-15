@@ -25,82 +25,55 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
 
     def __init__(self):
         super(ConferenceMapping, self).__init__()
+        self.default_query_limit = 20
 
     def setup(self):  # pragma: no cover
         super(ConferenceMapping, self).setup()
         self.model = Conference(self.conn)
+        self._version_date_fieldname = self.model._version_date_fieldname
 
     @staticmethod
     def get_monitoring_metric():
         return settings.DATADOG_CONFERENCE_METRIC
 
-    """
-    Find Conference in SQL and add them to ElasticSearch
-    """
-    def add_conferences(self, start_date):
+    def process_conferences_from_id(self, last_processed_id: int, start_date) -> (int, int):
         count = 0
-        start = self.max_id() + 1
-        logger.debug("Get Conferences from {0} to {1} since {2}"
-              .format(start, start+self.step_size, start_date))
-        for conference in self.model.get_conferences(start, self.step_size, start_date):
+        metric_value = None
+        for conference in self.model.get_conferences(last_processed_id, self.default_query_limit,  start_date):
             count += 1
+            logger.debug("Record found: {0}".format(conference.get('ID')))
 
+            # get some properties from PropertyMapping
             _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
 
             if 'TimeZone' in _action:
                 for pfik, pfiv in self.dates_to_localize:
                     _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
 
-            conference.update(self.amend_data(conference))
-            rec = conference.es()
-            logger.debug("Record found: {0}".format(conference.get('ID')))
-            self.add(rec, self.step_size)
+            conference.update(_action)
+
+            metric_value = conference.get(self.model.get_key_date_field())
+
+            self.add(conference.es(), metric_value)
+            last_processed_id = conference.record.get('ID') + 1
 
         # for cases when all/remaining items count were less than limit
-        self.add(None)
+        self.add(None, metric_value)
 
-        # only wait between DB calls when there is no delay from ES (HTTP requests)
-        if count <= 0:
-            self.model.conn.reset()
-            logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-            time.sleep(self.db_wait)
+        return count, last_processed_id
 
-    """
-    Loop to continuously find new Conferences and add them
-    """
-    def sync(self, start_date):
-        while True:
-            self.add_conferences(start_date)
 
     """
     Continuously update ElasticSearch to have the latest Conference data
     """
     def update(self, start_date):
-        start = 0
+        last_processed_id = 0
         timer_start = time.time()
         while True:
-            count = 0
-            metric_value = None
-            for conference in self.model.get_conferences(start, start_date):
-                count += 1
-                logger.debug("Record found: {0}".format(conference.get('ID')))
-
-                # get some properties from PropertyMapping
-                _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
-
-                if 'TimeZone' in _action:
-                    for pfik, pfiv in self.dates_to_localize:
-                        _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
-
-                conference.update(_action)
-
-                metric_value = conference.get(self.model.get_key_date_field())
-
-                self.add(conference.es(), metric_value)
-                start = conference.record.get('ID') + 1
-
-            # for cases when all/remaining items count were less than limit
-            self.add(None, metric_value)
+            count, last_processed_id = self.process_conferences_from_id(
+                last_processed_id=last_processed_id,
+                start_date=start_date
+            )
 
             # always wait between DB calls
             time.sleep(self.db_wait)
@@ -116,4 +89,4 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                 timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
-                    start = 0
+                    last_processed_id = 0

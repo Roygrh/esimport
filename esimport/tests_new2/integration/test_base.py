@@ -114,4 +114,6 @@ class TestDocumentMapping:
         assert len(es_actions) == 3
 
         assert len(dm._items) == 1
-        assert dm.current_size == len(esimport_json_dumps(sample_es_record.es()).encode("utf-8"))
+        assert dm.current_size == len(
+            esimport_json_dumps(sample_es_record.es()).encode("utf-8")
+        )

@@ -164,6 +164,16 @@ class Property(BaseModel):
             )
 
     def get_property_by_org_number(self, org_number: str):
+        """When `Property` class item is used to generate ESRecord usually it should be used `UpdateTime` field
+        to create version -timestamp(UptadteTime).
+        But that functions is used only in PropertyAppendedDocumentMapping.get_site_values() that intended to set
+        additional properties and to other documents. So it can safely use other date field to generate version
+        number. That number will be discarded because only data in `_source` will be used.
+
+
+        :param org_number:
+        :return:
+        """
         q1 = self.query_get_property_by_org_id()
         try:
             rec = next(self.fetch_dict(q1, org_number))
@@ -171,7 +181,12 @@ class Property(BaseModel):
             return None
 
         self.set_additonal_property_info(rec)
-        return ESRecord(rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname].isoformat())
+        return ESRecord(
+            rec,
+            self.get_type(),
+            self.get_index(),
+            rec['CreatedUTC'].isoformat()
+        )
 
     @staticmethod
     def query_get_properties():
