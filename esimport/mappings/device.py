@@ -26,7 +26,6 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
         super(DeviceMapping, self).__init__()
         self.default_query_limit = 20
 
-
     def setup(self):  # pragma: no cover
         super(DeviceMapping, self).setup()
         self.model = Device(self.conn)

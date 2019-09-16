@@ -27,76 +27,47 @@ class PropertyMapping(DocumentMapping):
 
     def __init__(self):
         super(PropertyMapping, self).__init__()
+        self.default_query_limit = 50
 
     def setup(self):
         super(PropertyMapping, self).setup()
         self.model = Property(self.conn)
+        self._version_date_fieldname = self.model._version_date_fieldname
 
     @staticmethod
     def get_monitoring_metric():
         return settings.DATADOG_PROPERTY_METRIC
 
-    """
-    Add Properties from SQL into ElasticSearch
-    """
-    def sync(self):
-        while True:
-            count = 0
-            start = self.max_id()
-            for prop in self.model.get_properties(start, 50):
-                count += 1
-                logger.debug("Record found: {0}".format(prop.get('ID')))
-                self.add(dict(prop.es()))
+    def process_properties_from_id(self, latest_processed_id: int) -> (int, int):
+        count = 0
+        metric_value = None
+        for prop in self.model.get_properties(latest_processed_id, self.default_query_limit):
+            count += 1
+            logger.debug("Record found: {0}".format(prop.get('ID')))
 
-            # for cases when all/remaining items count were less than limit
-            self.add(None)
+            # add both Property/Organization Number and Service Areas to the cache
+            self.cache_client.set(prop.get('Number'), prop.record)
 
-            # only wait between DB calls when there is no delay from ES (HTTP requests)
-            if count <= 0:
-                logger.debug("[Delay] Waiting {0} seconds".format(self.db_wait))
-                time.sleep(self.db_wait)
+            for service_area_obj in prop.get('ServiceAreaObjects'):
+                self.cache_client.set(service_area_obj['Number'], prop.record)
 
-    # """
-    # Find existing property records in ElasticSearch
-    # """
-    # @retry(settings.ES_RETRIES, settings.ES_RETRIES_WAIT)
-    # def get_existing_properties(self, start, limit):
-    #     logger.debug("Fetching {0} records from ES where ID >= {1}" \
-    #                  .format(limit, start))
-    #     records = self.es.search(index=Property.get_index(), doc_type=Property.get_type(),
-    #                              sort="ID:asc", size=limit,
-    #                              q="ID:[{0} TO *]".format(start),
-    #                              request_timeout=60)
-    #     for record in records['hits']['hits']:
-    #         yield record.get('_source')
+            metric_value = prop.get(self.model.get_key_date_field())
+
+            self.add(prop.es(), metric_value)
+            latest_processed_id = prop.record.get('ID')
+
+        # for cases when all/remaining items count were less than limit
+        self.add(None, metric_value)
+        return count, latest_processed_id
 
     """
     Continuously update ElasticSearch to have the latest Property data
     """
     def update(self):
-        start = 0
-        timer_start=time.time()
+        latest_processed_id = 0
+        timer_start = time.time()
         while True:
-            count = 0
-            metric_value = None
-            for prop in self.model.get_properties(start, 50):
-                count += 1
-                logger.debug("Record found: {0}".format(prop.get('ID')))
-
-                # add both Property/Organization Number and Service Areas to the cache
-                self.cache_client.set(prop.get('Number'), prop.record)
-
-                for service_area_obj in prop.get('ServiceAreaObjects'):
-                    self.cache_client.set(service_area_obj['Number'], prop.record)
-
-                metric_value = prop.get(self.model.get_key_date_field())
-
-                self.add(prop.es(), metric_value)
-                start = prop.record.get('ID')
-
-            # for cases when all/remaining items count were less than limit
-            self.add(None, metric_value)
-
+            count, latest_processed_id = self.process_properties_from_id(latest_processed_id)
             elapsed_time = int(time.time() - timer_start)
 
             # habitually reset mssql connection.
@@ -108,9 +79,10 @@ class PropertyMapping(DocumentMapping):
                 timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
-                    start = 0
+                    latest_processed_id = 0
 
     def get_property_by_org_number(self, org_number):
+        # TODO add direct test for it
 
         if self.cache_client.exists(org_number):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))

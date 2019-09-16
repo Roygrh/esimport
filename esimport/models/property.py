@@ -143,11 +143,7 @@ class Property(BaseModel):
             if isinstance(value, datetime):
                 rec[key] = set_utc_timezone(value)
 
-        rec["UpdateTime"] = datetime.now(tz=timezone.utc).isoformat()
-
-        yield ESRecord(
-            rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname]
-        )
+        rec["UpdateTime"] = datetime.now(tz=timezone.utc)
 
     def get_properties(self, start, limit):
         logger.debug(
