@@ -36,10 +36,10 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     def get_monitoring_metric():
         return settings.DATADOG_CONFERENCE_METRIC
 
-    def process_conferences_from_id(self, last_processed_id: int, start_date) -> (int, int):
+    def process_conferences_from_id(self, latest_processed_id: int, start_date) -> (int, int):
         count = 0
         metric_value = None
-        for conference in self.model.get_conferences(last_processed_id, self.default_query_limit,  start_date):
+        for conference in self.model.get_conferences(latest_processed_id, self.default_query_limit,  start_date):
             count += 1
             logger.debug("Record found: {0}".format(conference.get('ID')))
 
@@ -55,23 +55,23 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             metric_value = conference.get(self.model.get_key_date_field())
 
             self.add(conference.es(), metric_value)
-            last_processed_id = conference.record.get('ID') + 1
+            latest_processed_id = conference.record.get('ID') + 1
 
         # for cases when all/remaining items count were less than limit
         self.add(None, metric_value)
 
-        return count, last_processed_id
+        return count, latest_processed_id
 
 
     """
     Continuously update ElasticSearch to have the latest Conference data
     """
     def update(self, start_date):
-        last_processed_id = 0
+        latest_processed_id = 0
         timer_start = time.time()
         while True:
-            count, last_processed_id = self.process_conferences_from_id(
-                last_processed_id=last_processed_id,
+            count, latest_processed_id = self.process_conferences_from_id(
+                latest_processed_id=latest_processed_id,
                 start_date=start_date
             )
 
@@ -89,4 +89,4 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                 timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
-                    last_processed_id = 0
+                    latest_processed_id = 0
