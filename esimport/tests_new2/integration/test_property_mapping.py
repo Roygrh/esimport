@@ -9,9 +9,7 @@ class TestPropertyMapping:
         pm = PropertyMapping()
         pm.setup()
 
-        result = pm.process_properties_from_id(
-            latest_processed_id=0,
-        )
+        result = pm.process_properties_from_id(latest_processed_id=0)
 
         # messages in sqs are not instantly available
         messages = None
@@ -32,5 +30,5 @@ class TestPropertyMapping:
         pm = PropertyMapping()
         pm.setup()
 
-        result = pm.get_property_by_org_number('aa-aaa')
+        result = pm.get_property_by_org_number("aa-aaa")
         assert result is None
