@@ -42,19 +42,14 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         metric_value = None
 
         logger.debug("Get Sessions from {0} to {1} since {2}"
-                     .format(next_id_to_process, next_id_to_process + self.db_record_limit, start_date))
+                     .format(next_id_to_process, next_id_to_process + self.default_query_limit, start_date))
 
-        for session in self.model.get_sessions(next_id_to_process, self.db_record_limit, start_date, use_historical):
+        for session in self.model.get_sessions(next_id_to_process, self.default_query_limit, start_date, use_historical):
             count += 1
             logger.debug("Record found: {0}".format(session.get('ID')))
 
-            _action = super(SessionMapping, self).get_site_values(session.get('ServiceArea'))
+            self.update_time_zones(session, session.get('ServiceArea'), self.dates_to_localize)
 
-            if 'TimeZone' in _action:
-                for pfik, pfiv in self.dates_to_localize:
-                    _action[pfiv] = convert_utc_to_local_time(session.record[pfik], _action['TimeZone'])
-
-            session.update(_action)
             metric_value = session.get(self.model.get_key_date_field())
 
             most_recent_session_time = session.get("LogoutTime")
@@ -67,7 +62,6 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         return count, next_id_to_process, most_recent_session_time
 
     def update_use_historical(self, count: int, use_historical: bool, most_recent_session_time: datetime) -> bool:
-        # TODO: add direct test
         # While we're catching up to the current time, use the historical session data source.
         # Once we're within an hour or there are no records being returned, then
         # switch to the real-time data source.
