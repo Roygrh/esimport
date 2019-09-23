@@ -54,6 +54,7 @@ def set_utc_timezone(time):
 def date_to_index_name(time):
     return time.strftime('%Y-%m')
 
+
 class ESDataEncoder(json.JSONEncoder):
     # https://gist.github.com/drmalex07/5149635e6ab807c8b21e
     # https://github.com/PyCQA/pylint/issues/414

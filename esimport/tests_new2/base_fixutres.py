@@ -1,5 +1,8 @@
 import boto3
 import pytest
+import redis
+
+from esimport import settings
 
 
 @pytest.fixture
@@ -64,3 +67,13 @@ def empty_table(dynamodb_client):
     )
     yield
     dynamodb_client.delete_table(TableName="latest_ids")
+
+
+@pytest.fixture()
+def clear_redis():
+    client = redis.StrictRedis(
+        host=settings.REDIS_HOST, port=settings.REDIS_PORT, encoding="utf-8"
+    )
+    client.flushdb()
+    yield
+    client.flushdb()

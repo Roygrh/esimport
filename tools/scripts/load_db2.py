@@ -46,9 +46,54 @@ VALUES"""
     return final_sql
 
 
+def create_property_sql(n, start_date):
+    property_sql = """
+INSERT INTO [dbo].[Organization] (
+Number, 
+Name, 
+Display_Name, 
+Guest_Room_Count, 
+Meeting_Room_Count, 
+Is_Lite, 
+Pan_Enabled,
+Date_Added_UTC, 
+Org_Status_ID, 
+Time_Zone_ID, 
+Org_Category_Type_ID, 
+Contact_ID, 
+Property_Code) VALUES"""
+    column = """(
+'FF-471-{org_num:02d}', 
+'organization{id}', 
+'some display name 1', 
+1, 
+1, 
+0, 
+0, 
+cast(N'{date_utc}' AS DateTime2), 
+1, 
+1, 
+3, 
+1, 
+'PropertyCode1'
+)"""
+
+    records = []
+    id = 0
+    for i in range(n):
+        for x in range(2):
+            records.append(column.format(id=id, date_utc=start_date, org_num=id))
+            id += 1
+        start_date += timedelta(days=1)
+
+    final_sql = " ".join([property_sql, ",".join(records)])
+    return final_sql
+
+
 mssql_con = MSSQLConnection()
 
 start_date = datetime(2019, 1, 1, 1, 1, 1, 123456)
 
 
 mssql_con.execute(create_conference_sql(10, start_date))
+mssql_con.execute(create_property_sql(10, start_date))

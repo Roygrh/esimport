@@ -82,8 +82,6 @@ class PropertyMapping(DocumentMapping):
                     next_id_to_process = 0
 
     def get_property_by_org_number(self, org_number):
-        # TODO add direct test for it
-
         if self.cache_client.exists(org_number):
             logger.debug("Fetching record from cache for Org Number: {0}.".format(org_number))
             return self.cache_client.get(org_number)
@@ -95,7 +93,7 @@ class PropertyMapping(DocumentMapping):
                 msg = "Property not found for Org Number: {0}.  Updating cache with a null object"
                 logger.warning(msg.format(org_number))
             else:
-                record = record.get('_source')
+                record = record.record
 
             # set the property in the cache.  If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES

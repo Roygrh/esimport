@@ -4,7 +4,7 @@ import logging
 import datetime
 
 from esimport import settings
-from esimport.utils import ESDataEncoder
+from esimport.utils import esimport_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,6 @@ class CacheClient(object):
 
     def set(self, key, value):
         logger.debug("Cache - setting value for key: {0}".format(key))
-        self.client.setex(key, datetime.timedelta(days=1), json.dumps(value, cls=ESDataEncoder))
+        self.client.setex(key, datetime.timedelta(days=1), esimport_json_dumps(value))
 
 

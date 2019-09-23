@@ -1,11 +1,8 @@
 from esimport.mappings.conference import ConferenceMapping
 from time import sleep
 from esimport.tests_new2.base_fixutres import *
-import json
 
-
-def sqs_msg_parser(msg_body):
-    return list(map(lambda msg: json.loads(msg), msg_body.split("\n")))
+from esimport.tests_new2.test_helpers import sqs_msg_parser
 
 
 class TestConferenceMapping:
@@ -30,7 +27,7 @@ class TestConferenceMapping:
         assert len(messages[0].body.split("\n")) == 4
 
     @pytest.mark.usefixtures("empty_q", "empty_table")
-    def test_process_conferences_squence_maintained(self, latest_ids_table, sqs_q):
+    def test_process_conferences_sequence_maintained(self, latest_ids_table, sqs_q):
         cm = ConferenceMapping()
         cm.setup()
         cm.default_query_limit = 4
