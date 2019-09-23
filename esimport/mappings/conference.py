@@ -12,7 +12,6 @@ import time
 from esimport import settings
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport.models.conference import Conference
-from esimport.utils import convert_utc_to_local_time
 
 logger = logging.getLogger(__name__)
 
@@ -50,17 +49,9 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             count += 1
             logger.debug("Record found: {0}".format(conference.get('ID')))
 
-            # get some properties from PropertyMapping
-            _action = super(ConferenceMapping, self).get_site_values(conference.get('ServiceArea'))
-
-            if 'TimeZone' in _action:
-                for pfik, pfiv in self.dates_to_localize:
-                    _action[pfiv] = convert_utc_to_local_time(conference.record[pfik], _action['TimeZone'])
-
-            conference.update(_action)
+            self.update_time_zones(conference, conference.get('ServiceArea'), self.dates_to_localize)
 
             metric_value = conference.get(self.model.get_key_date_field())
-
             self.add(conference.es(), metric_value)
             next_id_to_process = conference.record.get('ID') + 1
 
