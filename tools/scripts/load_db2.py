@@ -90,6 +90,89 @@ cast(N'{date_utc}' AS DateTime2),
     return final_sql
 
 
+def create_session_sql(n, start_date):
+    def get_last_id(table_name):
+        (last_id,) = mssql_con.execute(
+            f"Select IDENT_CURRENT('{table_name}')"
+        ).fetchone()
+        return last_id
+
+    # SQL queries for inserting session related demo data
+    radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Acct_Event
+                        (Session_ID, Radius_Event_ID)
+                        VALUES"""
+    radius_acct_event_column = """('{session_id}', '{radius_event_id}')"""
+
+    radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Stop_Event
+                            ( Radius_Acct_Event_ID, Acct_Terminate_Cause, 
+                            Acct_Session_Time, Acct_Output_Octets, 
+                            Acct_Input_Octets)
+                            VALUES"""
+    radius_stop_event_column = (
+        """('{radius_act_event_id}', 1, 9354, 43787611, 24313077)"""
+    )
+
+    radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Event_History (User_Name, 
+                                Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, 
+                                VLAN, Calling_Station_Id, Date_UTC)
+                                VALUES"""
+    radius_event_history_column = """('username{user_id}', 1, 1, 'E8-1D-A8-20-1B-88', 
+                                'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, 
+                                '5C-52-1E-60-6A-17', cast(N'{date_utc}' AS DateTime2) )"""
+
+    radius_event_sql = """INSERT INTO Radius.dbo.Radius_Event ( User_Name, 
+                        Member_ID, Organization_ID, Date_UTC, NAS_Identifier, 
+                        Called_Station_Id, VLAN, Calling_Station_Id)
+                        VALUES"""
+    radius_event_column = """('username{user_id}', 1, 1, 
+                        cast(N'{date_utc}' AS DateTime2),  
+                        'E8-1D-A8-20-1B-88', 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 
+                        95, '5C-52-1E-60-6A-17')"""
+
+    records_radius_acct = []
+    records_radius_stop = []
+    records_radius_history = []
+    records_radius_events = []
+
+    next_radius_event_id = get_last_id("Radius.dbo.Radius_Event")
+    next_radius_act_event_id = get_last_id("Radius.dbo.Radius_Acct_Event")
+    next_radius_stop_event_id = get_last_id("Radius.dbo.Radius_Stop_Event")
+
+    id = 0
+    for i in range(n):
+        for x in range(2):
+            session_id = f"{id:010d}"
+            records_radius_acct.append(
+                radius_acct_event_column.format(
+                    id=id, session_id=session_id, radius_event_id=next_radius_event_id
+                )
+            )
+            records_radius_stop.append(
+                radius_stop_event_column.format(
+                    radius_act_event_id=next_radius_act_event_id
+                )
+            )
+            records_radius_history.append(
+                radius_event_history_column.format(user_id=id, date_utc=start_date)
+            )
+            records_radius_events.append(
+                radius_event_column.format(user_id=id, date_utc=start_date)
+            )
+            id += 1
+            next_radius_act_event_id += 1
+
+            next_radius_stop_event_id += 1
+            next_radius_event_id += 1
+        start_date += timedelta(days=1)
+
+    mssql_con.execute(" ".join([radius_acct_event_sql, ",".join(records_radius_acct)]))
+    mssql_con.execute(" ".join([radius_stop_event_sql, ",".join(records_radius_stop)]))
+    mssql_con.execute(
+        " ".join([radius_event_history_sql, ",".join(records_radius_history)])
+    )
+    mssql_con.execute(" ".join([radius_event_sql, ",".join(records_radius_events)]))
+
+
 mssql_con = MSSQLConnection()
 
 start_date = datetime(2019, 1, 1, 1, 1, 1, 123456)
@@ -97,3 +180,4 @@ start_date = datetime(2019, 1, 1, 1, 1, 1, 123456)
 
 mssql_con.execute(create_conference_sql(10, start_date))
 mssql_con.execute(create_property_sql(10, start_date))
+create_session_sql(10, start_date)
