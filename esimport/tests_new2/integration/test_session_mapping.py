@@ -10,7 +10,7 @@ class TestSessionMapping:
         sm.setup()
 
         result = sm.process_sessions_from_id(
-            latest_processed_id=0, start_date="1900-01-01", use_historical=True
+            next_id_to_process=0, start_date="1900-01-01", use_historical=True
         )
 
         # messages in sqs are not instantly available

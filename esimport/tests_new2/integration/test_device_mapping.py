@@ -5,12 +5,12 @@ from esimport.tests_new2.base_fixutres import *
 
 class TestDeviceMapping:
     @pytest.mark.usefixtures("empty_q", "empty_table")
-    def test_process_conferences_from_id(self, latest_ids_table, sqs_q):
+    def test_process_device_from_id(self, latest_ids_table, sqs_q):
         dm = DeviceMapping()
         dm.setup()
 
         result = dm.process_devices_from_id(
-            latest_processed_id=0, start_date="1900-01-01"
+            next_id_to_process=0, start_date="1900-01-01"
         )
 
         # messages in sqs are not instantly available

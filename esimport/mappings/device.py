@@ -35,15 +35,15 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
     def get_monitoring_metric():
         return settings.DATADOG_DEVICE_METRIC
 
-    def process_devices_from_id(self, latest_processed_id: int, start_date) -> (int, int):
+    def process_devices_from_id(self, next_id_to_process: int, start_date) -> (int, int):
         count = 0
         metric_value = None
 
         logger.debug("Get Devices from {0} to {1} since {2}".format(
-            latest_processed_id, latest_processed_id+self.default_query_limit, start_date
+            next_id_to_process, next_id_to_process+self.default_query_limit, start_date
         ))
 
-        for device in self.model.get_devices(latest_processed_id, self.default_query_limit, start_date):
+        for device in self.model.get_devices(next_id_to_process, self.default_query_limit, start_date):
             count += 1
             logger.debug("Record found: {0}".format(device.get('ID')))
 
@@ -57,20 +57,20 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
             metric_value = device.get(self.model.get_key_date_field())
 
             self.add(device.es(),metric_value)
-            latest_processed_id = device.get('ID') + 1
+            next_id_to_process = device.get('ID') + 1
 
         # for cases when all/remaining items count were less than limit
         self.add(None, metric_value)
-        return count, latest_processed_id
+        return count, next_id_to_process
 
     """
     Loop to continuously find new Devices and push them to AWS SQS
     """
     def sync(self, start_date):
-        latest_processed_id = self.max_id() + 1
+        next_id_to_process = self.max_id() + 1
         timer_start = time.time()
         while True:
-            count, latest_processed_id = self.process_devices_from_id(latest_processed_id, start_date)
+            count, next_id_to_process = self.process_devices_from_id(next_id_to_process, start_date)
 
             elapsed_time = int(time.time() - timer_start)
 

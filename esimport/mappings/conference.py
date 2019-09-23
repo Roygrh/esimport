@@ -36,10 +36,17 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
     def get_monitoring_metric():
         return settings.DATADOG_CONFERENCE_METRIC
 
-    def process_conferences_from_id(self, latest_processed_id: int, start_date) -> (int, int):
+    def process_conferences_from_id(self, next_id_to_process: int, start_date) -> (int, int):
+        """
+
+        :param next_id_to_process:
+        :param start_date: - not the main criterion for querying records, only used to limit  timespan of processing.
+        In consequent calls that parameter usually should be the same.
+        :return:
+        """
         count = 0
         metric_value = None
-        for conference in self.model.get_conferences(latest_processed_id, self.default_query_limit,  start_date):
+        for conference in self.model.get_conferences(next_id_to_process, self.default_query_limit,  start_date):
             count += 1
             logger.debug("Record found: {0}".format(conference.get('ID')))
 
@@ -55,23 +62,23 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
             metric_value = conference.get(self.model.get_key_date_field())
 
             self.add(conference.es(), metric_value)
-            latest_processed_id = conference.record.get('ID') + 1
+            next_id_to_process = conference.record.get('ID') + 1
 
         # for cases when all/remaining items count were less than limit
         self.add(None, metric_value)
 
-        return count, latest_processed_id
+        return count, next_id_to_process
 
 
     """
     Continuously update ElasticSearch to have the latest Conference data
     """
     def update(self, start_date):
-        latest_processed_id = 0
+        next_id_to_process = 0
         timer_start = time.time()
         while True:
-            count, latest_processed_id = self.process_conferences_from_id(
-                latest_processed_id=latest_processed_id,
+            count, next_id_to_process = self.process_conferences_from_id(
+                next_id_to_process=next_id_to_process,
                 start_date=start_date
             )
 
@@ -89,4 +96,4 @@ class ConferenceMapping(PropertyAppendedDocumentMapping):
                 timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
-                    latest_processed_id = 0
+                    next_id_to_process = 0

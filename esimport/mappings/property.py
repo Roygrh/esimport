@@ -38,10 +38,10 @@ class PropertyMapping(DocumentMapping):
     def get_monitoring_metric():
         return settings.DATADOG_PROPERTY_METRIC
 
-    def process_properties_from_id(self, latest_processed_id: int) -> (int, int):
+    def process_properties_from_id(self, next_id_to_process: int) -> (int, int):
         count = 0
         metric_value = None
-        for prop in self.model.get_properties(latest_processed_id, self.default_query_limit):
+        for prop in self.model.get_properties(next_id_to_process, self.default_query_limit):
             count += 1
             logger.debug("Record found: {0}".format(prop.get('ID')))
 
@@ -54,20 +54,20 @@ class PropertyMapping(DocumentMapping):
             metric_value = prop.get(self.model.get_key_date_field())
 
             self.add(prop.es(), metric_value)
-            latest_processed_id = prop.record.get('ID')
+            next_id_to_process = prop.record.get('ID')
 
         # for cases when all/remaining items count were less than limit
         self.add(None, metric_value)
-        return count, latest_processed_id
+        return count, next_id_to_process
 
     """
     Continuously update ElasticSearch to have the latest Property data
     """
     def update(self):
-        latest_processed_id = 0
+        next_id_to_process = 0
         timer_start = time.time()
         while True:
-            count, latest_processed_id = self.process_properties_from_id(latest_processed_id)
+            count, next_id_to_process = self.process_properties_from_id(next_id_to_process)
             elapsed_time = int(time.time() - timer_start)
 
             # habitually reset mssql connection.
@@ -79,7 +79,7 @@ class PropertyMapping(DocumentMapping):
                 timer_start=time.time() # reset timer
                 # start over again when all records have been processed
                 if count == 0:
-                    latest_processed_id = 0
+                    next_id_to_process = 0
 
     def get_property_by_org_number(self, org_number):
         # TODO add direct test for it

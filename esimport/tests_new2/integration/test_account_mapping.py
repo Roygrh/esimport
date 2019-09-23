@@ -34,7 +34,7 @@ class TestAccountMapping:
         am.setup()
 
         result = am.process_accounts_from_id(
-            latest_processed_id=0, start_date="1900-01-01"
+            next_id_to_process=0, start_date="1900-01-01"
         )
         # messages in sqs are not instantly available
         messages = None

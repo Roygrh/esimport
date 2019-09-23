@@ -85,24 +85,24 @@ class AccountMapping(PropertyAppendedDocumentMapping):
         logger.info("Processed a total of {0} accounts".format(count))
         return new_start_date
 
-    def process_accounts_from_id(self, latest_processed_id: int, start_date) -> int:
+    def process_accounts_from_id(self, next_id_to_process: int, start_date) -> int:
         """
 
-        :param latest_processed_id: id in MSSQL from which query accounts should be processed
+        :param next_id_to_process: id in MSSQL from which query accounts should be processed
         :param start_date:
         :return:
         """
         created_date = None
-        for account in self.model.get_accounts_by_created_date(latest_processed_id, self.default_query_limit, start_date):
+        for account in self.model.get_accounts_by_created_date(next_id_to_process, self.default_query_limit, start_date):
             self.append_site_values(account)
-            latest_processed_id = account.get('ID')
+            next_id_to_process = account.get('ID')
             created_date = account.get('Created')
             self.add(account.es())
-            logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(latest_processed_id, created_date))
+            logger.info("Updating Account ID: {0} and Date_Created_UTC: {1}".format(next_id_to_process, created_date))
 
         # for cases when all/remaining items count were less than limit
         self.add(None)
-        return latest_processed_id
+        return next_id_to_process
 
     """
     Append site values to account record
@@ -119,10 +119,10 @@ class AccountMapping(PropertyAppendedDocumentMapping):
     Update Account records in Elasticsearch
     """
     def update(self, start_date):
-        latest_processed_id = 0
+        next_id_to_process = 0
         max_id = self.max_id()
-        while latest_processed_id < max_id:
-            latest_processed_id = self.process_accounts_from_id(latest_processed_id, start_date)
+        while next_id_to_process < max_id:
+            next_id_to_process = self.process_accounts_from_id(next_id_to_process, start_date)
 
 
     """
