@@ -1,3 +1,4 @@
+# fmt: off
 account_mapping = {
     "properties": {
         "Activated": {
@@ -924,12 +925,15 @@ index_templates = {
     'devices': devices_template_body
 }
 
+# fmt: on
+
+
 # --- elevenos index config ---
 
 one_shard_index_settings = {
     "settings": {
         "number_of_shards": 1,
-        "number_of_replicas": 1, 
+        "number_of_replicas": 1,
         "max_result_window": 500000
     }
 }
@@ -984,3 +988,4 @@ elevenos_aliases_config = {
     "device": "devices-current",
     "session": "sessions-current"
 }
+
