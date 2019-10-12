@@ -1,0 +1,24 @@
+Description: Bucket for ElasticSearch snapshot repository
+Parameters:
+  BucketName:
+    Description: S3 Bucket name
+    Type: String
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      MetricsConfigurations:
+        - Id: EntireBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+Outputs:
+  BucketDomain:
+    Value: !GetAtt [S3Bucket, DomainName]
+    Description: The value that can be used with CloudFront
+

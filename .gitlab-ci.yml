@@ -3,12 +3,14 @@ services:
   - docker:dind
 
 stages:
-  - testing
+  # TODO: uncomment the rest of stages when esimport is deployed as a serverless app
+  # - testing
+  # - esimport_retention
   - build
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
-  - esimport_datadog_deploy
+  # - esimport_datadog_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -72,54 +74,98 @@ production_east_deploy:
     - master
   when: manual
 
-esimport_datadog_integration_test:
-  stage: testing
-  when: manual
-  before_script:
-    - pwd # canceling global before_script, it does not needed for this job
-  services:
-    - docker:dind
-    - name: docker.elastic.co/elasticsearch/elasticsearch:5.3.3
-      alias: es
-      entrypoint: ["bin/elasticsearch"]
-      command: ["-Ehttp.host=0.0.0.0", "-Etransport.host=127.0.0.1", "-Expack.security.enabled=false"]
-  variables:
-    LOOK_BACK_FOR_X_MINUTES: 1
-    ES_URL: "https://fake-will-not-be-used.us-west-2.es.amazonaws.com/"
-    TEST_ES_HOST: 'es'
-    AWS_ACCESS_KEY_ID: fake
-    AWS_SECRET_ACCESS_KEY: fake
-    AWS_SESSION_TOKEN: fake
+# TODO: Activate the following stages when esimport is deployed as a serverless app
+# esimport_datadog_integration_test:
+#   stage: testing
+#   when: manual
+#   before_script:
+#     - pwd # canceling global before_script, it does not needed for this job
+#   services:
+#     - docker:dind
+#     - name: docker.elastic.co/elasticsearch/elasticsearch:5.3.3
+#       alias: es
+#       entrypoint: ["bin/elasticsearch"]
+#       command: ["-Ehttp.host=0.0.0.0", "-Etransport.host=127.0.0.1", "-Expack.security.enabled=false"]
+#   variables:
+#     LOOK_BACK_FOR_X_MINUTES: 1
+#     ES_URL: "https://fake-will-not-be-used.us-west-2.es.amazonaws.com/"
+#     TEST_ES_HOST: 'es'
+#     AWS_ACCESS_KEY_ID: fake
+#     AWS_SECRET_ACCESS_KEY: fake
+#     AWS_SESSION_TOKEN: fake
 
-  script:
-    - apk add --no-cache bash python3
-    - cd esimport_datadog
-    - pip3 install -r ./requirements.txt
-    - pip3 install -r ./dev-requirements.txt
-    - >
-      python3 -m pytest
-      -x
-      --cov=esimport_datadog
-      --cov-report=term-missing
-      tests
-  coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
+#   script:
+#     - apk add --no-cache bash python3
+#     - cd esimport_datadog
+#     - pip3 install -r ./requirements.txt
+#     - pip3 install -r ./dev-requirements.txt
+#     - >
+#       python3 -m pytest
+#       -x
+#       --cov=esimport_datadog
+#       --cov-report=term-missing
+#       tests
+#   coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
 
-esimport_datadog_deploy:
-  stage: esimport_datadog_deploy
-  when: manual
-  before_script:
-    - apk add --update --no-cache python3 zip bash
-    - pip3 --no-cache-dir install awscli
+# esimport_datadog_deploy:
+#   stage: esimport_datadog_deploy
+#   when: manual
+#   before_script:
+#     - apk add --update --no-cache python3 zip bash
+#     - pip3 --no-cache-dir install awscli
 
-  script:
-    - cd esimport_datadog
-    - >
-      bash ./deploy.sh \
-      <CloudFormation stack name> \
-      <S3 bucket to store lambda function deploy archive> \
-      <Number in minutes, that will be used to in queries to search last inserted doc > \
-      <ElasticsSearch server/cluser url> \
-      <DSN for Sentry> \
-      <Datadog API key> \
-      <Datadog host_name \
-      INFO
+#   script:
+#     - cd esimport_datadog
+#     - >
+#       bash ./deploy.sh \
+#       <CloudFormation stack name> \
+#       <S3 bucket to store lambda function deploy archive> \
+#       <Number in minutes, that will be used to in queries to search last inserted doc > \
+#       <ElasticsSearch server/cluser url> \
+#       <DSN for Sentry> \
+#       <Datadog API key> \
+#       <Datadog host_name \
+#       INFO
+# esimport_retention_unit_test:
+#   stage: esimport_retention
+#   when: manual
+#   script:
+#     - apk add --no-cache python3
+#     - cd esimport_retention
+#     - pip3 install -r ./requirements.txt
+#     - pip3 install -r ./dev-requirements.txt
+#     - >
+#       python3 -m pytest tests/unit_tests -x
+#       --cov=esimport_retention_core
+#       --cov-report=term-missing
+#   coverage: '/esimport_retention_core.py\s+\d+\s+\d+\s+(\d+%)/'
+
+# esimport_retention_integration_test:
+#   stage: esimport_retention
+#   when: manual
+#   script:
+#     - apk add --no-cache python3
+#     - cd esimport_retention
+#     - pip3 install awscli
+#     - pip3 install -r ./requirements.txt
+#     - pip3 install -r ./dev-requirements.txt
+#     - bash run-integration-tests.sh
+#   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+
+# esimport_retention_deploy:
+#   stage: esimport_retention
+#   when: manual
+#   script:
+#     - apk add --no-cache python3
+#     - cd esimport_retention
+#     - pip3 install awscli
+#     - >
+#       bash ./deploy.sh \
+#       <CloudFormation stack name> \
+#       <S3 Bucket Name, to store lambda function code> \
+#       <Retention policy in months> \
+#       <ES endpoints/urls, comma separated strings> \
+#       <Sentry dsn> \
+#       <Indices prefixes, comma separated strings> \
+#       <Snapshot repo name>
+#       <Desired LOGLEVEl>
