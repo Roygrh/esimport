@@ -1,11 +1,6 @@
-# Project's Dockerfile, uses the official Docker Python 3 image based on 
-# Alpine Linux. See: https://hub.docker.com/_/python/
-# All system and Python dependencies required by the project app should go here.
 FROM amazonlinux:2018.03
 
-ENV LANG=en_US.utf-8
-ENV LC_ALL=en_US.utf-8
-ENV INSIDE_DOCKER=1
+ENV LANG=en_US.utf-8 LC_ALL=en_US.utf-8 INSIDE_DOCKER=1
 
 # Install 'build-base' meta-package for gcc and other packages needed
 RUN yum update -y && yum install -y python36-devel gcc-c++ git nano

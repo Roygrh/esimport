@@ -20,3 +20,6 @@ dist
 
 # Compiled Documentation
 docs/_build
+
+# Lambda functions
+lambdas/
