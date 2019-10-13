@@ -1,10 +1,11 @@
 from datetime import datetime
-from datetime import timezone
 from datetime import timedelta
-from time import sleep
+from datetime import timezone
 
 from esimport.mappings.account import AccountMapping
 from esimport.tests_new2.base_fixutres import *
+from esimport.tests_new2.test_helpers import fetch_sqs_messages
+from esimport.tests_new2.test_helpers import sqs_msg_parser
 
 
 class TestAccountMapping:
@@ -13,20 +14,36 @@ class TestAccountMapping:
         am = AccountMapping()
         am.setup()
 
-        result = am.process_accounts_in_period("1900-01-01", "2020-01-01")
+        am.process_accounts_in_period("2019-01-01", "2019-01-02")
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
+        messages = fetch_sqs_messages(sqs_q)
+        assert len(messages[0].body.split("\n")) == 8
 
-            sleep(1)
+    @pytest.mark.usefixtures("empty_q", "empty_table")
+    def test_process_accounts_sequence_maintained(self, latest_ids_table, sqs_q):
+        am = AccountMapping()
+        am.setup()
 
-        assert messages is not None
-        assert len(messages[0].body.split("\n")) == 40
-        # TODO update fixtures and check that order is keept
+        new_start_date = am.process_accounts_in_period("2019-01-01", "2019-01-02")
+        messages = fetch_sqs_messages(sqs_q)
+        parsed_sqs_msgs = sqs_msg_parser(messages[0].body)
+        import pdb
+        pdb.set_trace()
+        last_previous_msg = parsed_sqs_msgs[-1]
+
+        new_start_date2 = am.process_accounts_in_period(new_start_date, new_start_date + timedelta(days=1))
+        messages = fetch_sqs_messages(sqs_q)
+        parsed_sqs_msgs2 = sqs_msg_parser(messages[0].body)
+        first_current_msg = parsed_sqs_msgs2[0]
+
+        # This tests is different from others because `am.process_accounts_in_period(start_date, end_date)`
+        # that has difference between dates arguments only one day, will select all records that has date < end_date
+        # and return `new_start_date` that will be equal `start_date` argument.
+        # To check that dates increased checking `new_start_date2` variable
+        assert first_current_msg["_id"] == last_previous_msg["_id"]
+        assert new_start_date2 - new_start_date == timedelta(days=1)
+
 
     @pytest.mark.usefixtures("empty_q", "empty_table")
     def test_process_accounts_from_id(self, latest_ids_table, sqs_q):
@@ -34,18 +51,10 @@ class TestAccountMapping:
         am.setup()
 
         result = am.process_accounts_from_id(
-            next_id_to_process=0, start_date="1900-01-01"
+            next_id_to_process=0, start_date="2019-01-01"
         )
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         assert len(messages[0].body.split("\n")) == am.default_query_limit
 
     @pytest.mark.usefixtures("empty_table")

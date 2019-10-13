@@ -61,6 +61,8 @@ class SessionMapping(PropertyAppendedDocumentMapping):
         self.add(None, metric_value)
         return count, next_id_to_process, most_recent_session_time
 
+    # TODO refactor it
+
     def update_use_historical(self, count: int, use_historical: bool, most_recent_session_time: datetime) -> bool:
         # While we're catching up to the current time, use the historical session data source.
         # Once we're within an hour or there are no records being returned, then
@@ -70,12 +72,17 @@ class SessionMapping(PropertyAppendedDocumentMapping):
             logger.info("Switching to use the real-time session data source.  Record Count: {0}, Minutes Behind: "
                         "{1}".format(count, minutes_behind))
             return False
-        elif not use_historical and count > 0 and minutes_behind > 1380:
+        elif use_historical and not (count == 0 or minutes_behind < 60):
+            return True
+
+        elif not use_historical and (count > 0 and minutes_behind > 1380):
             # if there's a surge of session data more than ESImport can handle then it may get
             # behind and need to switch to the historical data source.  1380 mins = 23 hours
             logger.info("Switching to use the historical session data source.  Record Count: {0}, Minutes Behind: "
                         "{1}".format(count, minutes_behind))
             return True
+        elif not use_historical and not(count > 0 and minutes_behind > 1380):
+            return False
 
     """
     Loop to continuously find new Sessions and add them to Elasticsearch

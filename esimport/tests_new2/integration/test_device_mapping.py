@@ -1,7 +1,6 @@
-from time import sleep
-
 from esimport.mappings.device import DeviceMapping
 from esimport.tests_new2.base_fixutres import *
+from esimport.tests_new2.test_helpers import fetch_sqs_messages
 from esimport.tests_new2.test_helpers import sqs_msg_parser
 
 
@@ -17,15 +16,7 @@ class TestDeviceMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         assert len(messages[0].body.split("\n")) == 4
 
     @pytest.mark.usefixtures("empty_q", "empty_table")
@@ -39,15 +30,7 @@ class TestDeviceMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs = sqs_msg_parser(messages[0].body)
         last_previous_msg = parsed_sqs_msgs[-1]
 
@@ -56,15 +39,7 @@ class TestDeviceMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs2 = sqs_msg_parser(messages[0].body)
         first_current_msg = parsed_sqs_msgs2[0]
 

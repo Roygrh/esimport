@@ -1,10 +1,11 @@
-from esimport.mappings.session import SessionMapping
-from time import sleep
-from esimport.tests_new2.base_fixutres import *
-from esimport.tests_new2.test_helpers import sqs_msg_parser
 from datetime import datetime
-from datetime import timezone
 from datetime import timedelta
+from datetime import timezone
+
+from esimport.mappings.session import SessionMapping
+from esimport.tests_new2.base_fixutres import *
+from esimport.tests_new2.test_helpers import fetch_sqs_messages
+from esimport.tests_new2.test_helpers import sqs_msg_parser
 
 
 class TestSessionMapping:
@@ -27,15 +28,7 @@ class TestSessionMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         assert len(messages[0].body.split("\n")) == 4
 
     @pytest.mark.usefixtures("empty_q", "empty_table")
@@ -66,15 +59,7 @@ class TestSessionMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs = sqs_msg_parser(messages[0].body)
         last_previous_msg = parsed_sqs_msgs[-1]
 
@@ -85,15 +70,7 @@ class TestSessionMapping:
         )
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs2 = sqs_msg_parser(messages[0].body)
         first_current_msg = parsed_sqs_msgs2[0]
 
@@ -120,15 +97,22 @@ class TestSessionMapping:
         )
         assert result is False
 
-        # switch to historical
-        # TODO: possible bug
+        # leave  historical
         result = sm.update_use_historical(
-            count=10,
+            count=0,
             use_historical=True,
             most_recent_session_time=datetime.now(tz=timezone.utc)
             - timedelta(minutes=61),
         )
-        assert result is None
+        assert result is True
+
+        result = sm.update_use_historical(
+            count=10,
+            use_historical=True,
+            most_recent_session_time=datetime.now(tz=timezone.utc)
+            - timedelta(minutes=15),
+        )
+        assert result is True
 
         result = sm.update_use_historical(
             count=10,
