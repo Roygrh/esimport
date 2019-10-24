@@ -173,11 +173,112 @@ def create_session_sql(n, start_date):
     mssql_con.execute(" ".join([radius_event_sql, ",".join(records_radius_events)]))
 
 
+<<<<<<< HEAD
+=======
+def create_device_sql(n, start_date):
+    # SQL query for inserting device related demo data
+    client_tracking_sql = """
+INSERT INTO [dbo].[Client_Tracking] (
+Date, 
+Organization_ID, 
+IP_Address, 
+MAC_Address, 
+Platform_Type_ID, 
+Browser_Type_ID, 
+Member_ID, 
+Client_Device_Type_ID, 
+User_Agent_Raw)
+VALUES"""
+    client_tracking_column = """(
+cast(N'{date_utc}' AS DateTime2), 
+1, 
+'172.168.1.11', 
+'62:8D:2F:6A:F0:78', 
+1, 
+1, 
+1, 
+1, 
+'Chrome/60.0.3112.113')"""
+
+    records = []
+    id = 0
+    for i in range(n):
+        for x in range(2):
+            records.append(client_tracking_column.format(date_utc=start_date))
+            id += 1
+        start_date += timedelta(days=1)
+
+    final_sql = " ".join([client_tracking_sql, ",".join(records)])
+    return final_sql
+
+
+def create_account_sql(n, start_date):
+    # SQL query for inserting account related demo data
+
+    account_sql = """
+INSERT INTO [dbo].[Zone_Plan_Account] (
+Member_ID, 
+Zone_Plan_ID, 
+Purchase_Price, 
+Purchase_Price_Currency_ID, 
+Network_Access_Limits_ID, 
+Payment_Method_ID, 
+Purchase_MAC_Address, 
+Activation_Date_UTC, 
+Date_Created_UTC,
+Date_Modified_UTC, 
+PMS_Charge_ID, 
+Zone_Plan_Account_Status_ID, 
+Upsell_Zone_Plan_Account_ID, 
+Purchase_Org_ID
+)
+VALUES"""
+    column = """(
+1, 
+1, 
+12.95, 
+1, 
+1, 
+1, 
+'34-C0-59-D8-31-08', 
+cast(N'{date_activated_utc}' AS DateTime2),
+cast(N'{date_created_utc}' AS DateTime2),
+cast(N'{date_modified_utc}' AS DateTime2), 
+1, 
+1, 
+NULL, 
+1
+)"""
+
+    records = []
+    id = 0
+    for i in range(n):
+        for x in range(2):
+            records.append(
+                column.format(
+                    date_activated_utc=start_date,
+                    date_created_utc=start_date,
+                    date_modified_utc=start_date,
+                )
+            )
+            id += 1
+        start_date += timedelta(days=1)
+
+    final_sql = " ".join([account_sql, ",".join(records)])
+    return final_sql
+
+
+>>>>>>> d185a0a8d306bdbcf86bb450c9f1412e46387534
 mssql_con = MSSQLConnection()
 
 start_date = datetime(2019, 1, 1, 1, 1, 1, 123456)
 
-
 mssql_con.execute(create_conference_sql(10, start_date))
 mssql_con.execute(create_property_sql(10, start_date))
+<<<<<<< HEAD
 create_session_sql(10, start_date)
+=======
+create_session_sql(10, start_date)  # execute many sql statement inside
+mssql_con.execute(create_device_sql(10, start_date))
+mssql_con.execute(create_account_sql(10, start_date))
+>>>>>>> d185a0a8d306bdbcf86bb450c9f1412e46387534

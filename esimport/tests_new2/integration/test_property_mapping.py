@@ -1,10 +1,11 @@
-from esimport.mappings.property import PropertyMapping
-from time import sleep
-from esimport.tests_new2.base_fixutres import *
-from esimport.tests_new2.test_helpers import sqs_msg_parser
-from esimport.cache import CacheClient
-from esimport.utils import esimport_json_dumps
 import json
+
+from esimport.cache import CacheClient
+from esimport.mappings.property import PropertyMapping
+from esimport.tests_new2.base_fixutres import *
+from esimport.tests_new2.test_helpers import fetch_sqs_messages
+from esimport.tests_new2.test_helpers import sqs_msg_parser
+from esimport.utils import esimport_json_dumps
 
 
 class TestPropertyMapping:
@@ -17,15 +18,7 @@ class TestPropertyMapping:
         pm.process_properties_from_id(next_id_to_process=0)
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         assert len(messages[0].body.split("\n")) == 4
 
     @pytest.mark.usefixtures("empty_q", "empty_table")
@@ -37,30 +30,14 @@ class TestPropertyMapping:
         count, next_id_to_process = pm.process_properties_from_id(next_id_to_process=0)
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs = sqs_msg_parser(messages[0].body)
         last_previous_msg = parsed_sqs_msgs[-1]
 
         pm.process_properties_from_id(next_id_to_process=next_id_to_process)
 
         # messages in sqs are not instantly available
-        messages = None
-        for _ in range(15):
-            messages = sqs_q.receive_messages()
-            if messages:
-                break
-
-            sleep(1)
-
-        assert messages is not None
+        messages = fetch_sqs_messages(sqs_q)
         parsed_sqs_msgs2 = sqs_msg_parser(messages[0].body)
         first_current_msg = parsed_sqs_msgs2[0]
 

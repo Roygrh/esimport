@@ -12,7 +12,6 @@ import time
 from esimport import settings
 from esimport.mappings.appended_doc import PropertyAppendedDocumentMapping
 from esimport.models.device import Device
-from esimport.utils import convert_utc_to_local_time
 
 logger = logging.getLogger(__name__)
 
@@ -47,16 +46,11 @@ class DeviceMapping(PropertyAppendedDocumentMapping):
             count += 1
             logger.debug("Record found: {0}".format(device.get('ID')))
 
-            _action = super(DeviceMapping, self).get_site_values(device.get('ServiceArea'))
+            self.update_time_zones(device, device.get('ServiceArea'), self.dates_to_localize)
 
-            if 'TimeZone' in _action:
-                for pfik, pfiv in self.dates_to_localize:
-                    _action[pfiv] = convert_utc_to_local_time(device.get(pfik), _action['TimeZone'])
-
-            device.update(_action)
             metric_value = device.get(self.model.get_key_date_field())
 
-            self.add(device.es(),metric_value)
+            self.add(device.es(), metric_value)
             next_id_to_process = device.get('ID') + 1
 
         # for cases when all/remaining items count were less than limit
