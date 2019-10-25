@@ -46,7 +46,7 @@ DATABASE_CALLS_RETRIES_WAIT = 5
 DATABASE_CALLS_RETRIES_WAIT_INCREMENTAL = True
 
 # the number of records to return from sql queries where TOP X is used.
-DATABASE_RECORD_LIMIT = 10000   
+DATABASE_RECORD_LIMIT = 10000
 
 DATABASES = {
     'default': {
@@ -85,5 +85,11 @@ DATADOG_CONFERENCE_METRIC = 'esimport.conference.minutes_behind'
 DATADOG_DEVICE_METRIC = 'esimport.device.minutes_behind'
 DATADOG_PROPERTY_METRIC = 'esimport.property.minutes_behind'
 DATADOG_SESSION_METRIC = 'esimport.session.minutes_behind'
+
+MAX_SQL_MSG_SIZE = 200_000  # kilobytes
+
+SQS_URL = "http://localhost:9324/queue/default"
+SQS_ENDPOINT = 'http://localhost:9324'
+DYNAMODB_ENDPOINT = 'http://localhost:8000'
 
 from local_settings import *

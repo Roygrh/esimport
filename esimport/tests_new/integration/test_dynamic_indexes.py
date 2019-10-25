@@ -37,7 +37,15 @@ class TestDynamicIndex:
     )
     def test_dynamic_account_index(self, es, sample_account):
         doc = sample_account["doc"]
-        account_record = ESRecord(doc, Account.get_type(), Account.get_index())
+        # there is a double conversion from datetime obj to date string
+        # and in ESRecord that strig will be converted back to datetime obj.
+        # Because it is a test, tests uses datetime obj, real code will put in ESRecord datetime string.
+        account_record = ESRecord(
+            doc,
+            Account.get_type(),
+            Account.get_index(),
+            doc[Account._version_date_fieldname].isoformat(),
+        )
 
         helpers.bulk(es, [account_record.es()])
 
@@ -55,6 +63,7 @@ class TestDynamicIndex:
             doc,
             Device.get_type(),
             Device.get_index(),
+            doc[Device._version_date_fieldname].isoformat(),
             index_date=doc[Device.get_key_date_field()],
         )
 
@@ -80,6 +89,7 @@ class TestDynamicIndex:
             doc,
             Session.get_type(),
             Session.get_index(),
+            doc[Session._version_date_fieldname].isoformat(),
             index_date=doc[Session.get_key_date_field()],
         )
 
@@ -98,7 +108,12 @@ class TestDynamicIndex:
     @pytest.mark.usefixtures("empty_es_templates", "empty_es_indexes", "es_templates")
     def test_dynamic_property_index(self, es, sample_property):
         doc = sample_property["doc"]
-        property_record = ESRecord(doc, Property.get_type(), Property.get_index())
+        property_record = ESRecord(
+            doc,
+            Property.get_type(),
+            Property.get_index(),
+            doc[Property._version_date_fieldname].isoformat(),
+        )
 
         helpers.bulk(es, [property_record.es()])
 
@@ -108,7 +123,12 @@ class TestDynamicIndex:
     @pytest.mark.usefixtures("empty_es_templates", "empty_es_indexes", "es_templates")
     def test_dynamic_conference_index(self, es, sample_conference):
         doc = sample_conference["doc"]
-        conference_record = ESRecord(doc, Conference.get_type(), Conference.get_index())
+        conference_record = ESRecord(
+            doc,
+            Conference.get_type(),
+            Conference.get_index(),
+            doc[Conference._version_date_fieldname].isoformat(),
+        )
 
         helpers.bulk(es, [conference_record.es()])
 

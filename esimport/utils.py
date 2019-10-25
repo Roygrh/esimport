@@ -5,43 +5,15 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
+import datetime
+import decimal
+import json
 import logging
-import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 from dateutil import tz
-from dateutil.parser import parse
-
-from extensions import sentry_client
 
 logger = logging.getLogger(__name__)
-
-
-def retry(retry, retry_wait, retry_incremental=True, retry_exception=Exception):
-    def tryIt(func):
-        def f(*args, **kwargs):
-            retries = retry
-            retries_wait = retry_wait
-            while True:
-                try:
-                    return func(*args, **kwargs)
-                except retry_exception as err:
-                    logger.error(err)
-                    sentry_client.captureException()
-                    if retries > 0:
-                        retries -= 1
-                        logger.info('Retry {0} of {1} in {2} seconds'
-                                    .format((retry - retries), retry, retries_wait))
-                        time.sleep(retries_wait)
-                        if retry_incremental:
-                            retries_wait += retry_wait
-                    else:
-                        sentry_client.captureException()
-                        raise err
-
-        return f
-
-    return tryIt
 
 
 def convert_utc_to_local_time(time, tzone):
@@ -81,3 +53,20 @@ def set_utc_timezone(time):
 
 def date_to_index_name(time):
     return time.strftime('%Y-%m')
+
+
+class ESDataEncoder(json.JSONEncoder):
+    # https://gist.github.com/drmalex07/5149635e6ab807c8b21e
+    # https://github.com/PyCQA/pylint/issues/414
+    def default(self, obj): # pylint: disable=E0202
+        if isinstance(obj, (date, datetime)):
+            return obj.isoformat()
+        elif isinstance(obj, decimal.Decimal):
+            # Property has price field as Decimal and Decimal is not JSON serializable
+            return float(obj)
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+
+def esimport_json_dumps(input_obj:dict):
+    return json.dumps(input_obj, cls=ESDataEncoder, separators=(',', ':'))

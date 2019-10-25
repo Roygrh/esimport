@@ -30,6 +30,7 @@ setup(
         'redis==2.10.6',
         'requests==2.19.1',
         'urllib3==1.23',
+        'boto3',
     ],
     entry_points={
         'console_scripts': ['esimport = esimport:cli']

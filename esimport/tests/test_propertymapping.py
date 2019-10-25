@@ -89,7 +89,6 @@ class TestPropertyMapping(TestCase):
 
         q = {"query": {"term": {"_type": self.pm.model.get_type()}}}
         res = self.es.search(index=Property.get_index(), body=q)['hits']['hits']
-
         addresses = res[0]['_source']['Address']
 
         address_keys = ['AddressLine1', 'AddressLine2', 'City', 'Area',

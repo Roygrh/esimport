@@ -6,14 +6,15 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-
-from datetime import datetime, timedelta, timezone
-from dateutil import tz
+from datetime import datetime
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
-from esimport.utils import convert_pacific_to_utc, convert_utc_to_local_time, \
-    set_pacific_timezone, set_utc_timezone
+from esimport.utils import (
+    convert_pacific_to_utc,
+    set_pacific_timezone,
+    set_utc_timezone,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class Device(BaseModel):
     _date_field = "DateUTC"
     _index_name_date_field = "DateUTC"
     _index = "devices"
+    _version_date_fieldname = "DateUTC"
 
     # These dates are in 'America/Los_Angeles' format
     dates_from_pacific = {"Date": "DateUTC"}
@@ -39,28 +41,37 @@ class Device(BaseModel):
     def get_index():
         return Device._index
 
-    def get_devices(self, start, limit, start_date='1900-01-01'):
+    def get_devices(self, start, limit, start_date="1900-01-01"):
         q = self.query_one()
 
         for row in list(self.fetch_dict(q, limit, start, start_date)):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
-                        row[self.dates_from_pacific[key]] = convert_pacific_to_utc(set_pacific_timezone(row[key]))
-                        del row[key]  # As there's no `Date` field in ElevenAPI's Device model
+                        row[self.dates_from_pacific[key]] = convert_pacific_to_utc(
+                            set_pacific_timezone(row[key])
+                        )
+                        # As there's no `Date` field in ElevenAPI's Device model
+                        del row[key]
                     else:
                         row[key] = set_utc_timezone(row[key])
 
             org_number_tree = []
-            
+
             # FIXME: this is very slow, causing the devices records to stay way behind on PROD
             # find a better way to attach the org_number tree for devices. this must NOT be done for EACH device!
             # org_number_tree_query = self.query_get_org_number_tree()
             # for org in list(self.fetch(org_number_tree_query, row['ID'])):
             #     org_number_tree.append(org[0])
-            row['AncestorOrgNumberTree'] = org_number_tree
+            row["AncestorOrgNumberTree"] = org_number_tree
 
-            yield ESRecord(row, self.get_type(), self.get_index(), index_date=row[self._index_name_date_field])
+            yield ESRecord(
+                row,
+                self.get_type(),
+                self.get_index(),
+                row[self._version_date_fieldname].isoformat(),
+                index_date=row[self._index_name_date_field],
+            )
 
     @staticmethod
     def query_one():

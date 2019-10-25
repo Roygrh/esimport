@@ -10,7 +10,8 @@ import logging
 
 from esimport.mappings.doc import DocumentMapping
 from esimport.mappings.property import PropertyMapping
-
+from esimport.models import ESRecord
+from esimport.utils import convert_utc_to_local_time
 logger = logging.getLogger(__name__)
 
 """
@@ -57,3 +58,12 @@ class PropertyAppendedDocumentMapping(DocumentMapping):
                 _action[pfik] = prop.get(pfiv or pfik, "")
 
         return _action
+
+    def update_time_zones(self, es_record: ESRecord, org_number: str, dates_to_localize: tuple):
+        # get some properties from PropertyMapping
+        _action = self.get_site_values(org_number)
+        if 'TimeZone' in _action:
+            for pfik, pfiv in dates_to_localize:
+                _action[pfiv] = convert_utc_to_local_time(es_record.record[pfik], _action['TimeZone'])
+
+        es_record.update(_action)

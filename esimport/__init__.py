@@ -5,24 +5,20 @@
 # or distributed without the expressed written permission of
 # Eleven Wireless Inc.
 ################################################################################
-import sys
-import click
 import logging
-import time
-from datetime import datetime
-from operator import itemgetter
-from elasticsearch import Elasticsearch
+import sys
+
+import click
 
 from esimport import settings
+from esimport.connectors.mssql import MsSQLConnector
 from esimport.mappings.account import AccountMapping
-from esimport.mappings.session import SessionMapping
-from esimport.mappings.property import PropertyMapping
-from esimport.mappings.init_index import NewIndex
-from esimport.mappings.device import DeviceMapping
 from esimport.mappings.conference import ConferenceMapping
+from esimport.mappings.device import DeviceMapping
+from esimport.mappings.property import PropertyMapping
+from esimport.mappings.session import SessionMapping
 from esimport.models.account import Account
 from esimport.models.base import BaseModel
-from esimport.connectors.mssql import MsSQLConnector
 
 
 def setup_logging():
@@ -72,21 +68,6 @@ def sync(mapping_name, start_date):
 @cli.command()
 @click.argument('mapping_name')
 @click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
-def backload(mapping_name, start_date):
-    mapping_name = mapping_name.lower()
-    if mapping_name == 'account':
-        am = AccountMapping()
-        am.setup()
-        am.backload(start_date)
-    elif mapping_name == 'session':
-        pm = SessionMapping()
-        pm.setup()
-        pm.backload(start_date)
-
-
-@cli.command()
-@click.argument('mapping_name')
-@click.option('--start-date', default='1900-01-01', help='Since when to import data (YYYY-MM-DD)')
 def update(mapping_name, start_date):
     mapping_name = mapping_name.lower()
     if mapping_name == 'property':
@@ -123,10 +104,3 @@ def esdatacheck(mapping_name):
         mapping_instance.setup()
         mapping_instance.monitor_metric()
 
-
-@cli.command()
-# @click.argument('index_name')
-def create():
-    ni = NewIndex()
-    ni.setup()
-    ni.create_index()

@@ -6,12 +6,11 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-
 from datetime import datetime, timezone
+
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
 from esimport.utils import set_utc_timezone
-
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ class Property(BaseModel):
     _type = "property"
     _date_field = "UpdateTime"
     _index = "properties"
+    _version_date_fieldname = "UpdateTime"
 
     @staticmethod
     def get_type():
@@ -36,122 +36,153 @@ class Property(BaseModel):
     def get_index():
         return Property._index
 
+    def set_additonal_property_info(self, rec: dict):
+        # All site-level service plans are stored with their org ID as key
+        site_level_sps = {}
+
+        q_serviceplans = self.query_get_service_area_serviceplans()
+        for service_plan in list(self.fetch(q_serviceplans, rec["ID"])):
+            sp_dic = {
+                "Number": service_plan.Number,
+                "Name": service_plan.Name,
+                "Description": service_plan.Description,
+                "Price": service_plan.Price,
+                "UpKbs": service_plan.UpKbs,
+                "DownKbs": service_plan.DownKbs,
+                "IdleTimeout": service_plan.IdleTimeout,
+                "ConnectionLimit": service_plan.ConnectionLimit,
+                "RadiusClass": service_plan.RadiusClass,
+                "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
+                "Type": service_plan.Type,
+                "PlanTime": service_plan.PlanTime,
+                "PlanUnit": service_plan.PlanUnit,
+                "LifespanTime": service_plan.LifespanTime,
+                "LifespanUnit": service_plan.LifespanUnit,
+                "CurrencyCode": service_plan.CurrencyCode,
+                "Status": service_plan.Status,
+                "OrgCode": service_plan.OrgCode,
+                "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC),
+            }
+
+            if not service_plan.Owner_Org_ID in site_level_sps.keys():
+                site_level_sps[service_plan.Owner_Org_ID] = [sp_dic]
+            else:
+                site_level_sps[service_plan.Owner_Org_ID].append(sp_dic)
+
+        q2 = self.query_get_property_org_values()
+        for rec2 in self.execute(q2, rec["ID"]):
+            if rec2.Name == "TaxRate":
+                rec[rec2.Name] = float(rec2.Value)
+            else:
+                rec[rec2.Name] = rec2.Value
+
+        q3 = self.query_get_provider()
+        rec["Provider"] = self.execute(q3, rec["ID"]).fetchval()
+
+        sa_list = []
+
+        q4 = self.query_get_service_areas()
+        for rec4 in list(self.fetch(q4, rec["ID"])):
+
+            hosts_list = []
+
+            q5 = self.query_get_service_area_devices()
+            for rec5 in list(self.fetch(q5, rec4.ID)):
+                host_dic = {
+                    "NASID": rec5.NASID,
+                    "RadiusNASID": rec5.RadiusNASID,
+                    "HostType": rec5.HostType,
+                    "VLANRangeStart": rec5.VLANRangeStart,
+                    "VLANRangeEnd": rec5.VLANRangeEnd,
+                    "NetIP": rec5.NetIP,
+                }
+                hosts_list.append(host_dic)
+
+            sa_dic = {
+                "Number": rec4.Number,
+                "Name": rec4.Name,
+                "ZoneType": rec4.ZoneType,
+                "ActiveMembers": rec4.ActiveMembers,
+                "ActiveDevices": rec4.ActiveDevices,
+                "Hosts": hosts_list,
+            }
+
+            if rec4.ID in site_level_sps.keys():
+                sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
+            else:
+                sa_dic["ServicePlans"] = []
+
+            sa_list.append(sa_dic)
+
+        rec["ServiceAreaObjects"] = sa_list
+
+        q6 = self.query_get_org_number_tree()
+        org_number_tree_list = []
+
+        for rec6 in list(self.fetch(q6, rec["ID"], rec["ID"])):
+            org_number_tree_list.append(rec6[0])
+
+        rec["OrgNumberTree"] = org_number_tree_list
+
+        q7 = self.query_get_active_counts()
+        row = self.execute(q7, rec["ID"]).fetchone()
+
+        rec["ActiveMembers"] = row.ActiveMembers if row else 0
+        rec["ActiveDevices"] = row.ActiveDevices if row else 0
+
+        rec["Address"] = {
+            "AddressLine1": rec.pop("AddressLine1"),
+            "AddressLine2": rec.pop("AddressLine2"),
+            "City": rec.pop("City"),
+            "Area": rec.pop("Area"),
+            "PostalCode": rec.pop("PostalCode"),
+            "CountryName": rec.pop("CountryName"),
+        }
+
+        for key, value in rec.items():
+            if isinstance(value, datetime):
+                rec[key] = set_utc_timezone(value)
+
+        rec["UpdateTime"] = datetime.now(tz=timezone.utc)
+
     def get_properties(self, start, limit):
-        logger.debug("Fetching properties from Organization.ID >= {0} (limit: {1})"
-                .format(start, limit))
+        logger.debug(
+            "Fetching properties from Organization.ID >= {0} (limit: {1})".format(
+                start, limit
+            )
+        )
 
         q1 = self.query_get_properties()
         for rec in list(self.fetch_dict(q1, limit, start)):
+            self.set_additonal_property_info(rec)
+            yield ESRecord(
+                rec, self.get_type(), self.get_index(), rec[self._version_date_fieldname].isoformat()
+            )
 
-            # All site-level service plans are stored with their org ID as key
-            site_level_sps = {}
+    def get_property_by_org_number(self, org_number: str):
+        """When `Property` class item is used to generate ESRecord usually it should be used `UpdateTime` field
+        to create version -timestamp(UptadteTime).
+        But that functions is used only in PropertyAppendedDocumentMapping.get_site_values() that intended to set
+        additional properties and to other documents. So it can safely use other date field to generate version
+        number. That number will be discarded because only data in `_source` will be used.
 
-            q_serviceplans = self.query_get_service_area_serviceplans()
-            for service_plan in list(self.fetch(q_serviceplans, rec["ID"])):
-                sp_dic = {
-                    "Number": service_plan.Number,
-                    "Name": service_plan.Name,
-                    "Description": service_plan.Description,
-                    "Price": service_plan.Price,
-                    "UpKbs": service_plan.UpKbs,
-                    "DownKbs": service_plan.DownKbs,
-                    "IdleTimeout": service_plan.IdleTimeout,
-                    "ConnectionLimit": service_plan.ConnectionLimit,
-                    "RadiusClass": service_plan.RadiusClass,
-                    "GroupBandwidthLimit": service_plan.GroupBandwidthLimit,
-                    "Type": service_plan.Type,
-                    "PlanTime": service_plan.PlanTime,
-                    "PlanUnit": service_plan.PlanUnit,
-                    "LifespanTime": service_plan.LifespanTime,
-                    "LifespanUnit": service_plan.LifespanUnit,
-                    "CurrencyCode": service_plan.CurrencyCode,
-                    "Status": service_plan.Status,
-                    "OrgCode": service_plan.OrgCode,
-                    "DateCreatedUTC": set_utc_timezone(service_plan.DateCreatedUTC)
-                }
 
-                if not service_plan.Owner_Org_ID in site_level_sps.keys():
-                    site_level_sps[service_plan.Owner_Org_ID] = [sp_dic]
-                else:
-                    site_level_sps[service_plan.Owner_Org_ID].append(sp_dic)
+        :param org_number:
+        :return:
+        """
+        q1 = self.query_get_property_by_org_id()
+        try:
+            rec = next(self.fetch_dict(q1, org_number))
+        except StopIteration:
+            return None
 
-            q2 = self.query_get_property_org_values()
-            for rec2 in self.execute(q2, rec["ID"]):
-                if rec2.Name == "TaxRate":
-                    rec[rec2.Name] = float(rec2.Value)
-                else:
-                    rec[rec2.Name] = rec2.Value
-
-            q3 = self.query_get_provider()
-            rec["Provider"] = self.execute(q3, rec["ID"]).fetchval()
-
-            sa_list = []
-
-            q4 = self.query_get_service_areas()
-            for rec4 in list(self.fetch(q4, rec["ID"])):
-
-                hosts_list = []
-
-                q5 = self.query_get_service_area_devices()
-                for rec5 in list(self.fetch(q5, rec4.ID)):
-                    host_dic = {
-                        "NASID": rec5.NASID,
-                        "RadiusNASID": rec5.RadiusNASID,
-                        "HostType": rec5.HostType,
-                        "VLANRangeStart": rec5.VLANRangeStart,
-                        "VLANRangeEnd": rec5.VLANRangeEnd,
-                        "NetIP":rec5.NetIP
-                    }
-                    hosts_list.append(host_dic)
-
-                sa_dic = {
-                    "Number": rec4.Number,
-                    "Name": rec4.Name,
-                    "ZoneType": rec4.ZoneType,
-                    "ActiveMembers": rec4.ActiveMembers,
-                    "ActiveDevices": rec4.ActiveDevices,
-                    "Hosts": hosts_list
-                }
-
-                if rec4.ID in site_level_sps.keys():
-                    sa_dic["ServicePlans"] = site_level_sps[rec4.ID]
-                else:
-                    sa_dic["ServicePlans"] = []
-
-                sa_list.append(sa_dic)
-
-            rec["ServiceAreaObjects"] = sa_list
-
-            q6 = self.query_get_org_number_tree()
-            org_number_tree_list = []
-
-            for rec6 in list(self.fetch(q6, rec["ID"], rec["ID"])):
-                org_number_tree_list.append(rec6[0])
-
-            rec["OrgNumberTree"] = org_number_tree_list
-
-            q7 = self.query_get_active_counts()
-            row = self.execute(q7, rec["ID"]).fetchone()
-
-            rec["ActiveMembers"] = row.ActiveMembers if row else 0
-            rec["ActiveDevices"] = row.ActiveDevices if row else 0
-
-            rec["Address"] = {
-                "AddressLine1": rec.pop("AddressLine1"),
-                "AddressLine2": rec.pop("AddressLine2"),
-                "City": rec.pop("City"),
-                "Area": rec.pop("Area"),
-                "PostalCode": rec.pop("PostalCode"),
-                "CountryName": rec.pop("CountryName")
-            }
-
-            for key, value in rec.items():
-                if isinstance(value, datetime):
-                    rec[key] = set_utc_timezone(value)
-
-            rec["UpdateTime"] = datetime.now(timezone.utc)
-
-            yield ESRecord(rec, self.get_type(), self.get_index())
+        self.set_additonal_property_info(rec)
+        return ESRecord(
+            rec,
+            self.get_type(),
+            self.get_index(),
+            rec['CreatedUTC'].isoformat()
+        )
 
     @staticmethod
     def query_get_properties():
@@ -184,6 +215,36 @@ Where Organization.Org_Category_Type_ID = 3
 ORDER BY Organization.ID ASC"""
 
     @staticmethod
+    def query_get_property_by_org_id():
+        return """Select Organization.ID as ID,
+Organization.Number as Number,
+Organization.Display_Name as Name,
+Organization.Guest_Room_Count as GuestRooms,
+Organization.Meeting_Room_Count as MeetingRooms,
+Organization.Is_Lite as Lite,
+Organization.Pan_Enabled as Pan,
+Organization.Date_Added_UTC as CreatedUTC,
+Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
+Org_Status.Name as Status,
+Time_Zone.Tzid as TimeZone,
+Address.Address_1 as AddressLine1,
+Address.Address_2 as AddressLine2,
+Address.City,
+Address.Area,
+Address.Postal_Code as PostalCode,
+Country.Name as CountryName
+From Organization WITH (NOLOCK)
+Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
+Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
+Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organization.Contact_ID
+Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
+Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
+Where Organization.Org_Category_Type_ID = 3
+    AND Organization.Number = ?
+ORDER BY Organization.ID ASC"""
+
+    @staticmethod
     def query_get_property_org_values():
         return """SELECT Name, Value
                   FROM Org_Value WITH (NOLOCK)
@@ -194,6 +255,7 @@ ORDER BY Organization.ID ASC"""
     Returns the owning service provider for the given org.  If there are multiple
     service providers in the org lineage, then the most distant ancestor will be used.
     """
+
     @staticmethod
     def query_get_provider():
         return """SELECT TOP 1 Organization.Display_Name as Provider
@@ -292,4 +354,3 @@ WHERE Organization_ID = ?"""
                 JOIN Org_Relation_Cache ON Org_Relation_Cache.Child_Org_ID = Organization.ID
             WHERE 
                 Org_Relation_Cache.Parent_Org_ID = ?"""
-

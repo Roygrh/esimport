@@ -6,8 +6,7 @@
 # Eleven Wireless Inc.
 ################################################################################
 import logging
-
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from esimport.models import ESRecord
 from esimport.models.base import BaseModel
@@ -21,6 +20,7 @@ class Session(BaseModel):
     _date_field = "LogoutTime"
     _index_name_date_field = "LogoutTime"
     _index = "sessions"
+    _version_date_fieldname = "LogoutTime"
 
     @staticmethod
     def get_type():
@@ -34,14 +34,20 @@ class Session(BaseModel):
     def get_index():
         return Session._index
 
-    def get_sessions(self, start_id, limit, start_date='1900-01-01', historical=True):
+    def get_sessions(self, start_id, limit, start_date="1900-01-01", historical=True):
         q = self.query_sessions(historical)
         for row in self.fetch_dict(q, limit, start_id, start_id, limit, start_date):
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = set_utc_timezone(value)
 
-            yield ESRecord(row, self.get_type(), self.get_index(), index_date=row[self._index_name_date_field])
+            yield ESRecord(
+                row,
+                self.get_type(),
+                self.get_index(),
+                row[self._version_date_fieldname].isoformat(),
+                index_date=row[self._index_name_date_field],
+            )
 
     @staticmethod
     def query_sessions(historical):

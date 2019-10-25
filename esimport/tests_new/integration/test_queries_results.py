@@ -78,14 +78,12 @@ def doc_templates(doctype, index_name):
             "_index": index_name,
             "_type": doctype,
             "_id": 1,
-            "doc_as_upsert": True,
             "doc": {"ID": 1},
         },
         {
             "_index": index_name,
             "_type": doctype,
             "_id": 2,
-            "doc_as_upsert": True,
             "doc": {"ID": 2},
         },
     ]

@@ -6,11 +6,7 @@
 # Eleven Wireless Inc.
 ################################################################################
 
-import time
-import pyodbc
 import logging
-
-from esimport import settings
 
 logger = logging.getLogger(__name__)
 
