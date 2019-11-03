@@ -43,7 +43,7 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
 
         return count, next_id_to_process
 
-    def sync(self):
+    def sync(self, start_date: datetime = None):
         """
         Continuously update ElasticSearch to have the latest Property data
         """

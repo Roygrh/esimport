@@ -15,8 +15,6 @@ class Config(BaseSettings):
     For more info, see: https://pydantic-docs.helpmanual.io/usage/settings/
     """
 
-    how_abou_this: str = Field(None, alias="_how_about_this")
-
     # The MSSQL DB credentials, host, port ..etc as a dictionnary.
     database_info: dict = {
         "DSN": None,  # either DSN or HOST

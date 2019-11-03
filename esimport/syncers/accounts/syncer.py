@@ -123,7 +123,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
                 next_id_to_process, start_date
             )
 
-    def sync(self, start_date):
+    def sync(self, start_date: datetime):
         """
         Loop to continuously add/update accounts
         """

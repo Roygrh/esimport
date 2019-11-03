@@ -1,3 +1,3 @@
-from esimport import cli
+from .cli import cli
 
 cli()

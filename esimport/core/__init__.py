@@ -1,3 +1,4 @@
-from .base_schema import BaseSchema, Record
+from .base_schema import BaseSchema
 from .mixins import PropertiesMixin
+from .record import Record
 from .sync_base import SyncBase

@@ -6,7 +6,7 @@ from typing import List
 
 from dateutil import tz
 
-from esimport.infra import AmazonWebServices, CacheClient, MsSQLConnector
+from esimport.infra import AmazonWebServices, CacheClient, MsSQLHandler
 
 from .base_schema import BaseSchema
 from .config import Config
@@ -43,7 +43,7 @@ class SyncBase(abc.ABC):
 
     def setup(self):
         # Setup MSSQL
-        self.mssql = MsSQLConnector(
+        self.mssql = MsSQLHandler(
             dsn=self.config.dsn,
             database_info=self.config.database_info,
             database_query_timeout=self.config.database_query_timeout,

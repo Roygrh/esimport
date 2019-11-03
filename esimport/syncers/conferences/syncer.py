@@ -78,7 +78,7 @@ class ConferencesSyncer(SyncBase, PropertiesMixin):
 
         return count, next_id
 
-    def sync(self, start_date):
+    def sync(self, start_date: datetime):
         """
         Continuously update ElasticSearch to have the latest Conference data
         """

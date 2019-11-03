@@ -8,7 +8,7 @@ from ._queries import GET_DEVICES_ANCESTOR_ORG_NUMBER_TREE_QUERY, GET_DEVICES_QU
 from ._schema import DeviceSchema
 
 
-class PropertiesSyncer(SyncBase, PropertiesMixin):
+class DeviceSyncer(SyncBase, PropertiesMixin):
 
     target_elasticsearch_index_prefix: str = "devices"
     uses_date_partitioned_index: bool = True
@@ -48,7 +48,7 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
 
         return count, next_id
 
-    def sync(self, start_date):
+    def sync(self, start_date: datetime):
         """
         Loop to continuously find new Devices and push them to AWS SQS
         """
