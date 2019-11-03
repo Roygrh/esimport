@@ -1,0 +1,2 @@
+class ESImportImproperlyConfigured(Exception):
+    pass
