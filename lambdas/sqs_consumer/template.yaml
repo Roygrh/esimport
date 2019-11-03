@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sqs_consumer
+
+  ESImport SQS to Elasticsearch worker
+
+Parameters:
+  RoleARN:
+    Type: String
+
+  SNSTopicARN:
+    Type: String
+
+  ExecutionTimeout:
+    Type: Number
+    Default: 60
+    Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout as well.
+
+
+Resources:
+  SQSConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: !Ref ExecutionTimeout
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref SNSTopicARN
+          SQS_QUEUE_URL: !Ref MessagesQueue
+
+      Events:
+        NewSQSMessage:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MessagesQueue.Arn
+
+      # DeadLetterQueue:
+      #   Type: SQS
+      #   TargetArn: !GetAtt MessagesDeadLetterQueue.Arn # ARN of the SQS queue or SNS topic to use as DLQ. 
+
+
+  # LambdaExecutionRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: !Sub 'esimport-lambda-sqs-consumer-${AWS::Region}' 
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - lambda.amazonaws.com
+  #         Action:
+  #         - sts:AssumeRole
+  #     Path: "/"
+  #     Policies:
+  #     - PolicyName: giveaccesstoqueueonly
+  #       PolicyDocument:
+  #         Version: '2012-10-17'
+  #         Statement:
+  #         - Effect: Allow
+  #           Action:
+  #           - sqs:*
+  #           Resource:
+  #           - !GetAtt MessagesQueue.Arn
+  #     - PolicyName: root
+  #       PolicyDocument:
+  #         Version: '2012-10-17'
+  #         Statement:
+  #         - Effect: Allow
+  #           Action:
+  #           - logs:*
+  #           Resource: arn:aws:logs:*:*:*
+
+
+  # sns topics that SQS Consumer Lambda function depends on
+  # ESRecordsSNS:
+  #   Type: AWS::SNS::Topic
+  #   Properties:
+  #     DisplayName: "es-records-sns"
+
+
+  MessagesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "esimport-queue"
+      VisibilityTimeout: !Ref ExecutionTimeout
+
+
+  # MessagesDeadLetterQueue:
+  #   Type: AWS::SQS::Queue
+
+  MessagesQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MessagesQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: "sqs:*"
+          Resource: "*"
+          Condition:
+            ArnEquals:
+              "aws:SourceArn": !Ref ESRecordsSNS
+
+  MessagesQueueToSnsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt MessagesQueue.Arn
+      Protocol: sqs
+      RawMessageDelivery: true
+      TopicArn: !Ref ESRecordsSNS

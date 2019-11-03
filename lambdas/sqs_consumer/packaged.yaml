@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'sqs_consumer
+
+  ESImport SQS to Elasticsearch worker
+
+  '
+Parameters:
+  ExecutionTimeout:
+    Default: 60
+    Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout
+      as well.
+    Type: Number
+  RoleARN:
+    Type: String
+  SNSTopicARN:
+    Type: String
+Resources:
+  MessagesQueue:
+    Properties:
+      QueueName: esimport-queue
+      VisibilityTimeout:
+        Ref: ExecutionTimeout
+    Type: AWS::SQS::Queue
+  MessagesQueuePolicy:
+    Properties:
+      PolicyDocument:
+        Statement:
+          Action: sqs:*
+          Condition:
+            ArnEquals:
+              aws:SourceArn:
+                Ref: ESRecordsSNS
+          Effect: Allow
+          Principal: '*'
+          Resource: '*'
+      Queues:
+      - Ref: MessagesQueue
+    Type: AWS::SQS::QueuePolicy
+  MessagesQueueToSnsSubscription:
+    Properties:
+      Endpoint:
+        Fn::GetAtt:
+        - MessagesQueue
+        - Arn
+      Protocol: sqs
+      RawMessageDelivery: true
+      TopicArn:
+        Ref: ESRecordsSNS
+    Type: AWS::SNS::Subscription
+  SQSConsumerFunction:
+    Properties:
+      CodeUri: s3://distrodev-esimport-lambda-us-east-1/91b743c83500872faa26bfdf975c3b41
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN:
+            Ref: SNSTopicARN
+          SQS_QUEUE_URL:
+            Ref: MessagesQueue
+      Events:
+        NewSQSMessage:
+          Properties:
+            Queue:
+              Fn::GetAtt:
+              - MessagesQueue
+              - Arn
+          Type: SQS
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: python3.7
+      Timeout:
+        Ref: ExecutionTimeout
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
