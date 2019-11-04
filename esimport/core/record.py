@@ -6,12 +6,12 @@ from dataclasses import dataclass
 @dataclass
 class Record:
 
-    _op_type: str = "index"
     _index: str  # the name of the target Elasticsearch index
     _type: str  # the record type for Elasticsearch
-    _version_type: str = "external"
     _source: dict  # the actual record content itself, as json (dict)
     _date: datetime
+    _op_type: str = "index"
+    _version_type: str = "external"
 
     @property
     def id(self) -> int:

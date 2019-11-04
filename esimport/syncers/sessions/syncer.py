@@ -114,7 +114,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         )
         return switch_to_historical
 
-    def sync(self, start_date: datetime.datetime = None):
+    def sync(self, start_date: datetime = None):
         assert start_date is not None, "start_date must be specified"
 
         use_historical = True

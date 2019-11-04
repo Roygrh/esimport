@@ -53,9 +53,10 @@ class AmazonWebServices(BaseInfra):
     endpoint_url: str = None
     aws_access_key_id: str = None
     aws_secret_access_key: str = None
-    ports_mappings: dict = {}
+    ports_mappings: dict = None
     region_name: str = None
     profile_name: str = "default"
+    logger: logging.Logger = None
 
     def __post_init__(self):
         # Parse the URL and make sure it's something valid

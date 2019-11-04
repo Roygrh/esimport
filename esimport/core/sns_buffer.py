@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, List, Union
 
 import boto3
@@ -16,8 +16,8 @@ class SNSBuffer:
     max_sns_bulk_send_size_in_bytes: int
     logging: logging.Logger
 
-    _records_list: List[dict] = []
-    _last_added_record: Union[Union, None] = None
+    _records_list: List[dict] = field(default_factory=lambda: [])
+    _last_added_record: Union[Record, None] = None
     _current_bytes_size: int = 0
 
     def add_record(self, record: Record):

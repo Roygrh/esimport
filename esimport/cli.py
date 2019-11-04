@@ -42,8 +42,8 @@ def cli():
 @click.option(
     "--start-date",
     default="1900-01-01",
-    help="Since when to import data (YYYY-MM-DD)",
-    type=click.DateTime,
+    help="Since when to import data",
+    type=click.DateTime(),
 )
 def sync(records_type: str, start_date: datetime):
     records_type = records_type.lower()

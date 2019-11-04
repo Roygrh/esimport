@@ -19,6 +19,8 @@ class MsSQLHandler(BaseInfra):
 
     default_use_db: str = "Eleven_OS"
 
+    logger: logging.Logger = None
+
     def __post_init__(self):
         self._log("Setting up MSSQL DB connection")
         self.connect()

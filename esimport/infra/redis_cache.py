@@ -2,10 +2,9 @@ import datetime
 import json
 import logging
 from dataclasses import dataclass
-from typing import Union, List
-import redis
+from typing import List, Union
 
-from esimport.utils import esimport_json_dumps
+import redis
 
 from ._base import BaseInfra
 
@@ -15,6 +14,7 @@ class CacheClient(BaseInfra):
 
     redis_host: str = "localhost"
     redis_port: int = 6379
+    logger: logging.Logger = None
 
     # Default "time to live" value for the inserted objects
     ttl_value: datetime.timedelta = datetime.timedelta(days=1)
@@ -35,4 +35,4 @@ class CacheClient(BaseInfra):
 
     def set(self, key: str, value):
         self._log(f"Cache - setting value for key: {key}", level=logging.DEBUG)
-        self.client.setex(key, self.ttl_value, esimport_json_dumps(value))
+        self.client.setex(key, self.ttl_value, json.dumps(value))

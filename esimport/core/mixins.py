@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Generator
+from typing import Iterator
 
 from .record import Record
 from .shared_queries import (
@@ -180,7 +180,7 @@ class PropertiesMixin:
             if isinstance(value, datetime):
                 property_record[key] = self.set_utc_timezone(value)
 
-    def __get_devices_for_service_area(self, service_area_id: int) -> Generator[dict]:
+    def __get_devices_for_service_area(self, service_area_id: int) -> Iterator[dict]:
         for device in self.fetch_rows(GET_SERVICE_AREA_DEVICES_QUERY, service_area_id):
             yield {
                 "NASID": device.NASID,
