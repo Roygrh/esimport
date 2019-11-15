@@ -63,7 +63,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         self, from_id: int, start_date, use_historical: bool
     ) -> (int, int, datetime):
 
-        most_recent_session_time = datetime.now(datetime.timezone.utc)
+        most_recent_session_time = datetime.now(timezone.utc)
         count = 0
         to_id = from_id + self.default_query_limit
 

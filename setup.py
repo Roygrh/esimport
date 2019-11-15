@@ -23,7 +23,7 @@ setup(
         "datadog==0.22.0",
         "elasticsearch==5.2.0",
         "hiredis==0.2.0",
-        "pyodbc==4.0.22",
+        "pyodbc==4.0.27",
         "python-dateutil==2.6.1",
         "PyYAML==3.13",
         "raven==6.5.0",

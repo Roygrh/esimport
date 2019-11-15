@@ -1,8 +1,7 @@
-import logging
 import os
 from typing import Union
 
-from pydantic import BaseSettings, Field, BaseModel, Schema
+from pydantic import BaseModel, BaseSettings, Field, Schema
 
 
 class Config(BaseSettings):
@@ -16,14 +15,12 @@ class Config(BaseSettings):
     """
 
     # The MSSQL DB credentials, host, port ..etc as a dictionnary.
-    database_info: dict = {
-        "DSN": None,  # either DSN or HOST
-        "HOST": "localhost",
-        "PORT": "1433",
-        "NAME": "",
-        "USER": "",
-        "PASSWORD": "",
-    }
+
+    mssql_host: str
+    mssql_port: int = 1433
+    mssql_password: str = ""
+    mssql_user: str = ""
+    mssql_db_mame: str = "Eleven_OS"
 
     # How the connection string should look like?
     # This differ depending the driver being used, and the operating system.
@@ -31,7 +28,7 @@ class Config(BaseSettings):
     # for prod as well. You'd better seek to use this combination.
     # If you're under Windows, this would like something like:
     # mssql_dsn = "Driver={SQL Server};Server=.;Trusted_Connection=yes;"
-    mssql_dsn: str = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no"
+    mssql_dsn: str = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes"
 
     # Redis (for caching)
     redis_host: str = "localhost"
@@ -60,8 +57,8 @@ class Config(BaseSettings):
     # This endpoint can be set in case we're mocking AWS service. e.g. via localstack: https://github.com/localstack/localstack
     aws_endpoint_url: Union[str, None] = None
 
-    aws_access_key_id: Union[str, None] = None
-    aws_secret_access_key: Union[str, None] = None
+    aws_access_key_id: str = "foo"
+    aws_secret_access_key: str = "bar"
     aws_default_region: Union[str, None] = None
 
     # SNS
@@ -83,13 +80,27 @@ class Config(BaseSettings):
     sentry_dsn: str = ""
 
     # Logging
-    log_level: int = logging.INFO
+    log_level: str = "INFO"
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     pkg_dir: str = os.path.dirname(os.path.abspath(__file__))
     root_dir: str = os.path.abspath(os.path.join(pkg_dir, ".."))
 
     test_fixtures_dir: str = os.path.join(root_dir, "tests/fixtures")
+
+    # Are we inside a docker container?
+    inside_docker: bool = False
+
+    @property
+    def database_info(self):
+        return {
+            "DSN": "Eleven_OS" if self.inside_docker else None,
+            "HOST": self.mssql_host,
+            "PORT": self.mssql_port,
+            "NAME": self.mssql_db_mame,
+            "USER": self.mssql_user,
+            "PASSWORD": self.mssql_password,
+        }
 
     class Config:
         case_sensitive = False

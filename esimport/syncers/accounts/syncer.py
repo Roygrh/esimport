@@ -33,12 +33,10 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
     time_delta_window = timedelta(minutes=10)
 
     def get_initial_start_end_dates(self, start_date) -> (datetime, datetime):
-        if start_date and start_date != "1900-01-01":
-            start_date = parser.parse(start_date)
-        else:
-            # otherwise, get the most recent starting point from data in DynamoDB
+        if start_date.year <= 2000:
+            # Get the most recent starting point from data in DynamoDB
             # using the same date field that is used fro versioning
-            start_date = parser.parse(self.latest_date())
+            start_date = self.latest_date()
             self.info("Data Check - Created: {0}".format(start_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."

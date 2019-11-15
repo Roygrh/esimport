@@ -51,8 +51,8 @@ class MsSQLHandler(BaseInfra):
         # As Eleven uses availability groups, we can't specify db name in DSN string. Rather we have
         # to send an USE command. The API in the pyodbc connector doesn't allow multiple statements
         # in a SQL call. As it remembers context, it's used before every transaction.
-        self.conn.cursor.execute(f"USE {self.default_use_db}")
-        return self.conn.cursor.execute(query, list(args))
+        self.cursor.execute(f"USE {self.default_use_db}")
+        return self.cursor.execute(query, tuple(args))
 
     def fetch_rows(self, query, *args, column_names=None):
         for row in self.execute(query, *args):

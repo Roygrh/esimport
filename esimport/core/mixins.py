@@ -15,6 +15,22 @@ from .shared_queries import (
 
 
 class PropertiesMixin:
+    property_fields_include = (
+        ("PropertyName", "Name"),
+        ("PropertyNumber", "Number"),
+        ("Provider", None),
+        ("Brand", None),
+        ("MARSHA_Code", None),
+        ("Country", None),
+        ("Region", None),
+        ("SubRegion", None),
+        ("OwnershipGroup", None),
+        ("TaxRate", None),
+        ("CorporateBrand", None),
+        ("ExtPropId", None),
+        ("TimeZone", None),
+    )
+
     def update_time_zones(
         self, record: Record, org_number: str, dates_to_localize: tuple
     ):

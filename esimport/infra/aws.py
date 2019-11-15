@@ -4,58 +4,18 @@ from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import boto3
-from dotenv import load_dotenv
+
 from ._base import BaseInfra
-
-load_dotenv()
-
-service_ports_map = {"s3": "S3_PORT", "sns": "SNS_PORT", "dynamodb": "DYNAMODB_PORT"}
-
-
-def get_client_for(service: str) -> boto3.client:
-    assert service in ["s3", "sns", "dynamodb"]
-
-    aws_endpoint_url_string = os.environ.get("AWS_ENDPOINT_URL")
-    aws_endpoint_url = urlparse(aws_endpoint_url_string)
-
-    # default_region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
-
-    aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
-    aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-
-    if aws_endpoint_url:
-        service_port_env_var = service_ports_map.get(service)
-        service_port = os.environ.get(service_port_env_var)
-        aws_endpoint_url = aws_endpoint_url._replace(
-            netloc=f"{aws_endpoint_url.netloc}:{service_port}"
-        )
-        aws_access_key_id = None
-        aws_secret_access_key = None
-
-    # print(aws_endpoint_url)
-
-    return boto3.client(
-        service,
-        endpoint_url=aws_endpoint_url.geturl() if aws_endpoint_url else None,
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-    )
-
-
-# s3_client = get_client_for("s3")
-# s3_client.create_bucket(Bucket="test_bucket")
-# response = s3_client.list_buckets()
-# print(response)
 
 
 @dataclass
 class AmazonWebServices(BaseInfra):
     endpoint_url: str = None
-    aws_access_key_id: str = None
-    aws_secret_access_key: str = None
+    aws_access_key_id: str = "foo"
+    aws_secret_access_key: str = "bar"
     ports_mappings: dict = None
     region_name: str = None
-    profile_name: str = "default"
+    profile_name: str = None
     logger: logging.Logger = None
 
     def __post_init__(self):
@@ -123,3 +83,16 @@ class AmazonWebServices(BaseInfra):
             self._log("Setting up AWS SNS Client")
             self._sns_resource = self._get_service_resource("sns")
         return self._sns_resource
+
+    def create_sns_topic(self, topic_name):
+        return self.sns_resource.create_topic(Name=topic_name)
+
+    def create_dynamodb_table(self, table_name):
+        dynamodb_client = self.dynamodb_resource.meta.client
+        return dynamodb_client.create_table(
+            AttributeDefinitions=[{"AttributeName": "doctype", "AttributeType": "S"}],
+            TableName=table_name,
+            KeySchema=[{"AttributeName": "doctype", "KeyType": "HASH"}],
+            BillingMode="PROVISIONED",
+            ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
+        )

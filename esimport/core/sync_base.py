@@ -13,6 +13,9 @@ from .config import Config
 from .exceptions import ESImportImproperlyConfigured
 from .record import Record
 from .sns_buffer import SNSBuffer
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class SyncBase(abc.ABC):
@@ -30,7 +33,7 @@ class SyncBase(abc.ABC):
 
     def __init__(self):
         self.config = self.get_config()
-        self.logger = self.setup_logger()
+        self.logger = self.setup_logger(self.config.log_level)
 
     def get_config(self):
         try:
@@ -38,13 +41,16 @@ class SyncBase(abc.ABC):
         except ValueError as e:
             raise ESImportImproperlyConfigured(str(e))
 
-    def setup_logger(self):
-        return logging.getLogger(f"esimport - {self.record_type} syncer")
+    def setup_logger(self, level: str):
+        logging.basicConfig()
+        logger = logging.getLogger(f"esimport - {self.record_type} syncer")
+        logger.setLevel(level.upper())
+        return logger
 
     def setup(self):
         # Setup MSSQL
         self.mssql = MsSQLHandler(
-            dsn=self.config.dsn,
+            dsn=self.config.mssql_dsn,
             database_info=self.config.database_info,
             database_query_timeout=self.config.database_query_timeout,
             database_connection_timeout=self.config.database_connection_timeout,
@@ -77,10 +83,10 @@ class SyncBase(abc.ABC):
         # to SNS
         self.sns_buffer = SNSBuffer(
             sns_client=self.aws.sns_resource.meta.client,
-            dunamodb_table_client=self.dynamodb_table,
+            dynamodb_table_client=self.dynamodb_table,
             topic_arn=self.config.sns_topic_arn,
             max_sns_bulk_send_size_in_bytes=self.config.max_sns_bulk_send_size_in_bytes,
-            logging=self.logger,
+            logger=self.logger,
         )
 
     @abc.abstractmethod
@@ -94,7 +100,7 @@ class SyncBase(abc.ABC):
         return self.mssql.fetch_rows_as_dict(query, *args)
 
     def execute_query(self, query, *args):
-        return self.mssql.execute(self, query, *args)
+        return self.mssql.execute(query, *args)
 
     def fetch_rows(self, query, *args, column_names=None):
         return self.mssql.fetch_rows(query, *args, column_names=column_names)
@@ -110,25 +116,37 @@ class SyncBase(abc.ABC):
 
         return self.target_elasticsearch_index_prefix
 
+    def put_item_in_dynamodb_table(
+        self, doctype: str, latest_id: int, latest_date: datetime
+    ):
+        response = self.dynamodb_table.put_item(
+            Item={
+                "doctype": doctype,
+                "latest_id": latest_id,
+                "latest_date": latest_date.isoformat(),
+            }
+        )
+        self.log(str(response), logging.DEBUG)
+        return response
+
     @property
     def dynamodb_table(self):
         return self.aws.dynamodb_resource.Table(self.config.dynamodb_table)
 
     @property
     def last_inserted_cursor_state(self):
-        return self.aws.dynamodb_resource.get_item(
-            TableName=self.config.dynamodb_table,
-            Key={"doctype": self.record_type},
-            ConsistentRead=True,
+        return self.dynamodb_table.get_item(
+            Key={"doctype": self.record_type}, ConsistentRead=True
         )
 
-    @property
     def max_id(self):
         return self.last_inserted_cursor_state["Item"].get("latest_id", 0)
 
-    @property
-    def latest_date(self) -> str:
-        return self.last_inserted_cursor_state["Item"].get("latest_date", "1900-01-01")
+    def latest_date(self) -> datetime:
+        dt_str = self.last_inserted_cursor_state["Item"].get(
+            "latest_date", "1900-01-01"
+        )
+        return datetime.fromisoformat(dt_str)
 
     @staticmethod
     def set_utc_timezone(datetime_object: datetime) -> datetime:
@@ -144,7 +162,8 @@ class SyncBase(abc.ABC):
             return None
 
         assert (
-            isinstance(time, datetime) and datetime_object.tzinfo == timezone.utc
+            isinstance(datetime_object, datetime)
+            and datetime_object.tzinfo == timezone.utc
         ), "Time zone is not set to UTC."
 
         local_datetime = datetime_object.astimezone(tz.gettz(tzone))
@@ -155,7 +174,9 @@ class SyncBase(abc.ABC):
         if datetime_object is None:
             return None
 
-        assert isinstance(time, datetime) and datetime_object.tzinfo == tz.gettz(
+        assert isinstance(
+            datetime_object, datetime
+        ) and datetime_object.tzinfo == tz.gettz(
             "America/Los_Angeles"
         ), "Time zone is not set to America/Los_Angeles."
         utc_datetime = datetime_object.astimezone(tz.gettz("UTC"))

@@ -2,8 +2,10 @@ import datetime
 import json
 import logging
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import List, Union
 
+import orjson
 import redis
 
 from ._base import BaseInfra
@@ -35,4 +37,14 @@ class CacheClient(BaseInfra):
 
     def set(self, key: str, value):
         self._log(f"Cache - setting value for key: {key}", level=logging.DEBUG)
-        self.client.setex(key, self.ttl_value, json.dumps(value))
+        self.client.setex(key, self.ttl_value, self.orjson_dumps(value))
+
+    # We are going to use orjson (see below), this function is a small wrapper
+    # to match the standard json.dumps behavior.
+    def orjson_dumps(self, v):
+        def default(obj):
+            if isinstance(obj, Decimal):
+                return str(obj)
+
+        # orjson.dumps returns bytes, to match standard json.dumps we need to call `.decode()`
+        return orjson.dumps(v, default=default)  # .decode()

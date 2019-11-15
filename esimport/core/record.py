@@ -16,7 +16,7 @@ class Record:
     @property
     def id(self) -> int:
         # The ID of the document for Elasticsearch (same as its MSSQL ID)
-        return self._source["ID"]
+        return int(self._source["ID"])
 
     @property
     def version(self) -> int:
