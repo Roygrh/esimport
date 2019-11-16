@@ -1,18 +1,54 @@
 # ElasticSearch Import Project
 
-The overall task is to move data from Eleven's T-SQL database into ElasticSearch.
+The overall task of this project is to move data from Eleven's T-SQL database into ElasticSearch. 
+We have 02 Elasticsearch clusters in production. One in US-EAST and another in US-WEST, both should have the exact same copy of data.
+
+This project is split into: 
+
+- 03 lambda functions under `lambdas/` folder.
+- A normal Python script that should continuously run and fetch data from a MSSQL DB, under `esimport/` folder.
+
+## How it works
+
+
+What's under `esimport/` queries the MSSQL DB continuously for some types of records and sends the result (as an array of JSON records) to an [AWS SNS](https://aws.amazon.com/sns/) topic.
+
+The type of records we get from the MSSQL DB so far are called:
+- `properties`: think of this as records for hotels (names, address, info) or some sites/buildings. Those sites are serving WiFi via Eleven's offerings. 
+- `conferences`: some special events occupying some place/room, with potentially special WiFi access.
+- `devices`: the device the end user used to login to Eleven's WiFi.
+- `sessions`: info about the lifetime of the user access to the WiFi, browser used to login, the Plan the use chose ..etc
+- `accounts`: the actual user profile created when the user first logins in one the WiFi plans offered by Eleven.
+
+Once run:
+- We bulk-fetch a number of records for each record type, and send it to the SNS topic.
+- We write the last record ID for each record type in a [DynamoDB](https://aws.amazon.com/dynamodb/) table, so when esimport is interrupted or restarted, it'd know from where to resume by referring back to that same DynamoDB table.
+
+The SNS topic is subscribed-to by 02 [AWS SQS](https://aws.amazon.com/sqs/) queues, one in US-EAST, the other in US-WEST.
+
+Each SQS queue is consumed by a lambda function under `lambdas/sqs_consumer/`, this function (deployed twice, in us-east and in us-west) pops an item from its 
+target SQS queue (depending on the region) and indexes the content of the item (an array of records) into its target Elasticsearch cluster 
+(the cluster residing in the same lambda function's region).
+
+
+The following picture illustrates the overall architecture of this project:
+![ESImport Architecture](architecture.png "ESImport Architecture")
 
 ## Setup and contributing
 
-We encourage docker-based development workflow, this project includes a [Dockerfile](Dockerfile) that uses the same Linux distrobution as production. 
+Contributing to this project requires you having Docker and docker-compose installed. We mock the different AWS services using [localstack](https://github.com/localstack/localstack).
 
-Doing so, we make sure all devs have almost the same environment, services and system dependencies versions, and esimport behaves the same to all
-of us. 
+This project includes a [Dockerfile](Dockerfile) that uses the same Linux distribution as production. and a `docker-compose.yml` file ready for local development use.
+Both of these files should be self-explanatory and you're encouraged to read them.
 
-- Copy `_docker-compose.example.yml` file into `docker-compose.yml`.
-- Copy `_local_settings.example.py` file into `local_settings.py` file. 
-- In a separate terminal window, run: `make start-environment`, this will start up ElasticSearch, Redis and MS SQL Server.
-- Run `make shell`. This will drop you in a bash shell in a separate docker container, with `esimport` CLI available and tests ready to invoke. You can modify the code-base without running `make shell` again, just modify and re-invoke `esimport` or tests within the same shell.
+- Copy `.env-example` file included within this into `.env` file.
+- Run `make shell`. This will drop you in a bash shell in a separate docker container, with `esimport` CLI available and tests ready to invoke. 
+
+`make shell` will pull localstack, Redis, MSSQL Server docker images for you, and have them running before you're dropped into the esimport container shell. 
+
+You can continue making changes to the codebase while having the shell open, just invoke `esimport` again inside the same container's shell you're 
+already dropped into to see your changes or to invoke the test suite, no need to rebuild. 
+This is because the `esimport` cli is installed with `pip install -e .` (`-e` for editable install so you can modify freely).
 
 
 ## Usage
@@ -20,44 +56,16 @@ of us.
 esimport syncs (or updates) 05 types of documents to Elasticsearch, accounts, conferences, devices, properties and sessions. This can be done with:
 
 ```bash
-$ esimport sync [account|device|session|property]
+$ esimport sync [accounts|conferences|devices|sessions|properties]
 ```
-
-and:
-
-```bash
-$ esimport update conference
-```
-
-e.g. 
-- `esimport sync device` (notice device is not in the plural form).
-- `esimport update conference` (also not in plural)
 
 All of the above commands accept `--start-date` argument, e.g.
 
 ```bash
-$ esimport sync session --start-date 2018-01-01
+$ esimport sync sessions --start-date 2020-01-01
 ```
 
-You may want to start with `esimport sync property` first, since the rest of document types may rely on the presence of some properties.
 
 ## How to run tests?
 
-Just invoke `tox` or `pytest`. 
-
-To run a specific tests, invoke `pytest esimport/tests/test_conferencemapping_es.py`.
-
-Make sure, you're inside a shell with `make shell` and ES, Redis and MSSQL are up with `make start-environment`.
-
-### Using esimport outside Docker
-
-docker-compose can be used to spin up MSSQL Server, Redis or ElasticSearch only, without necessarily the esimport service. You can start any of these services at will with `docker-compose up redis mssql elasticsearch`, drop any service name from the command to NOT spin it (e.g. it's installed on your machine).
-
-Once these services are up, you can access them from your host machine like so:
-- ElasticSearch: `localhost:9200`
-- MSSQL Server: `localhost:1433`, user: `sa`, password: `DistroDev@11` (You have to create the databases: Eleven_OS, Radius)
-- Redis: `localhost:6379`.
-
-### Only esimport inside Docker
-
-You may want to run only `esimport` service inside docker, while instructing it to use the Elasticsearch, Redis and MSSQL Server of your host machine. In this case you have to pass `--net="host"` to your `docker run` command, or add `network_mode: "host"` to your `docker-compose.yml` file.
+TODO
