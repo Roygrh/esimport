@@ -97,16 +97,15 @@ class EsimportDatadogLogger:
                 )
                 now = datetime.now(tz=timezone.utc)
                 doc_timedelta = self.extract_doc_datetime(result, date_field_name, now)
-                self.put_metric(
-                    metric_name, int(doc_timedelta.total_seconds() / 60), now
-                )
+                minutes_behind = doc_timedelta.total_seconds() / 60
+                self.put_metric(metric_name, minutes_behind, now)
         except Exception as err:
             logger.exception(err)
             sentry_sdk.capture_exception(err)
             raise err
 
     @staticmethod
-    def put_metric(metric_name: str, minutes_behind: int, now: datetime):
+    def put_metric(metric_name: str, minutes_behind: float, now: datetime):
         datadog.api.Metric.send(metric=metric_name, points=minutes_behind)
         logger.debug(
             f"ESDataCheck - Host: {ENVIRONMENT} - "
