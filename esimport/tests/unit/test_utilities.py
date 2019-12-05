@@ -4,11 +4,13 @@ from datetime import timezone
 import pytest
 from dateutil import tz
 
-from esimport.utils import convert_pacific_to_utc
-from esimport.utils import convert_utc_to_local_time
-from esimport.utils import date_to_index_name
-from esimport.utils import set_pacific_timezone
-from esimport.utils import set_utc_timezone
+from esimport.core.sync_base import SyncBase
+
+
+convert_pacific_to_utc = SyncBase.convert_pacific_to_utc
+convert_utc_to_local_time = SyncBase.convert_utc_to_local_time
+set_pacific_timezone = SyncBase.set_pacific_timezone
+set_utc_timezone = SyncBase.set_utc_timezone
 
 
 class TestUtils:
@@ -63,10 +65,4 @@ class TestUtils:
         )
         expect = datetime(2019, 1, 1, 13, 11, 12, tzinfo=timezone.utc)
         result = set_utc_timezone(input_time)
-        assert result == expect
-
-    def test_date_to_index_name(self):
-        input_time = datetime(2019, 1, 1)
-        result = date_to_index_name(input_time)
-        expect = "2019-01"
         assert result == expect

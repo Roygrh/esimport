@@ -1,16 +1,17 @@
 USE [Eleven_OS]
 GO
 
-IF (EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_SCHEMA = 'dbo' 
-                 AND  TABLE_NAME = 'Zone_Plan_Account'))
+IF (EXISTS (SELECT *
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'dbo'
+	AND TABLE_NAME = 'Zone_Plan_Account'))
 BEGIN
-DROP TABLE [dbo].[Zone_Plan_Account]
+	DROP TABLE [dbo].[Zone_Plan_Account]
 END
 GO
 
-CREATE TABLE [dbo].[Zone_Plan_Account](
+CREATE TABLE [dbo].[Zone_Plan_Account]
+(
 	[ID] [int] IDENTITY(1,1) NOT NULL,
 	[Member_ID] [int] NOT NULL,
 	[Zone_Plan_ID] [int] NOT NULL,
@@ -28,7 +29,7 @@ CREATE TABLE [dbo].[Zone_Plan_Account](
 	[Zone_Plan_Account_Status_ID] [int] NOT NULL,
 	[Upsell_Zone_Plan_Account_ID] [int] NULL,
 	[Purchase_Org_ID] [int] NULL,
- CONSTRAINT [PK_Zone_Plan_Account] PRIMARY KEY CLUSTERED 
+	CONSTRAINT [PK_Zone_Plan_Account] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [PRIMARY]
@@ -66,3 +67,22 @@ GO
 -- INSERT INTO [dbo].[Zone_Plan_Account](Member_ID, Zone_Plan_ID, Purchase_Price, Purchase_Price_Currency_ID, Network_Access_Limits_ID, Payment_Method_ID, Purchase_MAC_Address, Activation_Date_UTC, Date_Created_UTC, Date_Modified_UTC, PMS_Charge_ID, Zone_Plan_Account_Status_ID)
 -- 	VALUES(3, 2, 5, 1, 8, 1, '14-10-9F-DF-53-83', '2014-01-04 07:48:47.147', '2014-01-04 07:48:47.143', '2018-04-05 10:33:19.594', 3, 1)
 -- GO
+
+INSERT INTO Eleven_OS.dbo.Zone_Plan_Account
+	(Member_ID,Zone_Plan_ID,Purchase_Price,Purchase_Price_Currency_ID,Network_Access_Limits_ID,Payment_Method_ID,Purchase_MAC_Address,Credit_Card_ID,PMS_Charge_ID,Date_Created_UTC,Activation_Date_UTC,Code_ID,Date_Modified_UTC,Zone_Plan_Account_Status_ID,Upsell_Zone_Plan_Account_ID,Purchase_Org_ID)
+VALUES
+	(1, 2, 4.0000, 1, 2, 1, '34-C0-59-D8-31-08', 1, 1, '2014-01-04 07:38:26.607', '2014-01-04 07:38:26.620', NULL, '2018-04-05 10:31:58.680', 1, NULL, 1)
+,
+	(1, 1, 12.9500, 1, 3, 1, '34-C0-59-D8-31-08', 1, 1, '2014-01-05 07:43:03.933', '2014-01-05 07:43:03.940', NULL, '2018-04-05 10:32:14.550', 1, NULL, 2)
+,
+	(1, 2, 4.0000, 1, 4, 1, '34-C0-59-D8-31-08', 1, 1, '2014-01-05 07:43:06.490', '2014-01-05 07:43:06.507', NULL, '2018-04-05 10:32:28.727', 1, NULL, 3)
+,
+	(2, 1, 12.9500, 1, 5, 1, '4C-B1-99-0A-4A-96', 1, 2, '2014-01-04 07:38:52.070', '2014-01-04 07:38:52.080', NULL, '2018-04-05 10:32:45.537', 1, NULL, 4)
+,
+	(2, 2, 4.0000, 1, 6, 1, '4C-B1-99-0A-4A-96', 1, 2, '2014-01-04 07:38:54.320', '2014-01-04 07:38:54.323', NULL, '2018-04-05 10:32:56.840', 1, NULL, 5)
+,
+	(3, 1, 9.9500, 1, 7, 1, '14-10-9F-DF-53-83', 1, 3, '2014-01-04 07:48:44.450', '2014-01-04 07:48:44.467', NULL, '2018-04-05 10:33:09.033', 1, NULL, 6)
+,
+	(3, 2, 5.0000, 1, 8, 1, '14-10-9F-DF-53-83', 1, 3, '2014-01-04 07:48:47.143', '2014-01-04 07:48:47.147', NULL, '2018-04-05 10:33:19.593', 1, NULL, 7)
+
+GO

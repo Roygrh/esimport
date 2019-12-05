@@ -66,7 +66,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
         for account in self.get_accounts_by_modified_date(start_date, end_date):
             count += 1
             self.append_site_values(account)
-            self.debug("Record found: {0}".format(account.get("ID")))
+            self.debug("Record found: {0}".format(account.raw.get("ID")))
 
             # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
             new_start_date = account.get("DateModifiedUTC")
@@ -88,8 +88,8 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
             next_id_to_process, self.default_query_limit, start_date
         ):
             self.append_site_values(account)
-            next_id_to_process = account.get("ID")
-            created_date = account.get("Created")
+            next_id_to_process = account.raw.get("ID")
+            created_date = account.raw.get("Created")
             self.add_record(account)
             self.info(
                 f"Updating Account ID: {next_id_to_process} and Date_Created_UTC: {created_date}"
