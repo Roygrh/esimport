@@ -7,7 +7,7 @@ from esimport.syncers import SessionsSyncer
 from esimport.tests.base_fixtures import sqs
 
 
-def test_account_syncer(sqs):
+def test_sessions_syncer(sqs):
     ss = SessionsSyncer()
     ss.setup()
     ss.resume(1, datetime(2000, 1, 1), False)
