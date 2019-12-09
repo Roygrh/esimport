@@ -83,7 +83,7 @@ esimport_testing:
     - pushes
     - merge_requests
   before_script:
-    - apk add --update --no-cache docker-compose make # canceling global before_script, not entirely needed for this job
+    - apk add --update --no-cache docker-compose make bash # canceling global before_script, not entirely needed for this job
   script:
     - cp .env-example .env
     - make test
