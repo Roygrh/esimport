@@ -10,6 +10,7 @@ stages:
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
+  - tetsing
   # - esimport_datadog_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
@@ -74,6 +75,19 @@ production_east_deploy:
     - master
   when: manual
 
+esimport_testing:
+  stage: testing
+  when: always
+  only:
+    - branches
+    - tags
+    - pushes
+    - merge_requests
+  script:
+    - cp .env-example .env
+    - make test
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
 #   stage: testing
