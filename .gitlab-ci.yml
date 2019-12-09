@@ -10,7 +10,7 @@ stages:
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
-  - tetsing
+  - esimport_tetsing
   # - esimport_datadog_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
