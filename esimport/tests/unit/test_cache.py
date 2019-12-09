@@ -5,11 +5,13 @@ from decimal import Decimal
 from dateutil import tz
 
 from esimport.infra import CacheClient
+from esimport.core import Config
 
 
 class TestCacheClient:
     def test_cache_client(self):
-        cc = CacheClient()
+        config = Config()
+        cc = CacheClient(redis_host=config.redis_host, redis_port=config.redis_port)
         cc.client.flushdb()
         assert cc.exists("test_key") is False
 

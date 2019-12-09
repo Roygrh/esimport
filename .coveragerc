@@ -4,6 +4,8 @@ source =
     esimport
 omit =
     *tests*
+    esimport/__main__.py
+    setup.py
 
 [report]
 show_missing = True

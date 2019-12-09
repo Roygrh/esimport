@@ -2,20 +2,30 @@ import pytest
 import boto3
 import os
 
+from esimport.core import Config
+
 
 @pytest.fixture
 def sqs():
+    config = Config()
+
     session = boto3.session.Session(
         aws_access_key_id="foo",
         aws_secret_access_key="bar",
         region_name="us-west-2",
         profile_name=None,
     )
-    sqs_client = session.client("sqs", endpoint_url="http://localhost:4576")
+    sqs_client = session.client(
+        "sqs", endpoint_url=f"{config.aws_endpoint_url}:{config.sqs_port}"
+    )
 
-    sns_client = session.client("sns", endpoint_url="http://localhost:4575")
+    sns_client = session.client(
+        "sns", endpoint_url=f"{config.aws_endpoint_url}:{config.sns_port}"
+    )
 
-    sqs_obj = session.resource("sqs", endpoint_url="http://localhost:4576")
+    sqs_obj = session.resource(
+        "sqs", endpoint_url=f"{config.aws_endpoint_url}:{config.sqs_port}"
+    )
 
     sqs_queue_name = "test"
 

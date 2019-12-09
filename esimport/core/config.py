@@ -76,6 +76,9 @@ class Config(BaseSettings):
     # Custom S3 Port, in case we're using a mock S3 service (e.g. with LocalStack)
     s3_port: Union[int, None] = None
 
+    # SQS
+    sqs_port: Union[int, None] = None
+
     # Sentry/Error Reporting
     sentry_dsn: str = ""
 
