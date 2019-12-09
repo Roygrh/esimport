@@ -21,5 +21,5 @@ stop-environment:
 	docker-compose stop
 
 test:
-	docker-compose run --rm --service-ports esimport pytest --cov-config=.coveragerc \
+	docker-compose run --rm --entrypoint="" --service-ports esimport pytest --cov-config=.coveragerc \
 		--cov=. esimport

@@ -4,7 +4,7 @@ services:
 
 stages:
   # TODO: uncomment the rest of stages when esimport is deployed as a serverless app
-  # - testing
+  - testing
   # - esimport_retention
   - build
   - staging_deploy
@@ -75,6 +75,25 @@ production_east_deploy:
     - master
   when: manual
 
+esimport_testing:
+  stage: testing
+  when: always
+  only:
+    - branches
+    - tags
+    - pushes
+    - merge_requests
+  before_script:
+    - apk add --update --no-cache docker-compose make bash # canceling global before_script, not entirely needed for this job
+  script:
+    - cp .env-example .env
+    - . .env
+    - docker-compose up -d mssql
+    - sleep 5 # allow mssql db server to come up
+    - ./init_mssql_db.sh
+    - make test
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
 #   stage: testing
