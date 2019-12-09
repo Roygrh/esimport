@@ -1,11 +1,14 @@
+import os
 import json
 import logging
-import os
-from elasticsearch import Elasticsearch, helpers
 
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+import boto3
+from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+
+FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
+logging.basicConfig(format=FORMAT)
 log = logging.getLogger(__name__)
-es = Elasticsearch("localhost:9200", timeout=30)
 
 
 def lambda_handler(event, context):
@@ -37,13 +40,14 @@ def lambda_handler(event, context):
     #     print(e)
 
     #     raise e
-    records_json_str = event.get('body')
-    records =json.loads(records_json_str)
+    records_json_str = event["Records"][0]["body"]
+    records = json.loads(records_json_str)
 
     number_of_records = len(records)
     log.info("About to index %d" % (number_of_records,))
 
     try:
+        es = get_es_instance()
         helpers.bulk(es, records, request_timeout=30)
     except helpers.BulkIndexError as bie:
         number_of_errors = len(bie.errors)
@@ -69,6 +73,27 @@ def lambda_handler(event, context):
 
 def is_version_conflict_error(error):
     for op_type, values in error.items():
-        status = values.get('status')
+        status = values.get("status")
         return status == 409
     return False
+
+
+def get_es_instance():
+    session = boto3.Session()
+    credentials = session.get_credentials()
+
+    awsauth = AWS4Auth(
+        credentials.access_key,
+        credentials.secret_key,
+        session.region_name,
+        "es",
+        session_token=credentials.token,
+    )
+
+    return Elasticsearch(
+        os.environ["ES_HOST"],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=RequestsHttpConnection,
+    )

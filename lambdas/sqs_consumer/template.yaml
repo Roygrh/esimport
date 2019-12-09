@@ -26,7 +26,7 @@ Resources:
       CodeUri: src/
       Handler: app.lambda_handler
       Runtime: python3.7
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Role: !Ref RoleARN
       Environment:
         Variables:
           SNS_TOPIC_ARN: !Ref SNSTopicARN
@@ -87,7 +87,11 @@ Resources:
   MessagesQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: "esimport-queue"
+      QueueName: 
+        Fn::Join: 
+        - "-"
+        - - 'esimport-queue'
+          - !Ref AWS::Region
       VisibilityTimeout: !Ref ExecutionTimeout
 
 
@@ -107,7 +111,7 @@ Resources:
           Resource: "*"
           Condition:
             ArnEquals:
-              "aws:SourceArn": !Ref ESRecordsSNS
+              "aws:SourceArn": !Ref SNSTopicARN
 
   MessagesQueueToSnsSubscription:
     Type: AWS::SNS::Subscription
@@ -115,4 +119,4 @@ Resources:
       Endpoint: !GetAtt MessagesQueue.Arn
       Protocol: sqs
       RawMessageDelivery: true
-      TopicArn: !Ref ESRecordsSNS
+      TopicArn: !Ref SNSTopicARN

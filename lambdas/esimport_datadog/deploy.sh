@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export SAM_CLI_TELEMETRY=0
 
 #set -x
 # Example

@@ -1,55 +1,31 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
 Description: 'sqs_consumer
 
   ESImport SQS to Elasticsearch worker
 
   '
 Parameters:
-  ExecutionTimeout:
-    Default: 60
-    Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout
-      as well.
-    Type: Number
   RoleARN:
     Type: String
   SNSTopicARN:
     Type: String
+  ExecutionTimeout:
+    Type: Number
+    Default: 60
+    Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout
+      as well.
 Resources:
-  MessagesQueue:
-    Properties:
-      QueueName: esimport-queue
-      VisibilityTimeout:
-        Ref: ExecutionTimeout
-    Type: AWS::SQS::Queue
-  MessagesQueuePolicy:
-    Properties:
-      PolicyDocument:
-        Statement:
-          Action: sqs:*
-          Condition:
-            ArnEquals:
-              aws:SourceArn:
-                Ref: ESRecordsSNS
-          Effect: Allow
-          Principal: '*'
-          Resource: '*'
-      Queues:
-      - Ref: MessagesQueue
-    Type: AWS::SQS::QueuePolicy
-  MessagesQueueToSnsSubscription:
-    Properties:
-      Endpoint:
-        Fn::GetAtt:
-        - MessagesQueue
-        - Arn
-      Protocol: sqs
-      RawMessageDelivery: true
-      TopicArn:
-        Ref: ESRecordsSNS
-    Type: AWS::SNS::Subscription
   SQSConsumerFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://distrodev-esimport-lambda-us-east-1/91b743c83500872faa26bfdf975c3b41
+      Timeout:
+        Ref: ExecutionTimeout
+      CodeUri: s3://distrodev-esimport-sqs-consumer/851e75e624ed705692f57d6ef4a5131c
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Role:
+        Ref: RoleARN
       Environment:
         Variables:
           SNS_TOPIC_ARN:
@@ -58,19 +34,45 @@ Resources:
             Ref: MessagesQueue
       Events:
         NewSQSMessage:
+          Type: SQS
           Properties:
             Queue:
               Fn::GetAtt:
               - MessagesQueue
               - Arn
-          Type: SQS
-      Handler: app.lambda_handler
-      Role:
-        Fn::GetAtt:
-        - LambdaExecutionRole
-        - Arn
-      Runtime: python3.7
-      Timeout:
+  MessagesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        Fn::Join:
+        - '-'
+        - - esimport-queue
+          - Ref: AWS::Region
+      VisibilityTimeout:
         Ref: ExecutionTimeout
-    Type: AWS::Serverless::Function
-Transform: AWS::Serverless-2016-10-31
+  MessagesQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: MessagesQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: '*'
+          Action: sqs:*
+          Resource: '*'
+          Condition:
+            ArnEquals:
+              aws:SourceArn:
+                Ref: SNSTopicARN
+  MessagesQueueToSnsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint:
+        Fn::GetAtt:
+        - MessagesQueue
+        - Arn
+      Protocol: sqs
+      RawMessageDelivery: true
+      TopicArn:
+        Ref: SNSTopicARN
