@@ -87,7 +87,7 @@ esimport_testing:
   script:
     - cp .env-example .env
     - . .env
-    - docker-compose up
+    - docker-compose up -d mssql
     - ./init_mssql_db.sh
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
