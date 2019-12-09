@@ -12,6 +12,14 @@ Parameters:
   SNSTopicARN:
     Type: String
 
+  EsUrl:
+    Description: The URL to the target ElasticSearch cluster
+    Type: String
+
+  SentryDsn:
+    Description: DSN for Sentry alerting
+    Type: String
+
   ExecutionTimeout:
     Type: Number
     Default: 60
@@ -31,6 +39,8 @@ Resources:
         Variables:
           SNS_TOPIC_ARN: !Ref SNSTopicARN
           SQS_QUEUE_URL: !Ref MessagesQueue
+          ES_URL: !Ref EsUrl
+          SENTRY_DSN: !Ref SentryDsn
 
       Events:
         NewSQSMessage:
@@ -38,9 +48,9 @@ Resources:
           Properties:
             Queue: !GetAtt MessagesQueue.Arn
 
-      # DeadLetterQueue:
-      #   Type: SQS
-      #   TargetArn: !GetAtt MessagesDeadLetterQueue.Arn # ARN of the SQS queue or SNS topic to use as DLQ. 
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt MessagesDeadLetterQueue.Arn # ARN of the SQS queue or SNS topic to use as DLQ. 
 
 
   # LambdaExecutionRole:
@@ -95,8 +105,14 @@ Resources:
       VisibilityTimeout: !Ref ExecutionTimeout
 
 
-  # MessagesDeadLetterQueue:
-  #   Type: AWS::SQS::Queue
+  MessagesDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: 
+        Fn::Join: 
+        - "-"
+        - - 'esimport-dlq'
+          - !Ref AWS::Region
 
   MessagesQueuePolicy:
     Type: AWS::SQS::QueuePolicy
@@ -113,6 +129,19 @@ Resources:
             ArnEquals:
               "aws:SourceArn": !Ref SNSTopicARN
 
+
+  MessagesDeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MessagesDeadLetterQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: "sqs:*"
+          Resource: !GetAtt MessagesQueue.Arn
+
   MessagesQueueToSnsSubscription:
     Type: AWS::SNS::Subscription
     Properties:
@@ -120,3 +149,4 @@ Resources:
       Protocol: sqs
       RawMessageDelivery: true
       TopicArn: !Ref SNSTopicARN
+      Region: "us-west-2"

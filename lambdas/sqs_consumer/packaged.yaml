@@ -10,6 +10,12 @@ Parameters:
     Type: String
   SNSTopicARN:
     Type: String
+  EsUrl:
+    Description: The URL to the target ElasticSearch cluster
+    Type: String
+  SentryDsn:
+    Description: DSN for Sentry alerting
+    Type: String
   ExecutionTimeout:
     Type: Number
     Default: 60
@@ -21,7 +27,7 @@ Resources:
     Properties:
       Timeout:
         Ref: ExecutionTimeout
-      CodeUri: s3://distrodev-esimport-sqs-consumer/851e75e624ed705692f57d6ef4a5131c
+      CodeUri: s3://lambda-artifacts-11/esimport/sqs_consumer/6ef457b90d2c720e1f286b3eb091511f
       Handler: app.lambda_handler
       Runtime: python3.7
       Role:
@@ -32,6 +38,10 @@ Resources:
             Ref: SNSTopicARN
           SQS_QUEUE_URL:
             Ref: MessagesQueue
+          ES_URL:
+            Ref: EsUrl
+          SENTRY_DSN:
+            Ref: SentryDsn
       Events:
         NewSQSMessage:
           Type: SQS
@@ -40,6 +50,12 @@ Resources:
               Fn::GetAtt:
               - MessagesQueue
               - Arn
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn:
+          Fn::GetAtt:
+          - MessagesDeadLetterQueue
+          - Arn
   MessagesQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -50,6 +66,14 @@ Resources:
           - Ref: AWS::Region
       VisibilityTimeout:
         Ref: ExecutionTimeout
+  MessagesDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        Fn::Join:
+        - '-'
+        - - esimport-dlq
+          - Ref: AWS::Region
   MessagesQueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
@@ -65,6 +89,20 @@ Resources:
             ArnEquals:
               aws:SourceArn:
                 Ref: SNSTopicARN
+  MessagesDeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: MessagesDeadLetterQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - MessagesQueue
+            - Arn
   MessagesQueueToSnsSubscription:
     Type: AWS::SNS::Subscription
     Properties:
@@ -76,3 +114,4 @@ Resources:
       RawMessageDelivery: true
       TopicArn:
         Ref: SNSTopicARN
+      Region: us-west-2

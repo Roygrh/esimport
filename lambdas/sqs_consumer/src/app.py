@@ -91,7 +91,7 @@ def get_es_instance():
     )
 
     return Elasticsearch(
-        os.environ["ES_HOST"],
+        os.environ["ES_URL"],
         http_auth=awsauth,
         use_ssl=True,
         verify_certs=True,
