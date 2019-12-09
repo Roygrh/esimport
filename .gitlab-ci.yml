@@ -85,6 +85,8 @@ esimport_testing:
   before_script:
     - apk add --update --no-cache docker-compose make bash # canceling global before_script, not entirely needed for this job
   script:
+    - docker-compose up
+    - ./init_mssql_db.sh
     - cp .env-example .env
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
