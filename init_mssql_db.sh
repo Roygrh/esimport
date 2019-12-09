@@ -16,10 +16,11 @@ DB_PASSWORD="DistroDev@11"
 sqlcmd="docker exec $MSSQL_SERVER_CONTAINER_NAME $SQLCMD_EXEC -U $DB_USER -P $DB_PASSWORD"
 
 # Make sure required DBs are created
-echo "Craeating databases"
-$sqlcmd -Q "CREATE DATABASE Eleven_OS" &> /dev/null || true
-$sqlcmd -Q "CREATE DATABASE Radius" &> /dev/null || true
+echo "Creating databases"
+$sqlcmd -Q "CREATE DATABASE Eleven_OS" #&> /dev/null || true
+$sqlcmd -Q "CREATE DATABASE Radius" #&> /dev/null || true
 
+sleep 2
 echo "Creating tables"
 # loop over the result of 'ls -1 *.sql'
 #     'ls -1' sorts the file names based on the current locale 
