@@ -4,13 +4,12 @@ services:
 
 stages:
   # TODO: uncomment the rest of stages when esimport is deployed as a serverless app
-  # - testing
+  - testing
   # - esimport_retention
   - build
   - staging_deploy
   - production_west_deploy
   - production_east_deploy
-  - testing
   # - esimport_datadog_deploy
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
