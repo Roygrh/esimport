@@ -56,6 +56,7 @@ production_west_deploy:
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.west local_settings.py
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
+    - echo "$DOT_ENV" > .env
     - eb deploy $EB_PROD_WEST_ENV_NAME --verbose
   only:
     - master

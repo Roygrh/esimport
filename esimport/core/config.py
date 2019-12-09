@@ -29,6 +29,8 @@ class Config(BaseSettings):
     # If you're under Windows, this would like something like:
     # mssql_dsn = "Driver={SQL Server};Server=.;Trusted_Connection=yes;"
     mssql_dsn: str = "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes"
+    # DSN config name if a dsn file is configured
+    dsn: str = "localhost"
 
     # Redis (for caching)
     redis_host: str = "localhost"
@@ -97,7 +99,7 @@ class Config(BaseSettings):
     @property
     def database_info(self):
         return {
-            "DSN": "Eleven_OS" if self.inside_docker else "localhost",
+            "DSN": "Eleven_OS" if self.inside_docker else self.dsn,
             "HOST": self.mssql_host,
             "PORT": self.mssql_port,
             "NAME": self.mssql_db_mame,

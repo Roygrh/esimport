@@ -21,7 +21,13 @@ from .syncers import (
     SessionsSyncer,
 )
 
-load_dotenv(override=True)
+here_path = os.path.dirname(__file__)
+parent_path = os.path.dirname(here_path)
+
+dotenv_path = os.path.join(parent_path, ".env")
+
+load_dotenv(dotenv_path, override=True)
+
 syncer_classes = {
     "accounts": AccountsSyncer,
     "conferences": ConferencesSyncer,

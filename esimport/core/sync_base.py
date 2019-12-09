@@ -1,11 +1,11 @@
+import os
 import abc
 import logging
 import time
 from datetime import datetime, timezone
 from typing import List
 
-from dateutil import tz
-
+from dateutil import tz, parser
 from esimport.infra import AmazonWebServices, CacheClient, MsSQLHandler
 
 from .base_schema import BaseSchema
@@ -15,7 +15,12 @@ from .record import Record
 from .sns_buffer import SNSBuffer
 from dotenv import load_dotenv
 
-load_dotenv()
+here_path = os.path.dirname(__file__)
+parent_path = os.path.dirname(here_path)
+root_path = os.path.dirname(parent_path)
+dotenv_path = os.path.join(root_path, ".env")
+
+load_dotenv(dotenv_path, override=True)
 
 
 class SyncBase(abc.ABC):
@@ -146,7 +151,7 @@ class SyncBase(abc.ABC):
         dt_str = self.last_inserted_cursor_state["Item"].get(
             "latest_date", "1900-01-01"
         )
-        return datetime.fromisoformat(dt_str)
+        return parser.parse(dt_str).replace(tzinfo=timezone.utc)
 
     @staticmethod
     def set_utc_timezone(datetime_object: datetime) -> datetime:
