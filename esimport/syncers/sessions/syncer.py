@@ -73,18 +73,18 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
             from_id, self.default_query_limit, start_date, use_historical
         ):
             count += 1
-            session_id = session_record.get("ID")
+            session_id = session_record.raw.get("ID")
             self.debug(f"Record found: {session_id}")
 
             self.update_time_zones(
                 session_record,
-                session_record.get("ServiceArea"),
+                session_record.raw.get("ServiceArea"),
                 self.date_fields_to_localize,
             )
 
-            most_recent_session_time = session_record[self.record_date_fieldname]
+            most_recent_session_time = session_record.raw[self.record_date_fieldname]
             self.add_record(session_record)
-            from_id = session_record.get("ID") + 1
+            from_id = session_record.raw.get("ID") + 1
 
         return count, from_id, most_recent_session_time
 

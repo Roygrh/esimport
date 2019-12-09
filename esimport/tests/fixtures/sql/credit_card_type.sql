@@ -1,19 +1,20 @@
 USE [Eleven_OS]
 GO
 
-IF (EXISTS (SELECT * 
-                 FROM INFORMATION_SCHEMA.TABLES 
-                 WHERE TABLE_SCHEMA = 'dbo' 
-                 AND  TABLE_NAME = 'Credit_Card_Type'))
+IF (EXISTS (SELECT *
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'dbo'
+    AND TABLE_NAME = 'Credit_Card_Type'))
 BEGIN
-DROP TABLE [dbo].[Credit_Card_Type]
+    DROP TABLE [dbo].[Credit_Card_Type]
 END
 GO
 
-CREATE TABLE [dbo].[Credit_Card_Type](
-	[ID] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [varchar](64) NOT NULL,
- CONSTRAINT [PK_Credit_Card_Type] PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[Credit_Card_Type]
+(
+    [ID] [int] IDENTITY(1,1) NOT NULL,
+    [Name] [varchar](64) NOT NULL,
+    CONSTRAINT [PK_Credit_Card_Type] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
@@ -22,3 +23,11 @@ CREATE TABLE [dbo].[Credit_Card_Type](
 GO
 
 -- PUT DATA INSERT SCRIPTS BELOW
+
+INSERT INTO Eleven_OS.dbo.Credit_Card_Type
+    (Name)
+VALUES
+    ('Some credit card')
+,
+    ('Some credit card')
+GO

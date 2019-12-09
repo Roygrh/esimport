@@ -76,6 +76,9 @@ class Config(BaseSettings):
     # Custom S3 Port, in case we're using a mock S3 service (e.g. with LocalStack)
     s3_port: Union[int, None] = None
 
+    # SQS
+    sqs_port: Union[int, None] = None
+
     # Sentry/Error Reporting
     sentry_dsn: str = ""
 
@@ -94,7 +97,7 @@ class Config(BaseSettings):
     @property
     def database_info(self):
         return {
-            "DSN": "Eleven_OS" if self.inside_docker else None,
+            "DSN": "Eleven_OS" if self.inside_docker else "localhost",
             "HOST": self.mssql_host,
             "PORT": self.mssql_port,
             "NAME": self.mssql_db_mame,
