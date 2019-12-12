@@ -106,7 +106,7 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
+                }
             ]
         },
         {
@@ -127,7 +127,7 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
+                }
             ]
         }
     ]
