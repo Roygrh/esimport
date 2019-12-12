@@ -1,5 +1,5 @@
 FROM amazonlinux:2
-  
+
 ENV LANG=en_US.utf-8 LC_ALL=en_US.utf-8 INSIDE_DOCKER=1
 
 # Install 'build-base' meta-package for gcc and other packages needed

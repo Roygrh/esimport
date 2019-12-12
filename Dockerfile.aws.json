@@ -1,5 +1,9 @@
 {
     "AWSEBDockerrunVersion": 2,
+    "Authentication": {
+        "Bucket": "esimport-prod",
+        "Key": "PROD/docker-registry.json"
+    },
     "volumes": [
         {
             "name": "redis-store",
@@ -39,10 +43,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "AWS_DEFAULT_REGION",
-                    "value": "us-west-2"
                 }
             ]
         },
@@ -64,10 +64,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "AWS_DEFAULT_REGION",
-                    "value": "us-west-2"
                 }
             ]
         },
@@ -89,10 +85,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "AWS_DEFAULT_REGION",
-                    "value": "us-west-2"
                 }
             ]
         },
@@ -115,10 +107,6 @@
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
                 },
-                {
-                    "name": "AWS_DEFAULT_REGION",
-                    "value": "us-west-2"
-                }
             ]
         },
         {
@@ -140,10 +128,6 @@
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
                 },
-                {
-                    "name": "AWS_DEFAULT_REGION",
-                    "value": "us-west-2"
-                }
             ]
         }
     ]
