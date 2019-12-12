@@ -1,9 +1,5 @@
 {
     "AWSEBDockerrunVersion": 2,
-    "Authentication": {
-        "Bucket": "esimport-prod",
-        "Key": "PROD/docker-registry.json"
-    },
     "volumes": [
         {
             "name": "app",
