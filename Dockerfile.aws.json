@@ -49,10 +49,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "ENVIRONMENT",
-                    "value": "prod"
                 }
             ]
         },
@@ -74,10 +70,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "ENVIRONMENT",
-                    "value": "prod"
                 }
             ]
         },
@@ -99,10 +91,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "ENVIRONMENT",
-                    "value": "prod"
                 }
             ]
         },
@@ -124,10 +112,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "ENVIRONMENT",
-                    "value": "prod"
                 }
             ]
         },
@@ -149,10 +133,6 @@
                 {
                     "name": "REDIS_HOST",
                     "value": "redis://redis:6379"
-                },
-                {
-                    "name": "ENVIRONMENT",
-                    "value": "prod"
                 }
             ]
         }
