@@ -1,0 +1,156 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "volumes": [
+        {
+            "name": "app",
+            "host": {
+                "sourcePath": "/var/app/current"
+            }
+        },
+        {
+            "name": "redis-store",
+            "host": {
+                "sourcePath": "/var/data/redis"
+            }
+        }
+    ],
+    "containerDefinitions": [
+        {
+            "name": "redis",
+            "image": "redis:alpine",
+            "essential": true,
+            "memory": 128,
+            "mountPoints": [
+                {
+                    "sourceVolume": "redis-store",
+                    "containerPath": "/var/lib/redis/data"
+                }
+            ]
+        },
+        {
+            "name": "accounts",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": true,
+            "memory": 2000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "/usr/local/bin/python",
+                "/usr/local/bin/esimport",
+                "sync",
+                "accounts"
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "redis://redis:6379"
+                },
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "prod"
+                }
+            ]
+        },
+        {
+            "name": "conferences",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": true,
+            "memory": 2000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "/usr/local/bin/python",
+                "/usr/local/bin/esimport",
+                "sync",
+                "conferences"
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "redis://redis:6379"
+                },
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "prod"
+                }
+            ]
+        },
+        {
+            "name": "devices",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": true,
+            "memory": 2000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "/usr/local/bin/python",
+                "/usr/local/bin/esimport",
+                "sync",
+                "devices"
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "redis://redis:6379"
+                },
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "prod"
+                }
+            ]
+        },
+        {
+            "name": "properties",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": true,
+            "memory": 2000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "/usr/local/bin/python",
+                "/usr/local/bin/esimport",
+                "sync",
+                "properties"
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "redis://redis:6379"
+                },
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "prod"
+                }
+            ]
+        },
+        {
+            "name": "sessions",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": true,
+            "memory": 2000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "/usr/local/bin/python",
+                "/usr/local/bin/esimport",
+                "sync",
+                "sessions"
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "redis://redis:6379"
+                },
+                {
+                    "name": "ENVIRONMENT",
+                    "value": "prod"
+                }
+            ]
+        }
+    ]
+}
