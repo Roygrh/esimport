@@ -1,8 +1,8 @@
 {
     "AWSEBDockerrunVersion": 2,
     "Authentication": {
-        "Bucket": "esimport-prod",
-        "Key": "PROD/docker-registry.json"
+        "Bucket": "gpns-private-docker-registry",
+        "Key": "config.json"
     },
     "volumes": [
         {
@@ -17,7 +17,7 @@
             "name": "redis",
             "image": "redis:alpine",
             "essential": true,
-            "memory": 128,
+            "memory": 500,
             "mountPoints": [
                 {
                     "sourceVolume": "redis-store",
@@ -29,7 +29,7 @@
             "name": "accounts",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 2000,
+            "memory": 500,
             "links": [
                 "redis"
             ],
@@ -38,19 +38,13 @@
                 "/usr/local/bin/esimport",
                 "sync",
                 "accounts"
-            ],
-            "environment": [
-                {
-                    "name": "REDIS_HOST",
-                    "value": "redis://redis:6379"
-                }
             ]
         },
         {
             "name": "conferences",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 2000,
+            "memory": 500,
             "links": [
                 "redis"
             ],
@@ -59,19 +53,13 @@
                 "/usr/local/bin/esimport",
                 "sync",
                 "conferences"
-            ],
-            "environment": [
-                {
-                    "name": "REDIS_HOST",
-                    "value": "redis://redis:6379"
-                }
             ]
         },
         {
             "name": "devices",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 2000,
+            "memory": 500,
             "links": [
                 "redis"
             ],
@@ -80,19 +68,13 @@
                 "/usr/local/bin/esimport",
                 "sync",
                 "devices"
-            ],
-            "environment": [
-                {
-                    "name": "REDIS_HOST",
-                    "value": "redis://redis:6379"
-                }
             ]
         },
         {
             "name": "properties",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 2000,
+            "memory": 500,
             "links": [
                 "redis"
             ],
@@ -101,19 +83,13 @@
                 "/usr/local/bin/esimport",
                 "sync",
                 "properties"
-            ],
-            "environment": [
-                {
-                    "name": "REDIS_HOST",
-                    "value": "redis://redis:6379"
-                }
             ]
         },
         {
             "name": "sessions",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 2000,
+            "memory": 500,
             "links": [
                 "redis"
             ],
@@ -122,12 +98,6 @@
                 "/usr/local/bin/esimport",
                 "sync",
                 "sessions"
-            ],
-            "environment": [
-                {
-                    "name": "REDIS_HOST",
-                    "value": "redis://redis:6379"
-                }
             ]
         }
     ]

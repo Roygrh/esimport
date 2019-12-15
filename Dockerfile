@@ -27,5 +27,4 @@ RUN pip3 install --upgrade pip && pip install -r dev-requirements.txt
 # set up esimport
 RUN pip install -e .
 
-ENTRYPOINT ["esimport"]
-CMD ["sync"]
+CMD ["esimport"]

@@ -1,5 +1,12 @@
 .git/
+.tox/
+.vscode/
 .gitlab-ci.yml
 .env-example
+.env
 run.sh
 lambdas/
+tools/
+docker/
+esimport/tests
+architecture.png
