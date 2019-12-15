@@ -20,7 +20,6 @@ setup(
     zip_safe=False,
     install_requires=[
         "click==7.0",
-        "datadog==0.22.0",
         "elasticsearch==5.2.0",
         "hiredis==0.2.0",
         "pyodbc==4.0.27",
@@ -30,7 +29,7 @@ setup(
         "redis==2.10.6",
         "requests==2.19.1",
         "urllib3==1.23",
-        "boto3",
+        "boto3==1.10.28",
         "orjson==2.1.1",
         "pydantic==1.0",
         "python-dotenv==0.10.3",

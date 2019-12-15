@@ -18,29 +18,26 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
 before_script:
-  - apk add --update --no-cache python3 git wget
+  - docker info
+  - apk add --update --no-cache python3 git 
   - pip3 --no-cache-dir install awsebcli awscli
   - mkdir ~/.aws/
-  - wget https://packages.microsoft.com/rhel/7/prod/msodbcsql17-17.3.1.1-1.x86_64.rpm -O msodbcsql17.rpm
-  - wget http://mirror.centos.org/centos/7/os/x86_64/Packages/unixODBC-2.3.1-14.el7.x86_64.rpm -O unixODBC.rpm
-  - wget http://mirror.centos.org/centos/7/os/x86_64/Packages/unixODBC-devel-2.3.1-14.el7.x86_64.rpm -O unixODBC-devel.rpm
+  - mkdir .elasticbeanstalk && echo "$EB_STAGING_CONFIG" > .elasticbeanstalk/config.yml
+  - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+  - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 build:
   stage: build
-  before_script:
-    - docker info
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG .
+    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
+    - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
-  allow_failure: true # TODO: change/remove this if prod/staging are/will be using the docker image
 
 staging_deploy:
   stage: staging_deploy
   script:
-    - mkdir .elasticbeanstalk && echo "$EB_STAGING_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_STAGING_ACCESS_KEY_ID" "$EB_STAGING_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-east-1\n" > ~/.aws/config
+    
     - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
     - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
     - eb deploy $EB_STAGING_ENV_NAME --verbose

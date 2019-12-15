@@ -19,10 +19,8 @@ WORKDIR /esimport
 COPY . /esimport
 
 # Create Microsoft ODBC DSN file
-RUN sh docker/setup_db.bash
+# msodbc is to be fetch fro ma prod S3 bucket
+RUN odbcinst -i -s -f msodbc.ini -l
 
 # upgrade pip, install cython (required by mssql)
-RUN pip3 install --upgrade pip && pip install -r dev-requirements.txt
-
-# set up esimport
-RUN pip install -e .
+RUN pip3 install --upgrade pip && pip install -e .
