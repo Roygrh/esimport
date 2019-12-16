@@ -69,7 +69,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
             self.debug("Record found: {0}".format(account.raw.get("ID")))
 
             # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
-            new_start_date = account.get("DateModifiedUTC")
+            new_start_date = account._date
             self.debug("New Start Date: {0}".format(new_start_date))
 
             self.add_record(account)
