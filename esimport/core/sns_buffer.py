@@ -5,6 +5,9 @@ from typing import Any, List, Union
 from datetime import datetime
 import boto3
 import orjson
+import time
+
+from botocore.errorfactory import ProvisionedThroughputExceededException
 
 from .record import Record
 
@@ -47,8 +50,6 @@ class SNSBuffer:
         For more info, have a look at: 
             https://aws.amazon.com/about-aws/whats-new/2013/06/18/amazon-sqs-announces-256KB-large-payloads/
         """
-        if self.no_new_records_for_a_while:
-            return True
 
         return (
             self._current_bytes_size
@@ -75,13 +76,25 @@ class SNSBuffer:
         self._current_bytes_size = 0
 
     def _update_cursor_state(self):
-        response = self.dynamodb_table_client.put_item(
-            Item={
-                "doctype": self._last_added_record._type,
-                "latest_id": self._last_added_record.id,
-                "latest_date": self._last_added_record._date.isoformat(),
-            }
-        )
+        retries = 3
+        iteration = 1
+        while True:
+            try:
+                response = self.dynamodb_table_client.put_item(
+                    Item={
+                        "doctype": self._last_added_record._type,
+                        "latest_id": self._last_added_record.id,
+                        "latest_date": self._last_added_record._date.isoformat(),
+                    }
+                )
+            except ProvisionedThroughputExceededException:
+                if iteration > retries:
+                    raise
+
+                self.log(f"Hit DynamoDB max throughput limit. Retrying .. {iteration}")
+                time.sleep(3)
+                iteration += 1
+
         self.log(str(response), logging.DEBUG)
 
     def _send_to_sns(self):
