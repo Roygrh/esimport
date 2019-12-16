@@ -25,9 +25,9 @@ class AmazonWebServices(BaseInfra):
             urlparse(self.endpoint_url) if self.endpoint_url else None
         )
 
-        if self.aws_endpoint_url:
-            # If a custom endpoint is provided, we don't want AWS_ACCESS_KEY
-            # nor AWS_SECRET_ACCESS_KEY to interfer. Just a Safety precaution.
+        if not self.aws_endpoint_url:
+            # If a custom endpoint is not provided, we don't want AWS_ACCESS_KEY
+            # nor AWS_SECRET_ACCESS_KEY to interfere. On prod, the permission is assumed by the IAM role
             self.aws_access_key_id = None
             self.aws_secret_access_key = None
 

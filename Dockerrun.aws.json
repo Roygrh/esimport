@@ -1,8 +1,8 @@
 {
     "AWSEBDockerrunVersion": 2,
     "Authentication": {
-        "Bucket": "gpns-private-docker-registry",
-        "Key": "config.json"
+        "Bucket": "dataservices.esimport.production",
+        "Key": "docker-registry.json"
     },
     "volumes": [
         {
@@ -34,8 +34,7 @@
                 "redis"
             ],
             "command": [
-                "/usr/local/bin/python",
-                "/usr/local/bin/esimport",
+                "esimport",
                 "sync",
                 "accounts"
             ]
@@ -49,8 +48,7 @@
                 "redis"
             ],
             "command": [
-                "/usr/local/bin/python",
-                "/usr/local/bin/esimport",
+                "esimport",
                 "sync",
                 "conferences"
             ]
@@ -64,8 +62,7 @@
                 "redis"
             ],
             "command": [
-                "/usr/local/bin/python",
-                "/usr/local/bin/esimport",
+                "esimport",
                 "sync",
                 "devices"
             ]
@@ -79,8 +76,7 @@
                 "redis"
             ],
             "command": [
-                "/usr/local/bin/python",
-                "/usr/local/bin/esimport",
+                "esimport",
                 "sync",
                 "properties"
             ]
@@ -94,8 +90,7 @@
                 "redis"
             ],
             "command": [
-                "/usr/local/bin/python",
-                "/usr/local/bin/esimport",
+                "esimport",
                 "sync",
                 "sessions"
             ]
