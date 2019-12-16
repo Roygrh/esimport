@@ -48,6 +48,7 @@ class Record:
             "_op_type": self._op_type,
             "_index": self._index,
             "_id": self.id,
+            "_type": self._type,
             "_version": self.version,
             "_version_type": self._version_type,
             "_source": self._source,
