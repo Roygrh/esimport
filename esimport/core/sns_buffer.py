@@ -7,8 +7,6 @@ import boto3
 import orjson
 import time
 
-from botocore.errorfactory import ProvisionedThroughputExceededException
-
 from .record import Record
 
 
@@ -76,32 +74,21 @@ class SNSBuffer:
         self._current_bytes_size = 0
 
     def _update_cursor_state(self):
-        retries = 3
-        iteration = 1
-        while True:
-            try:
-                response = self.dynamodb_table_client.put_item(
-                    Item={
-                        "doctype": self._last_added_record._type,
-                        "latest_id": self._last_added_record.id,
-                        "latest_date": self._last_added_record._date.isoformat(),
-                    }
-                )
-            except ProvisionedThroughputExceededException:
-                if iteration > retries:
-                    raise
-
-                self.log(f"Hit DynamoDB max throughput limit. Retrying .. {iteration}")
-                time.sleep(3)
-                iteration += 1
-
+        response = self.dynamodb_table_client.put_item(
+            Item={
+                "doctype": self._last_added_record._type,
+                "latest_id": self._last_added_record.id,
+                "latest_date": self._last_added_record._date.isoformat(),
+            }
+        )
         self.log(str(response), logging.DEBUG)
 
     def _send_to_sns(self):
         message = self.orjson_dumps(self._records_list).decode("utf-8")
         message_length = len(message)
+        list_length = len(self._records_list)
         self.log(
-            f"About to send {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
+            f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
         )
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
