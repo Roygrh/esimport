@@ -17,7 +17,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = DeviceSchema
 
-    default_query_limit: int = 50
+    default_query_limit: int = 500
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object

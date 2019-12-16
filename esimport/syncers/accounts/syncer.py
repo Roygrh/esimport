@@ -19,7 +19,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = AccountSchema
 
-    default_query_limit: int = 20
+    default_query_limit: int = 500
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object

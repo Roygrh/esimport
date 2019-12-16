@@ -90,6 +90,11 @@ class SNSBuffer:
         self.log(
             f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
         )
+        if message_length > self.max_sns_bulk_send_size_in_bytes:
+            for _rec in self._records_list:
+                self.log(message)
+                self.log(f" Record ID: {_rec.id}")
+
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             raise Exception  # TODO: raise a proper exception
