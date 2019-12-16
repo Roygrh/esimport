@@ -86,6 +86,10 @@ class SNSBuffer:
 
     def _send_to_sns(self):
         message = self.orjson_dumps(self._records_list).decode("utf-8")
+        message_length = len(message)
+        self.log(
+            f"About to send {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
+        )
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             raise Exception  # TODO: raise a proper exception
