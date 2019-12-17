@@ -13,7 +13,7 @@ Parameters:
   LookBackForXMinutes:
     Description: For how much minutes function will be looking back to find latest document
     Type: Number
-    Default: 10
+    Default: 300
 
   SentryDsn:
     Description: DSN for Sentry service

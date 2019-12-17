@@ -1,77 +1,50 @@
 #!/usr/bin/env bash
+
+# Disable AWS SAM Telemetry
 export SAM_CLI_TELEMETRY=0
 
-#set -x
-# Example
-# bash ./deploy.sh \
-#	<CloudFormation stack name> \
-#	<S3 bucket to store lambda function deploy archive> \
-#	<Number in minutes, that will be used to in queries to search last inserted doc > \
-#	<ElasticsSearch server/cluser url> \
-#	<DSN for Sentry> \
-#	<Datadog API key> \
-#	<Datadog host_name \
-#	DEBUG
-
-
-#There is a Circular dependency.
-#Lambda function needs to know ElasticSearch url that can be taken after ElasticSearch stack will be created.
-#But ElasticSearch stack need to know Lambda Role ARN to allow access. Role ARN will be available after CloudFormation stack with Lambda function will be created.
-#So two options:
-#- or use template to manually create Lambda IAM Role ARN ` "arn:aws:iam::{AWS Account id}:role/{IAM-ROLE-NAME}"`
-#- or first deploy lambda function with fake EsUrl parameter, copy IAM ROLE ARN, update ElasticSearch Access policies. Then copy ElasticSearch url and updated CloudFormation lambda function stack with correct `EsUrl` parameter
-
-if [[ $# -lt 6 ]]
+if [[ $# -lt 8 ]]
   then
     echo "No enough arguments supplied"
-    echo '$1 - CloudFormation stack name'
-    echo '$2 - S3 bucket name to stored deploy file'
-    echo '$3 - Number in minutes, for how much minutes function will be looking back to find latest document'
+    echo '$1 - Stack name (for Cloudformation)'
+    echo '$2 - S3 bucket name to store the artifact file'
+    echo '$3 - Number in minutes, for how long this Lambda function will be looking back to find latest document'
     echo '$4 - Url to ElasticSearch cluster/server'
     echo '$5 - Sentry DSN'
     echo '$6 - Datadog API Key'
-    echo '$7 - Datadog Env, will be used as host_name param value in Datadog api call'
-    echo '$8 - Optional, log level'
+    echo '$7 - AWS Region to deploy to. Will also be used as host_name param value in Datadog api call as well'
+    echo '$8 - RoleARN to be used'
     exit
 fi
 
 cf_stack_name=$1
-deploy_s3_bucket=$2 # bucket where archive with lambda code will be uploaded
-lookback_x_minutes=$3 # number in minutes
-es_url=$4 # ElasticSearch url
+deploy_s3_bucket=$2 
+lookback_x_minutes=$3
+es_url=$4
 sentry_dsn=$5
 datadog_api_key=$6
-datadog_env=$7
-log_level=$8
+aws_region=$7
+role_arn=$8
 
-base_package='esimport_datadog'
+echo "Building the template file"
+sam build -t template.yaml 
 
-mkdir -p package
+echo "Packaging artifact to ${deploy_s3_bucket}..."
+sam package \
+   --output-template-file $(pwd)/packaged.yaml \
+   --s3-bucket ${deploy_s3_bucket} \
+   --s3-prefix esimport/esimport_datadog
 
-pip install -r requirements.txt --target ./package
-cp -f esimport_datadog.py ./package/
-
-
-pushd package
-zip -r ../${base_package}.zip ./*
-popd
-hash=$(sha256sum ${base_package}.zip | cut -c 1-64)
-mv ${base_package}.zip ${hash}-${base_package}.zip
-
-aws s3 cp ./${hash}-${base_package}.zip s3://${deploy_s3_bucket}/${hash}-${base_package}.zip
-rm ${hash}-${base_package}.zip
-rm -r package
-
-aws cloudformation deploy \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --stack-name ${cf_stack_name} \
-  --template-file $(pwd)/standard-deploy.yaml \
-  --parameter-overrides  \
-    DeployS3Bucket=${deploy_s3_bucket} \
-    LambdaS3Key=${hash}-${base_package}.zip \
-    LookBackForXMinutes=${lookback_x_minutes} \
-    EsUrl="${es_url}" \
-    SentryDsn=${sentry_dsn} \
-    DatadogAPIKey=${datadog_api_key} \
-    DataDogEnv=${datadog_env} \
-    LogLevel=${log_level}
+echo "Deploying to ${aws_region}..."
+sam deploy --template-file $(pwd)/packaged.yaml \
+    --region ${aws_region} \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name ${cf_stack_name} \
+    --parameter-overrides \
+      DataDogEnv=${aws_region} \
+      DatadogAPIKey=${datadog_api_key} \
+      RoleARN=${role_arn} \
+      EsUrl=${es_url} \
+      SentryDsn=${sentry_dsn} \
+      LookBackForXMinutes=${lookback_x_minutes} \
+    --debug 
