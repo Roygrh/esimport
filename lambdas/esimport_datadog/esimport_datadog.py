@@ -21,7 +21,6 @@ DATADOG_API_KEY = environ.get("DATADOG_API_KEY")
 ENVIRONMENT = environ.get("DATADOG_ENV")
 ES_URL = environ.get("ES_URL")
 SENTRY_DSN = environ.get("SENTRY_DSN")
-DATETIME_ISOFORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
 
 doc_types = {
@@ -129,9 +128,9 @@ class EsimportDatadogLogger:
         if result["hits"]["total"] == 0:
             return timedelta(minutes=LOOK_BACK_FOR_X_MINUTES)
 
-        doc_datetime = datetime.strptime(
-            result["hits"]["hits"][0]["_source"][date_field_name], DATETIME_ISOFORMAT
-        )
+        field = result["hits"]["hits"][0]["_source"][date_field_name]
+
+        doc_datetime = datetime.fromisoformat(field)
 
         return now - doc_datetime
 
