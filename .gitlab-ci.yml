@@ -120,7 +120,7 @@ esimport_datadog_deploy:
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
 
   script:
-    - cd esimport_datadog
+    - cd lambdas/esimport_datadog
     - > # WEST
       bash ./sam-deploy.sh \
       esimport-datadog-monitor-us-west-2 \
