@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-
+import time
 import pyodbc
 
 from ._base import BaseInfra
@@ -51,8 +51,28 @@ class MsSQLHandler(BaseInfra):
         # As Eleven uses availability groups, we can't specify db name in DSN string. Rather we have
         # to send an USE command. The API in the pyodbc connector doesn't allow multiple statements
         # in a SQL call. As it remembers context, it's used before every transaction.
-        self.cursor.execute(f"USE {self.default_use_db}")
-        return self.cursor.execute(query, tuple(args))
+
+        retries = 4  # if the query fails or times out, retry 03 times
+        iteration = 1
+
+        # Sometimes executing queries times out, usually bringing the whole syncing process down
+        # We'd retry here for at least 3 times before giving up.
+        while iteration <= retries:
+            try:
+                self.cursor.execute(f"USE {self.default_use_db}")
+                return self.cursor.execute(query, tuple(args))
+            except pyodbc.OperationalError as error:
+                if iteration == retries:
+                    raise
+
+                self._log(f"{error}")
+
+            seconds_to_sleep = retries ** iteration
+            self._log(f"Sleeping for {seconds_to_sleep}")
+            time.sleep(seconds_to_sleep)
+            self.reset()
+
+            iteration += 1
 
     def fetch_rows(self, query, *args, column_names=None):
         for row in self.execute(query, *args):
