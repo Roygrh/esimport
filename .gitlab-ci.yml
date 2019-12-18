@@ -46,7 +46,7 @@ production_deploy:
   stage: production_deploy
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
     - eb deploy $PROD_EB_ENV_NAME --verbose
@@ -114,7 +114,7 @@ esimport_datadog_deploy:
     - apk add --update --no-cache zip bash gcc python3-dev musl-dev
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - mkdir ~/.aws/
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
 
   script:
@@ -130,7 +130,7 @@ esimport_datadog_deploy:
       us-west-2
       ${PROD_ROLE_ARN}
     # EAST deploy
-    - bash ./sam-deploy.sh 
+    - bash ./deploy.sh 
       esimport-datadog-monitor-us-east-1
       ${PROD_LAMBDA_S3_BUCKET_EAST}
       ${PROD_DATADOG_LOOKBACK_X_MINUTES}

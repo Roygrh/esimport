@@ -28,7 +28,7 @@
         {
             "name": "accounts",
             "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
+            "essential": true,
             "memory": 500,
             "links": [
                 "redis"
@@ -42,7 +42,7 @@
         {
             "name": "conferences",
             "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
+            "essential": true,
             "memory": 500,
             "links": [
                 "redis"
@@ -56,7 +56,7 @@
         {
             "name": "devices",
             "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
+            "essential": true,
             "memory": 500,
             "links": [
                 "redis"
@@ -84,7 +84,7 @@
         {
             "name": "sessions",
             "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
+            "essential": true,
             "memory": 500,
             "links": [
                 "redis"

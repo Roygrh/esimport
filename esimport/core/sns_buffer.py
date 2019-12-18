@@ -93,7 +93,7 @@ class SNSBuffer:
         if message_length > self.max_sns_bulk_send_size_in_bytes:
             for _rec in self._records_list:
                 self.log(message)
-                self.log(f" Record ID: {_rec.id}")
+                self.log(f" Record ID: {_rec.get('_id')}")
 
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
