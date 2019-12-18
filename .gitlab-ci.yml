@@ -121,26 +121,26 @@ esimport_datadog_deploy:
 
   script:
     - cd lambdas/esimport_datadog
-    - > # WEST
-      bash ./deploy.sh \
-      esimport-datadog-monitor-us-west-2 \
-      $PROD_LAMBDA_S3_BUCKET_WEST \
-      $PROD_DATADOG_LOOKBACK_X_MINUTES \
-      $PROD_ES_CLUSTER_WEST \
-      $SENTRY_DSN \
-      $PROD_DATADOG_API_KEY \
-      us-west-2 \
-      $PROD_ROLE_ARN 
-    - > # EAST
-      bash ./sam-deploy.sh \
-      esimport-datadog-monitor-us-east-1 \
-      $PROD_LAMBDA_S3_BUCKET_EAST \
-      $PROD_DATADOG_LOOKBACK_X_MINUTES \
-      $PROD_ES_CLUSTER_EAST \
-      $SENTRY_DSN \
-      $PROD_DATADOG_API_KEY \
-      us-east-1 \
-      $PROD_ROLE_ARN 
+    # WEST deploy
+    - bash ./deploy.sh
+      esimport-datadog-monitor-us-west-2
+      ${PROD_LAMBDA_S3_BUCKET_WEST}
+      ${PROD_DATADOG_LOOKBACK_X_MINUTES}
+      ${PROD_ES_CLUSTER_WEST}
+      ${SENTRY_DSN}
+      ${PROD_DATADOG_API_KEY}
+      us-west-2
+      ${PROD_ROLE_ARN }
+    # EAST deploy
+    - bash ./sam-deploy.sh 
+      esimport-datadog-monitor-us-east-1
+      ${PROD_LAMBDA_S3_BUCKET_EAST}
+      ${PROD_DATADOG_LOOKBACK_X_MINUTES}
+      ${PROD_ES_CLUSTER_EAST}
+      ${SENTRY_DSN}
+      ${PROD_DATADOG_API_KEY}
+      us-east-1
+      ${PROD_ROLE_ARN}
 
 # esimport_retention_unit_test:
 #   stage: esimport_retention
