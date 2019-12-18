@@ -46,12 +46,10 @@ production_deploy:
   stage: production_deploy
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-    - aws s3 cp s3://dataservices.esimport.production/local_settings.py.prod.west local_settings.py
-    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
-    - echo "$DOT_ENV" > .env
-    - eb deploy $EB_PROD_WEST_ENV_NAME --verbose
+    - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
+    - eb deploy $PROD_EB_ENV_NAME --verbose
   only:
     - master
   when: manual
@@ -116,7 +114,7 @@ esimport_datadog_deploy:
     - apk add --update --no-cache zip bash gcc python3-dev musl-dev
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - mkdir ~/.aws/
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
 
   script:
