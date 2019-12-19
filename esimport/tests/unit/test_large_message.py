@@ -17,8 +17,6 @@ def test_large_message(sqs):
     ac.aws.create_dynamodb_table(ac.config.dynamodb_table)
     # allow the table to be created
     sleep(2)
-    ac.put_item_in_dynamodb_table("account", 0, datetime(2019, 1, 1))
-    ac.update(datetime(2019, 1, 1))
     ac.process_accounts_from_id(2, "2000-01-01")
 
     data = """
