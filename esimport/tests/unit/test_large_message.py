@@ -3240,4 +3240,4 @@ Curabitur suscipit nunc et leo rutrum, eget ullamcorper diam aliquet. Sed at tur
     decoded_message = b64decode(body["Message"])
     decompressed_data = decompress(decoded_message).decode("utf-8")
     decompressed_data = json.loads(decompressed_data)
-    assert len(data) == len(decompressed_data[0]["data"])
+    assert data == decompressed_data[0]["data"]
