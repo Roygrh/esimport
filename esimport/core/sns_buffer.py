@@ -1,5 +1,7 @@
 import logging
 from dataclasses import dataclass, field
+from bz2 import compress
+from base64 import b64encode
 from decimal import Decimal
 from typing import Any, List, Union
 from datetime import datetime
@@ -91,9 +93,7 @@ class SNSBuffer:
             f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
         )
         if message_length > self.max_sns_bulk_send_size_in_bytes:
-            for _rec in self._records_list:
-                self.log(message)
-                self.log(f" Record ID: {_rec.id}")
+            return self._compress_and_send_large_message(message)
 
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
@@ -127,3 +127,16 @@ class SNSBuffer:
 
         # orjson.dumps returns bytes, to match standard json.dumps we need to call `.decode()`
         return orjson.dumps(v, default=default)  # .decode()
+
+    def _compress_and_send_large_message(self, message):
+        compressed_message = compress(message.encode("utf-8"))
+        encoded_message = b64encode(compressed_message).decode("utf-8")
+        response = self.sns_client.publish(
+            TopicArn=self.topic_arn, Message=encoded_message
+        )
+
+        if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+            for _rec in self._records_list:
+                self.log(message)
+                self.log(f" Record ID: {_rec.id}")
+            raise Exception
