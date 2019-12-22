@@ -72,7 +72,7 @@ esimport_testing:
     - sleep 10 # allow mssql db server to come up
     - ./init_mssql_db.sh
     - make test
-  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
