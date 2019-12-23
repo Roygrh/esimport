@@ -76,7 +76,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
             session_id = session_record.raw.get("ID")
             self.debug(f"Record found: {session_id}")
 
-            self.update_time_zones(
+            self.append_site_values(
                 session_record,
                 session_record.raw.get("ServiceArea"),
                 self.date_fields_to_localize,

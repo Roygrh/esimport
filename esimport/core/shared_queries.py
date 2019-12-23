@@ -77,6 +77,42 @@ FROM NAS_Device WITH (NOLOCK)
     LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
 WHERE Organization_ID = ?"""
 
+
+GET_SERVICE_AREA_PARENT_ORG = """
+
+DECLARE @service_area_org_id int
+SET @service_area_org_id=(SELECT ID from Organization where Organization.Number = ?)
+
+SELECT Organization.ID as ID,
+    Organization.Number as Number,
+    Organization.Display_Name as Name,
+    Organization.Guest_Room_Count as GuestRooms,
+    Organization.Meeting_Room_Count as MeetingRooms,
+    Organization.Is_Lite as Lite,
+    Organization.Pan_Enabled as Pan,
+    Organization.Date_Added_UTC as CreatedUTC,
+    Org_Billing.Go_Live_Date_UTC as GoLiveUTC,
+    Org_Status.Name as Status,
+    Time_Zone.Tzid as TimeZone,
+    Address.Address_1 as AddressLine1,
+    Address.Address_2 as AddressLine2,
+    Address.City,
+    Address.Area,
+    Address.Postal_Code as PostalCode,
+    Country.Name as CountryName
+FROM Organization WITH (NOLOCK)
+    JOIN Org_Relation_Cache WITH (NOLOCK) ON Org_Relation_Cache.Parent_Org_ID = Organization.ID
+    Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
+    Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
+    Left Join Org_Billing WITH (NOLOCK) ON Organization.ID = Org_Billing.Organization_ID
+    Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organization.Contact_ID
+    Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
+    Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
+WHERE 
+    Org_Relation_Cache.Child_Org_ID = @service_area_org_id
+    AND Organization.Org_Category_Type_ID = 3
+"""
+
 GET_ORG_NUMBER_TREE_QUERY = """
 SELECT o.Number as OrgNumberTree
 FROM Org_Relation_Cache c

@@ -11,6 +11,7 @@ from .shared_queries import (
     GET_SERVICE_AREA_DEVICES_QUERY,
     GET_SERVICE_AREA_SERVICE_PLANS_QUERY,
     GET_SERVICE_AREAS_QUERY,
+    GET_SERVICE_AREA_PARENT_ORG,
 )
 
 
@@ -31,11 +32,10 @@ class PropertiesMixin:
         ("TimeZone", None),
     )
 
-    def update_time_zones(
+    def append_site_values(
         self, record: Record, org_number: str, dates_to_localize: tuple
     ):
-        # Get some properties from PropertyMapping
-        _action = self.get_site_values(org_number)
+        _action = self._get_site_values(org_number)
         if "TimeZone" in _action:
             for pfik, pfiv in dates_to_localize:
                 _action[pfiv] = self.convert_utc_to_local_time(
@@ -44,41 +44,41 @@ class PropertiesMixin:
 
         record.raw.update(_action)
 
-    def get_site_values(self, org_number: str):
+    def _get_site_values(self, service_area: str):
         """
-        Grab the site level org values and information given a organization number
+        Grab the site level org values and information given a service area number
         """
         _action = {}
-        prop = self.get_and_cache_property_by_org_number(org_number)
+        prop = self.get_and_cache_property_by_service_area_org_number(service_area)
         if prop:
             for pfik, pfiv in self.property_fields_include:
                 _action[pfik] = prop.get(pfiv or pfik, "")
 
         return _action
 
-    def get_and_cache_property_by_org_number(self, org_number):
-        if self.cache_client.exists(org_number):
-            self.debug(f"Fetching record from cache for Org Number: {org_number}.")
-            return self.cache_client.get(org_number)
+    def get_and_cache_property_by_service_area_org_number(self, service_area: str):
+        if self.cache_client.exists(service_area):
+            self.debug(f"Fetching record from cache for Org Number: {service_area}.")
+            return self.cache_client.get(service_area)
         else:
-            self.info(f"Fetching record from DB for Org Number: {org_number}.")
-            record = self._get_property_by_org_number(org_number)
-
-            if record is None:
-                msg = f"Property not found for Org Number: {org_number}. Updating cache with a null object"
+            self.info(f"Fetching record from DB for Org Number: {service_area}.")
+            parent_org = self._get_property_by_service_area_org_number(service_area)
+            if parent_org is None:
+                msg = f"Property not found for the service area: {service_area}."
+                " Updating cache with a null object"
                 self.warning(msg)
 
             # Set the property in the cache. If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES
             # for data that doesn't exist. The ESImport process for properties will overwrite
             # this cache entry with the correct object.
-            self.cache_client.set(org_number, record)
-            return record
+            self.cache_client.set(service_area, parent_org)
+            return parent_org
 
-    def _get_property_by_org_number(self, org_number: str):
+    def _get_property_by_service_area_org_number(self, service_area: str):
         try:
             rec = next(
-                self.fetch_rows_as_dict(GET_PROPERTY_BY_ORG_ID_QUERY, org_number)
+                self.fetch_rows_as_dict(GET_SERVICE_AREA_PARENT_ORG, service_area)
             )
         except StopIteration:
             return None

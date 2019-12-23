@@ -65,7 +65,9 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
 
         for account in self.get_accounts_by_modified_date(start_date, end_date):
             count += 1
-            self.append_site_values(account)
+            self.append_site_values(
+                account, account.raw.get("ServiceArea"), self.dates_to_localize
+            )
             self.debug("Record found: {0}".format(account.raw.get("ID")))
 
             # keep track of latest start_date (query is ordering DateModifiedUTC ascending)
@@ -87,7 +89,9 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
         for account in self.get_accounts_by_created_date(
             next_id_to_process, self.default_query_limit, start_date
         ):
-            self.append_site_values(account)
+            self.append_site_values(
+                account, account.raw.get("ServiceArea"), self.dates_to_localize
+            )
             next_id_to_process = account.raw.get("ID")
             created_date = account.raw.get("Created")
             self.add_record(account)
@@ -96,19 +100,6 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
             )
 
         return next_id_to_process
-
-    def append_site_values(self, account: Record):
-        """
-        Append site values to account record
-        """
-        _action = self.get_site_values(account.raw.get("ServiceArea"))
-
-        if "TimeZone" in _action:
-            for pfik, pfiv in self.dates_to_localize:
-                _action[pfiv] = self.convert_utc_to_local_time(
-                    account.raw[pfik], _action["TimeZone"]
-                )
-        account.raw.update(_action)
 
     def update(self, start_date):
         """
