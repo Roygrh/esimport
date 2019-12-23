@@ -14,7 +14,7 @@ shell:
 
 start-environment:
 	# add -d to make these run in the background
-	docker-compose up redis mssql elasticsearch
+	docker-compose up redis mssql
 
 
 stop-environment:

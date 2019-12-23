@@ -70,7 +70,7 @@ class ConferencesSyncer(SyncBase, PropertiesMixin):
             count += 1
             self.debug(f"Record found: {conference.id}")
 
-            self.update_time_zones(
+            self.append_site_values(
                 conference, conference.raw.get("ServiceArea"), self.dates_to_localize
             )
             self.add_record(conference)

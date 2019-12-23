@@ -41,7 +41,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
             count += 1
             self.debug(f"Record found: {device.id}")
             service_area = device.raw.get("ServiceArea")
-            self.update_time_zones(device, service_area, self.dates_to_localize)
+            self.append_site_values(device, service_area, self.dates_to_localize)
 
             self.add_record(device)
             next_id = device.id + 1
