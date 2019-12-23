@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+from base64 import b64decode
+from bz2 import decompress
 
 import boto3
 from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
@@ -41,7 +43,18 @@ def lambda_handler(event, context):
 
     #     raise e
     records_json_str = event["Records"][0]["body"]
-    records = json.loads(records_json_str)
+    records = None
+    try:
+        records = json.loads(records_json_str)
+    except:
+        # it may be a payload of large messgae as compressed base64 encoded message
+        # try to decode and compress
+        try:
+            records_json_str = b64decode(records_json_str)
+            records_json_str = decompress(records_json_str).decode("utf-8")
+            records = json.loads(records_json_str)
+        except:
+            raise
 
     number_of_records = len(records)
     log.info("About to index %d" % (number_of_records,))
