@@ -67,7 +67,7 @@ class Config(BaseSettings):
     # Custom SNS Port, in case we're using a mock SNS service (e.g. with LocalStack)
     sns_port: Union[int, None] = None
     sns_topic_arn: str  # required
-    max_sns_bulk_send_size_in_bytes: int = 200_000
+    max_sns_bulk_send_size_in_bytes: int = 255_000
 
     # Dynamodb
     # Custom DynamoDB Port, in case we're using a mock DynamoDB service (e.g. with LocalStack)
