@@ -25,6 +25,11 @@ Parameters:
     Default: 60
     Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout as well.
 
+  LogLevel:
+    Description: Log level for lambda function
+    Type: String
+    Default: INFO
+
 
 Resources:
   SQSConsumerFunction:

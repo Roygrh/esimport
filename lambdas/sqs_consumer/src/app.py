@@ -3,7 +3,7 @@ import json
 import logging
 from base64 import b64decode
 from bz2 import decompress
-
+import sentry_sdk
 import boto3
 from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -11,50 +11,39 @@ from requests_aws4auth import AWS4Auth
 FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger(__name__)
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+sentry_sdk.init(SENTRY_DSN)
+
+try:
+    _log_level = os.environ.get("LOG_LEVEL")
+    LOG_LEVEL = logging.getLevelName(_log_level)
+    log.setLevel(LOG_LEVEL)
+except ValueError as _err:
+    log.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+    try:
+        index(event)
+    except Exception as err:
+        log.exception(err)
+        sentry_sdk.capture_exception(err)
+        raise err
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
 
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
+def index(event):
     records_json_str = event["Records"][0]["body"]
-    records = None
+
     try:
         records = json.loads(records_json_str)
-    except:
-        # it may be a payload of large messgae as compressed base64 encoded message
-        # try to decode and compress
-        try:
-            records_json_str = b64decode(records_json_str)
-            records_json_str = decompress(records_json_str).decode("utf-8")
-            records = json.loads(records_json_str)
-        except:
-            raise
+    except json.decoder.JSONDecodeError:
+        log.info(
+            "Failed to decode the records payload. Probably compressed, trying to decompress..."
+        )
+        records_json_str = b64decode(records_json_str)
+        records_json_str = decompress(records_json_str).decode("utf-8")
+        records = json.loads(records_json_str)
+        log.info("Records payload successfully decomprssed.")
 
     number_of_records = len(records)
     log.info("About to index %d" % (number_of_records,))
