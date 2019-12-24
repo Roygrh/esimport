@@ -23,8 +23,11 @@ class CacheClient(BaseInfra):
 
     def __post_init__(self):
         self._log("Setting up cache client")
-        self.client = redis.StrictRedis(
-            host=self.redis_host, port=self.redis_port, encoding="utf-8"
+        self.client = redis.Redis(
+            host=self.redis_host,
+            port=self.redis_port,
+            encoding="utf-8",
+            health_check_interval=3,
         )
 
     def exists(self, key: str) -> bool:
