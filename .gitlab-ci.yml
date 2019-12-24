@@ -20,7 +20,17 @@ before_script:
   - pip3 --no-cache-dir install awsebcli awscli
   - mkdir ~/.aws/
 
-build:
+build_base_image:
+  stage: build
+  script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $IMAGE_TAG -f base.Dockerfile .
+    - docker push $IMAGE_TAG
+  only:
+    - base
+
+build_image:
   stage: build
   script:
     - docker info
@@ -63,6 +73,8 @@ esimport_testing:
     - tags
     - pushes
     - merge_requests
+  except:
+    - base
   before_script:
     - apk add --update --no-cache docker-compose make bash # canceling global before_script, not entirely needed for this job
   script:
