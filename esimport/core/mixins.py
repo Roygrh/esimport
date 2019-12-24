@@ -48,6 +48,9 @@ class PropertiesMixin:
         """
         Grab the site level org values and information given a service area number
         """
+        if not service_area:
+            return {}
+
         _action = {}
         prop = self.get_and_cache_property_by_service_area_org_number(service_area)
         if prop:
