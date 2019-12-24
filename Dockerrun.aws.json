@@ -15,14 +15,19 @@
     "containerDefinitions": [
         {
             "name": "redis",
-            "image": "redis:alpine",
+            "image": "redis:5-alpine",
             "essential": true,
-            "memory": 500,
+            "memory": 1000,
             "mountPoints": [
                 {
                     "sourceVolume": "redis-store",
                     "containerPath": "/var/lib/redis/data"
                 }
+            ],
+            "command": [
+                "redis-server",
+                "--save \"\"",
+                "--appendonly no"
             ]
         },
         {
@@ -70,7 +75,7 @@
         {
             "name": "properties",
             "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
+            "essential": true,
             "memory": 500,
             "links": [
                 "redis"
