@@ -31,7 +31,8 @@ class CacheClient(BaseInfra):
         )
 
     def exists(self, key: str) -> bool:
-        return self.client.exists(key)
+        # exists may return 0, lets make it True or False
+        return False if not self.client.exists(key) else True
 
     def get(self, key: str) -> Union[dict, List[dict], None]:
         self._log(f"Cache - getting value for key: {key}", level=logging.DEBUG)
