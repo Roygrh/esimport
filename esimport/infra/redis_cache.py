@@ -31,6 +31,8 @@ class CacheClient(BaseInfra):
         )
 
     def exists(self, key: str) -> bool:
+        if key is None:
+            return False
         # exists may return 0, lets make it True or False
         return False if not self.client.exists(key) else True
 

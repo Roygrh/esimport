@@ -88,30 +88,30 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
 
         return count, from_id, most_recent_session_time
 
-    def should_use_historical(self, count: int, last_known_time: datetime) -> bool:
+    def should_use_historical(
+        self, count: int, last_known_time: datetime, was_historical: bool
+    ) -> bool:
         # While we're catching up to the current time, use the historical session data source.
         # Once we're within an hour or there are no records being returned, then
         # switch to the real-time data source.
         now = datetime.now(timezone.utc)
         minutes_behind = (now - last_known_time).total_seconds() / 60
 
-        # Did we catch up ?
-        did_not_catch_up = count > 0 or minutes_behind >= 60
+        if count == 0:
+            switch_to_historical = False
 
-        # Are we *way* behind?
-        # ~23 hours behind is considered a lot, usually this means we're trying to catch from an interruption
-        # or a surge of session data, more than ESImport could handle in a short period of time.
-        is_way_behind = count > 0 and minutes_behind > 1380  # ==> ~23 hours
+        switch_to_historical = minutes_behind >= 60
 
-        # decision:
-        # if way behind: definitely switch to historical no matter what.
-        # else: only switch if we did NOT catch up yet.
-        switch_to_historical = is_way_behind or did_not_catch_up
+        if switch_to_historical and not was_historical:
+            self.info(
+                f"Switching to use the historical session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
+            )
 
-        target_data_source = "historical" if switch_to_historical else "real-time"
-        self.info(
-            f"Switching to use the {target_data_source} session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
-        )
+        if not switch_to_historical and was_historical:
+            self.info(
+                f"Switching to use the real-time session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
+            )
+
         return switch_to_historical
 
     def sync(self, start_date: datetime = None):
@@ -127,7 +127,9 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
             )
 
             elapsed_time = int(time.time() - timer_start)
-            use_historical = self.should_use_historical(count, most_recent_session_time)
+            use_historical = self.should_use_historical(
+                count, most_recent_session_time, use_historical
+            )
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
