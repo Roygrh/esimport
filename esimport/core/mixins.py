@@ -65,8 +65,8 @@ class PropertiesMixin:
             parent_org = self._get_property_by_service_area_org_number(service_area)
             if parent_org is None:
                 msg = f"Property not found for the service area: {service_area}."
+                " Updating cache with an empty object"
                 self.warning(msg)
-                return None
 
             # Set the property in the cache. If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES
