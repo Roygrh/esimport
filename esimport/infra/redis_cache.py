@@ -17,7 +17,7 @@ def retry_on_connection_refused(func):
 
         for iteration in range(1, retries + 1):
             try:
-                return func(*args, **kwargs)
+                return func(self, *args, **kwargs)
             except redis.exceptions.ConnectionError:
                 if iteration == retries:
                     raise
