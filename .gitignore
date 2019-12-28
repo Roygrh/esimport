@@ -111,3 +111,6 @@ tempDSN
 
 # MSODBC / UnixODBC .rpm files
 *.rpm 
+
+# AWS SAM packaged.yaml files
+lambdas/*/packaged.yaml

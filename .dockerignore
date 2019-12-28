@@ -23,3 +23,5 @@ docs/_build
 
 # Lambda functions
 lambdas/
+
+Makefile
