@@ -3223,6 +3223,7 @@ Nunc semper ligula quis lacus ultricies commodo. Phasellus lobortis ex at maximu
 Pellentesque nec odio libero. Aenean vehicula metus eget diam congue maximus finibus ac metus. Phasellus vel eleifend justo. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed commodo et elit vel vulputate. Ut consequat tincidunt tellus eget tincidunt. Suspendisse molestie tortor eu pulvinar viverra. Nunc venenatis tincidunt turpis, non interdum mauris sagittis eget. Praesent id eros nec lorem condimentum sollicitudin. Mauris accumsan massa vel dolor faucibus ultricies. Nullam lobortis leo metus.
 Curabitur suscipit nunc et leo rutrum, eget ullamcorper diam aliquet. Sed at turpis et ex feugiat gravida ac at tellus. Fusce placerat nulla felis. Suspendisse facilisis metus in nisi porttitor commodo. In cras amet.
 """
+    ac.sns_buffer._records_list = []
     ac.sns_buffer._records_list.append({"data": data})
     ac.sns_buffer._flush()
 

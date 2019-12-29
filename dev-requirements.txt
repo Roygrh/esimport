@@ -1,11 +1,8 @@
 click==7.0
 chardet==3.0.4
-datadog==0.22.0
-elasticsearch==5.2.0
 hiredis==1.0.1
 pyodbc==4.0.22
 python-dateutil==2.6.1
-PyYAML==3.13
 redis==3.3.11
 requests==2.19.1
 urllib3==1.23

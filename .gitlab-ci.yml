@@ -81,7 +81,7 @@ esimport_testing:
   script:
     - cp .env-example .env
     - . .env
-    - docker-compose up -d mssql
+    - make start-environment
     - sleep 10 # allow mssql db server to come up
     - ./init_mssql_db.sh
     - make test
