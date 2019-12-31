@@ -179,7 +179,9 @@ class PropertiesMixin:
         for row in self.fetch_rows(GET_ORG_NUMBER_TREE_QUERY, record_id, record_id):
             org_number_tree_list.append(row[0])  # row[0] is the orgNumber itself.
 
-        property_record["OrgNumberTree"] = org_number_tree_list
+        # Cache service area parent org against org number
+        for service_area_org_number in org_number_tree_list:
+            self.cache_client.set(service_area_org_number, property_record["Number"])
 
     def _set_active_counts(self, property_record: dict):
         row = self.execute_query(
