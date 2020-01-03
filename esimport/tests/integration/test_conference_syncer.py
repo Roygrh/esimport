@@ -3,6 +3,7 @@ from time import sleep
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import ConferencesSyncer
+from esimport.infra import CacheClient
 
 from esimport.tests.base_fixtures import sqs
 
@@ -10,8 +11,10 @@ from esimport.tests.base_fixtures import sqs
 def test_conference_syncer(sqs):
     cs = ConferencesSyncer()
     cs.setup()
+    cc = CacheClient(redis_host=cs.config.redis_host, redis_port=cs.config.redis_port)
+    cc.client.flushdb()
 
-    # if tabele is already there it passes silently
+    # if table is already there it passes silently
     cs.aws.create_dynamodb_table(cs.config.dynamodb_table)
     # allow the table to be created
     sleep(2)

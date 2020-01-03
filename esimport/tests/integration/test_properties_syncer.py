@@ -3,6 +3,7 @@ from time import sleep
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import PropertiesSyncer
+from esimport.infra import CacheClient
 
 from esimport.tests.base_fixtures import sqs
 
@@ -10,8 +11,10 @@ from esimport.tests.base_fixtures import sqs
 def test_session_syncer(sqs):
     ps = PropertiesSyncer()
     ps.setup()
+    cc = CacheClient(redis_host=ps.config.redis_host, redis_port=ps.config.redis_port)
+    cc.client.flushdb()
 
-    # if tabele is already there it passes silently
+    # if table is already there it passes silently
     ps.aws.create_dynamodb_table(ps.config.dynamodb_table)
     # allow the table to be created
     sleep(2)

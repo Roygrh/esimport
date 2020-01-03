@@ -3,6 +3,7 @@ from time import sleep
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import AccountsSyncer
+from esimport.infra import CacheClient
 
 from esimport.tests.base_fixtures import sqs
 
@@ -10,14 +11,15 @@ from esimport.tests.base_fixtures import sqs
 def test_account_syncer_by_id(sqs):
     ac = AccountsSyncer()
     ac.setup()
-
-    # if tabele is already there it passes silently
+    cc = CacheClient(redis_host=ac.config.redis_host, redis_port=ac.config.redis_port)
+    cc.client.flushdb()
+    # if table is already there it passes silently
     ac.aws.create_dynamodb_table(ac.config.dynamodb_table)
     # allow the table to be created
     sleep(2)
     ac.put_item_in_dynamodb_table("account", 0, datetime(2019, 1, 1))
     ac.update(datetime(2019, 1, 1))
-    ac.process_accounts_from_id(2, "2000-01-01")
+    ac.process_accounts_from_id(1, "2000-01-01")
 
     ac.sns_buffer._flush()
 
@@ -37,8 +39,10 @@ def test_account_syncer_by_id(sqs):
 def test_account_syncer_by_period(sqs):
     ac = AccountsSyncer()
     ac.setup()
+    cc = CacheClient(redis_host=ac.config.redis_host, redis_port=ac.config.redis_port)
+    cc.client.flushdb()
 
-    # if tabele is already there it passes silently
+    # if table is already there it passes silently
     ac.aws.create_dynamodb_table(ac.config.dynamodb_table)
     # allow the table to be created
     sleep(2)
