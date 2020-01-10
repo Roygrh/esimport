@@ -46,25 +46,3 @@ def sqs():
     )
 
     return sqs_queue
-
-
-"""
-    # Publish SNS Messages
-    test_msg = {"default": {"x": "foo", "y": "bar"}}
-    test_msg_body = json.dumps(test_msg)
-    sns_client.publish(
-        TopicArn=sns_topic_arn,
-        Message=json.dumps({"default": test_msg_body}),
-        MessageStructure="json",
-    )
-
-    # Validate Message
-    sqs_msgs = sqs_queue.receive_messages(
-        AttributeNames=["All"],
-        MessageAttributeNames=["All"],
-        VisibilityTimeout=15,
-        WaitTimeSeconds=20,
-        MaxNumberOfMessages=5,
-    )
-"""
-
