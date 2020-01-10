@@ -1,5 +1,6 @@
 FROM python:3.8-buster
 
+ENV INSIDE_DOCKER=1
 # Install unixODBC driver and Microsoft ODBC driver
 RUN curl https://packages.microsoft.com/keys/microsoft.asc -o microsoft.asc
 RUN yes ''|apt-key add microsoft.asc
