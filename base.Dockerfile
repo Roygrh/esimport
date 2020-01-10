@@ -1,10 +1,5 @@
 FROM python:3.8-buster
 
-ENV LANGUAGE=en_US.utf-8 LANG=en_US.utf-8 LC_ALL=en_US.utf-8 INSIDE_DOCKER=1
-
-# Install 'build-base' meta-package for gcc and other packages needed
-RUN apt-get update && apt-get install -y iproute2 g++
-
 # Install unixODBC driver and Microsoft ODBC driver
 RUN curl https://packages.microsoft.com/keys/microsoft.asc -o microsoft.asc
 RUN yes ''|apt-key add microsoft.asc
