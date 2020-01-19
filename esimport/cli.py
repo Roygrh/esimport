@@ -173,7 +173,7 @@ def replay_dlq_messages(source_sqs_queue_arn: str, target_sqs_queue_arn: str):
         if len(sqs_msgs) != 0:
             target_queue.send_message(MessageBody=sqs_msgs[0].body)
             source_queue.delete_messages(
-                Entires=[
+                Entries=[
                     {
                         "Id": sqs_msgs[0].message_id,
                         "ReceiptHandle": sqs_msgs[0].receipt_handle,
