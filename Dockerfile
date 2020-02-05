@@ -1,7 +1,7 @@
 from registry.gitlab.com/distrodev/esimport:base
 
 # Create Microsoft ODBC DSN file
-RUN sh docker/setup_db.bash
+RUN sh setup_db.bash
 
 # upgrade pip, install cython (required by mssql)
 RUN pip3 install --upgrade pip \
