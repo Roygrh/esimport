@@ -63,6 +63,11 @@ class PropertiesMixin:
         if self.cache_client.exists(service_area):
             self.debug(f"Fetching record from cache for Org Number: {service_area}.")
             parent_org_number = self.cache_client.get(service_area)
+            if isinstance(parent_org_number, dict):
+                parent_org_number = parent_org_number["Number"]
+            self.debug(f"Parent org number: {parent_org_number}")
+            if parent_org_number is None:
+                return None
             return self.cache_client.get(parent_org_number)
         else:
             self.info(f"Fetching record from DB for Org Number: {service_area}.")

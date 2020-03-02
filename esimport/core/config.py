@@ -69,6 +69,8 @@ class Config(BaseSettings):
     sns_topic_arn: str  # required
     max_sns_bulk_send_size_in_bytes: int = 255_000
 
+    sns_calls_wait_in_seconds: int = 1
+
     # Dynamodb
     # Custom DynamoDB Port, in case we're using a mock DynamoDB service (e.g. with LocalStack)
     dynamodb_port: Union[int, None] = None
@@ -80,6 +82,7 @@ class Config(BaseSettings):
 
     # SQS
     sqs_port: Union[int, None] = None
+    sqs_queue_url: str = None
 
     # Sentry/Error Reporting
     sentry_dsn: str = ""

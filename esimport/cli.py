@@ -19,6 +19,7 @@ from .syncers import (
     DeviceSyncer,
     PropertiesSyncer,
     SessionsSyncer,
+    DPSKSessionSyncer,
 )
 
 here_path = os.path.dirname(__file__)
@@ -34,6 +35,7 @@ syncer_classes = {
     "devices": DeviceSyncer,
     "properties": PropertiesSyncer,
     "sessions": SessionsSyncer,
+    "sessions_dpsk": DPSKSessionSyncer,
 }
 
 
@@ -46,7 +48,14 @@ def cli():
 @click.argument(
     "records_type",
     type=click.Choice(
-        ["accounts", "conferences", "devices", "properties", "sessions"],
+        [
+            "accounts",
+            "conferences",
+            "devices",
+            "properties",
+            "sessions",
+            "sessions_dpsk",
+        ],
         case_sensitive=False,
     ),
 )
