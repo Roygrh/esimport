@@ -48,6 +48,70 @@ def sqs():
     return sqs_queue
 
 
+@pytest.fixture
+def sqs_dpsk():
+    config = Config()
+    session = boto3.session.Session(
+        aws_access_key_id="foo",
+        aws_secret_access_key="bar",
+        region_name="us-west-2",
+        profile_name=None,
+    )
+    sqs_client = session.client(
+        "sqs", endpoint_url=f"{config.aws_endpoint_url}:{config.sqs_port}"
+    )
+
+    sns_client = session.client(
+        "sns", endpoint_url=f"{config.aws_endpoint_url}:{config.sns_port}"
+    )
+
+    sqs_obj = session.resource(
+        "sqs", endpoint_url=f"{config.aws_endpoint_url}:{config.sqs_port}"
+    )
+
+    dynamodb_obj = session.resource(
+        "dynamodb", endpoint_url=f"{config.aws_endpoint_url}:{config.dynamodb_port}"
+    )
+
+    source_sns = sns_client.create_topic(Name="source")
+    source_sqs = sqs_client.create_queue(QueueName="source")
+
+    target_sns = sns_client.create_topic(Name="target")
+    target_sqs = sqs_client.create_queue(QueueName="target")
+
+    source_sqs_queue = sqs_obj.Queue(source_sqs["QueueUrl"])
+    target_sqs_queue = sqs_obj.Queue(target_sqs["QueueUrl"])
+
+    dynamodb = dynamodb_obj.create_table(
+        AttributeDefinitions=[{"AttributeName": "doctype", "AttributeType": "S"},],
+        TableName=config.dynamodb_table,
+        KeySchema=[{"AttributeName": "doctype", "KeyType": "HASH"},],
+        ProvisionedThroughput={"ReadCapacityUnits": 123, "WriteCapacityUnits": 123},
+    )
+
+    source_sqs_attributes = sqs_client.get_queue_attributes(
+        QueueUrl=source_sqs["QueueUrl"], AttributeNames=["All"]
+    )["Attributes"]
+
+    target_sqs_attributes = sqs_client.get_queue_attributes(
+        QueueUrl=target_sqs["QueueUrl"], AttributeNames=["All"]
+    )["Attributes"]
+
+    sns_client.subscribe(
+        TopicArn=source_sns["TopicArn"],
+        Protocol="sqs",
+        Endpoint=source_sqs_attributes["QueueArn"],
+    )
+
+    sns_client.subscribe(
+        TopicArn=target_sns["TopicArn"],
+        Protocol="sqs",
+        Endpoint=target_sqs_attributes["QueueArn"],
+    )
+
+    return target_sqs_queue
+
+
 """
     # Publish SNS Messages
     test_msg = {"default": {"x": "foo", "y": "bar"}}

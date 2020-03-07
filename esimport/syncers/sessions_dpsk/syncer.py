@@ -38,36 +38,47 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 session[k] = datetime.fromisoformat(v)
         return session
 
+    def receive(self) -> str:
+        response = self.sqs.receive_message(
+            QueueUrl=self.config.sqs_queue_url,
+            AttributeNames=["All"],
+            VisibilityTimeout=15,
+            WaitTimeSeconds=20,
+            MaxNumberOfMessages=1,
+        )
+        if response.get("Messages"):
+            messages = self.deserialize_message(response["Messages"][0]["Body"])
+            for message in messages:
+                service_area = message.get("ServiceArea")
+                prop_by_service_area = self.get_and_cache_property_by_service_area_org_number(
+                    service_area
+                )
+                if prop_by_service_area:
+                    message = self.str_to_datetime(message)
+                    record_date = message[self.record_date_fieldname]
+                    session_record = Record(
+                        _index=self.get_target_elasticsearch_index(record_date),
+                        _type=self.record_type,
+                        _source=message,
+                        _date=record_date,
+                    )
+
+                    self.append_site_values(
+                        session_record,
+                        session_record.raw.get("ServiceArea"),
+                        self.date_fields_to_localize,
+                    )
+                    print(f"SESSION RECORD: {session_record}")
+                    self.add_record(session_record)
+                    self.info(f"{session_record.raw['ID']}")
+            return response["Messages"][0]["MessageId"]
+        return ""
+
     def sync(self, start_date: datetime = None):
         while True:
-            response = self.sqs.receive_message(
-                QueueUrl=self.config.sqs_queue_url, AttributeNames=["All"]
-            )
-            if response.get("Messages"):
-                messages = self.deserialize_message(
-                    response["Messages"][0]["Body"]
+            message_id = self.receive()
+            if not message_id:
+                self.info(
+                    f"[Delay] Waiting {self.config.sns_calls_wait_in_seconds} seconds"
                 )
-                for message in messages:
-                    service_area = message.get("ServiceArea")
-                    prop_by_service_area = self.get_and_cache_property_by_service_area_org_number(service_area)
-                    if prop_by_service_area:
-                        message = self.str_to_datetime(message)
-                        print(message)
-                        record_date = message[self.record_date_fieldname]
-                        session_record = Record(
-                            _index=self.get_target_elasticsearch_index(record_date),
-                            _type=self.record_type,
-                            _source=message,
-                            _date=record_date
-                        )
-
-                        self.append_site_values(
-                            session_record,
-                            session_record.raw.get("ServiceArea"),
-                            self.date_fields_to_localize,
-                        )
-
-                        self.add_record(session_record)
-            else:
-                self.info(f"[Delay] Waiting {self.config.sns_calls_wait_in_seconds} seconds")
                 self.sleep(self.config.sns_calls_wait_in_seconds)
