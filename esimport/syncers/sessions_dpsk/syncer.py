@@ -55,6 +55,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 )
                 if prop_by_service_area:
                     message = self.str_to_datetime(message)
+                    message.update({"is_dpsk": True})
                     record_date = message[self.record_date_fieldname]
                     session_record = Record(
                         _index=self.get_target_elasticsearch_index(record_date),
