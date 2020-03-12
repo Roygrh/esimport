@@ -13,7 +13,7 @@ def test_large_message(sqs):
     ac = AccountsSyncer()
     ac.setup()
 
-    # if tabele is already there it passes silently
+    # if table is already there it passes silently
     ac.aws.create_dynamodb_table(ac.config.dynamodb_table)
     # allow the table to be created
     sleep(2)
