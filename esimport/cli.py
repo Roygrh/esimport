@@ -11,6 +11,7 @@ from datetime import datetime
 
 import click
 from dotenv import load_dotenv
+import boto3
 
 from .core import SyncBase
 from .syncers import (
@@ -118,3 +119,66 @@ def load_fake_data():
         inp.close()
 
     click.echo("Done!")
+
+
+@cli.command()
+@click.argument("source_sqs_queue_arn")
+@click.argument("target_sqs_queue_arn")
+def replay_dlq_messages(source_sqs_queue_arn: str, target_sqs_queue_arn: str):
+    # get queue names from arns which is the last
+    source_queue_name = source_sqs_queue_arn.split(":")[-1]
+    target_queue_name = target_sqs_queue_arn.split(":")[-1]
+
+    # get account id from arns which is second last
+    source_queue_account_id = source_sqs_queue_arn.split(":")[-2]
+    target_queue_account_id = target_sqs_queue_arn.split(":")[-2]
+
+    # get region from arns which is third last
+    source_queue_region = source_sqs_queue_arn.split(":")[-3]
+    target_queue_region = target_sqs_queue_arn.split(":")[-3]
+
+    # construct the queue urls. this might change in future as it is not
+    # recommended to construct urls from arn. An issue is open in aws github
+    # for a method for this
+
+    source_queue_url = (
+        "https://sqs."
+        + source_queue_region
+        + ".amazonaws.com/"
+        + source_queue_account_id
+        + "/"
+        + source_queue_name
+    )
+
+    target_queue_url = (
+        "https://sqs."
+        + target_queue_region
+        + ".amazonaws.com/"
+        + target_queue_account_id
+        + "/"
+        + target_queue_name
+    )
+
+    sqs = boto3.resource("sqs")
+    source_queue = sqs.Queue(source_queue_url)
+    target_queue = sqs.Queue(target_queue_url)
+
+    while True:
+        sqs_msgs = source_queue.receive_messages(
+            AttributeNames=["All"],
+            MessageAttributeNames=["All"],
+            WaitTimeSeconds=20,
+            MaxNumberOfMessages=1,
+        )
+        if len(sqs_msgs) != 0:
+            target_queue.send_message(MessageBody=sqs_msgs[0].body)
+            source_queue.delete_messages(
+                Entries=[
+                    {
+                        "Id": sqs_msgs[0].message_id,
+                        "ReceiptHandle": sqs_msgs[0].receipt_handle,
+                    }
+                ]
+            )
+        else:
+            break
