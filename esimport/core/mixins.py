@@ -63,6 +63,8 @@ class PropertiesMixin:
         if self.cache_client.exists(service_area):
             self.debug(f"Fetching record from cache for Org Number: {service_area}.")
             parent_org_number = self.cache_client.get(service_area)
+            if not parent_org_number:
+                return None
             return self.cache_client.get(parent_org_number)
         else:
             self.info(f"Fetching record from DB for Org Number: {service_area}.")
@@ -76,7 +78,7 @@ class PropertiesMixin:
                 msg = f"Property not found for the service area: {service_area}."
                 " Updating cache with an empty object"
                 self.warning(msg)
-                self.cache_client.set(service_area, parent_org)
+                self.cache_client.set(service_area, "")
             else:
                 self.cache_client.set(service_area, parent_org['Number'])
                 self.cache_client.set(parent_org['Number'], parent_org)
