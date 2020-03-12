@@ -62,20 +62,27 @@ class PropertiesMixin:
     def get_and_cache_property_by_service_area_org_number(self, service_area: str):
         if self.cache_client.exists(service_area):
             self.debug(f"Fetching record from cache for Org Number: {service_area}.")
-            return self.cache_client.get(service_area)
+            parent_org_number = self.cache_client.get(service_area)
+            if not parent_org_number:
+                return None
+            return self.cache_client.get(parent_org_number)
         else:
             self.info(f"Fetching record from DB for Org Number: {service_area}.")
             parent_org = self._get_property_by_service_area_org_number(service_area)
-            if parent_org is None:
-                msg = f"Property not found for the service area: {service_area}."
-                " Updating cache with an empty object"
-                self.warning(msg)
-
+            
             # Set the property in the cache. If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES
             # for data that doesn't exist. The ESImport process for properties will overwrite
             # this cache entry with the correct object.
-            self.cache_client.set(service_area, parent_org)
+            if parent_org is None:
+                msg = f"Property not found for the service area: {service_area}."
+                " Updating cache with an empty object"
+                self.warning(msg)
+                self.cache_client.set(service_area, "")
+            else:
+                self.cache_client.set(service_area, parent_org['Number'])
+                self.cache_client.set(parent_org['Number'], parent_org)
+
             return parent_org
 
     def _get_property_by_service_area_org_number(self, service_area: str):
@@ -174,7 +181,9 @@ class PropertiesMixin:
         for row in self.fetch_rows(GET_ORG_NUMBER_TREE_QUERY, record_id, record_id):
             org_number_tree_list.append(row[0])  # row[0] is the orgNumber itself.
 
-        property_record["OrgNumberTree"] = org_number_tree_list
+        # Cache service area parent org against org number
+        for service_area_org_number in org_number_tree_list:
+            self.cache_client.set(service_area_org_number, property_record["Number"])
 
     def _set_active_counts(self, property_record: dict):
         row = self.execute_query(
