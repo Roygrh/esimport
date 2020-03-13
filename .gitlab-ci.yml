@@ -28,6 +28,9 @@ build_base_image:
 build_image:
   stage: build
   script:
+    - apk add --update --no-cache gcc python3-dev  
+    - pip3 --no-cache-dir install awscli
+    - mkdir ~/.aws/
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
