@@ -62,10 +62,10 @@ class PropertiesMixin:
     def get_and_cache_property_by_service_area_org_number(self, service_area: str):
         if self.cache_client.exists(service_area):
             self.debug(f"Fetching record from cache for Service Area: {service_area}.")
-            parent_org_number = self.cache_client.get(service_area)
-            if not parent_org_number:
+            parent_org_key = self.cache_client.get(service_area)
+            if not parent_org_key:
                 return None
-            return self.cache_client.get(parent_org_number)
+            return self.cache_client.get(parent_org_key)
         else:
             self.info(f"Fetching record from DB for Service Area: {service_area}.")
             parent_org = self._get_property_by_service_area_org_number(service_area)
@@ -80,8 +80,9 @@ class PropertiesMixin:
                 self.warning(msg)
                 self.cache_client.set(service_area, "")
             else:
-                self.cache_client.set(service_area, parent_org["Number"])
-                self.cache_client.set(parent_org["Number"], parent_org)
+                parent_org_key = f"pon-{parent_org['Number']}"
+                self.cache_client.set(service_area, parent_org_key)
+                self.cache_client.set(parent_org_key, parent_org)
 
             return parent_org
 
