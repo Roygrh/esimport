@@ -81,9 +81,6 @@ esimport_testing:
   script:
     - cp .env-example .env
     - . .env
-    - make start-environment
-    - sleep 10 # allow mssql db server to come up
-    - ./init_mssql_db.sh
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   

@@ -31,12 +31,14 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
         for record in self.get_properties(next_id_to_process, self.default_query_limit):
             count += 1
             self.debug(f"Record found: {record.id}")
+            org_num = record.raw.get("Number")
+            org_num_key = self._cache_key_for_org_number(org_num)
 
             # Add both Property/Organization Number and Service Areas to the cache
-            self.cache_client.set(record.raw.get("Number"), record.raw)
+            self.cache_client.set(org_num_key, record.raw)
 
             for service_area_obj in record.raw.get("ServiceAreaObjects"):
-                self.cache_client.set(service_area_obj["Number"], record.raw)
+                self.cache_client.set(service_area_obj["Number"], org_num_key)
 
             self.add_record(record)
             next_id_to_process = record.id

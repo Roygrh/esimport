@@ -1,4 +1,0 @@
-Host bitbucket.org
-    HostName bitbucket.org
-    IdentityFile /etc/ssh/docker.auto.key
-    User git
