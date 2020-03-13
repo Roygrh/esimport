@@ -32,6 +32,8 @@ class PropertiesMixin:
         ("TimeZone", None),
     )
 
+    _parent_org_number_cache_prefix: str = "pon-"
+
     def append_site_values(
         self, record: Record, org_number: str, dates_to_localize: tuple
     ):
@@ -80,7 +82,7 @@ class PropertiesMixin:
                 self.warning(msg)
                 self.cache_client.set(service_area, "")
             else:
-                parent_org_key = f"pon-{parent_org['Number']}"
+                parent_org_key = self._cache_key_for_org_number(parent_org["Number"])
                 self.cache_client.set(service_area, parent_org_key)
                 self.cache_client.set(parent_org_key, parent_org)
 
@@ -184,7 +186,8 @@ class PropertiesMixin:
 
         # Cache service area parent org against org number
         for service_area_org_number in org_number_tree_list:
-            self.cache_client.set(service_area_org_number, property_record["Number"])
+            org_number_key = self._cache_key_for_org_number(property_record["Number"])
+            self.cache_client.set(service_area_org_number, org_number_key)
 
     def _set_active_counts(self, property_record: dict):
         row = self.execute_query(
@@ -219,3 +222,7 @@ class PropertiesMixin:
                 "VLANRangeEnd": device.VLANRangeEnd,
                 "NetIP": device.NetIP,
             }
+
+    def _cache_key_for_org_number(self, org_number: str) -> str:
+        return "%s%s" % (self._parent_org_number_cache_prefix, org_number)
+
