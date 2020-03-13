@@ -180,13 +180,17 @@ class PropertiesMixin:
     def _set_org_number_tree(self, property_record: dict):
         org_number_tree_list = []
         record_id = property_record["ID"]
+        org_number = property_record["Number"]
 
         for row in self.fetch_rows(GET_ORG_NUMBER_TREE_QUERY, record_id, record_id):
             org_number_tree_list.append(row[0])  # row[0] is the orgNumber itself.
 
         # Cache service area parent org against org number
         for service_area_org_number in org_number_tree_list:
-            org_number_key = self._cache_key_for_org_number(property_record["Number"])
+            # make sure it's not the parent org itself
+            if service_area_org_number == org_number:
+                continue
+            org_number_key = self._cache_key_for_org_number(org_number)
             self.cache_client.set(service_area_org_number, org_number_key)
 
     def _set_active_counts(self, property_record: dict):
