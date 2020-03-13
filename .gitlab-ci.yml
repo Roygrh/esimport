@@ -15,11 +15,6 @@ variables:
   DOCKER_DRIVER: overlay
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
-before_script:
-  - apk add --update --no-cache python3 git 
-  - pip3 --no-cache-dir install awsebcli awscli
-  - mkdir ~/.aws/
-
 build_base_image:
   stage: build
   script:
@@ -45,6 +40,9 @@ build_image:
 staging_deploy:
   stage: staging_deploy
   script:
+    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git 
+    - pip3 --no-cache-dir install awsebcli awscli
+    - mkdir ~/.aws/
     - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
     - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
     - eb deploy $EB_STAGING_ENV_NAME --verbose
@@ -55,6 +53,9 @@ staging_deploy:
 production_deploy:
   stage: production_deploy
   script:
+    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git 
+    - pip3 --no-cache-dir install awsebcli awscli
+    - mkdir ~/.aws/
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
