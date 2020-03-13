@@ -75,8 +75,8 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
         for device in self.fetch_rows_as_dict(
             GET_DEVICES_QUERY, limit, start, start_date
         ):
-            for key, value in device.items():
-                if isinstance(value, datetime):
+            for key in list(device.keys()):
+                if isinstance(device[key], datetime):
                     if key in self.dates_from_pacific:
                         device[
                             self.dates_from_pacific[key]
