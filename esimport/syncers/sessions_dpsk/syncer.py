@@ -46,9 +46,11 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             WaitTimeSeconds=20,
             MaxNumberOfMessages=1,
         )
+        messages = response.get("Messages")
         if response.get("Messages"):
-            messages = self.deserialize_message(response["Messages"][0]["Body"])
-            for message in messages:
+            message_body = self.deserialize_message(response["Messages"][0]["Body"])
+            receipt_handle = response["Messages"][0]["ReceiptHandle"]
+            for message in message_body:
                 service_area = message.get("ServiceArea")
                 prop_by_service_area = self.get_and_cache_property_by_service_area_org_number(
                     service_area
@@ -69,10 +71,16 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                         session_record.raw.get("ServiceArea"),
                         self.date_fields_to_localize,
                     )
-                    print(f"SESSION RECORD: {session_record}")
+
                     self.add_record(session_record)
                     self.info(f"{session_record.raw['ID']}")
+
+            self.sqs.delete_message(
+                QueueUrl=self.config.sqs_queue_url,
+                ReceiptHandle=receipt_handle
+            )
             return response["Messages"][0]["MessageId"]
+            
         return ""
 
     def sync(self, start_date: datetime = None):
