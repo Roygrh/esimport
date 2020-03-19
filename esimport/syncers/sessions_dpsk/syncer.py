@@ -29,7 +29,8 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         )
 
     def deserialize_message(self, message_body: str) -> list:
-        return orjson.loads(orjson.loads(message_body)["Message"])
+        records = orjson.loads(orjson.loads(message_body)["Message"])
+        return [records] if isinstance(records, dict) else records
 
     def str_to_datetime(self, session: dict) -> dict:
         datetime_field = ["LoginTime", "LogoutTime"]
@@ -47,22 +48,22 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             MaxNumberOfMessages=1,
         )
         messages = response.get("Messages")
-        if response.get("Messages"):
-            message_body = self.deserialize_message(response["Messages"][0]["Body"])
+        if messages:
+            records = self.deserialize_message(response["Messages"][0]["Body"])
             receipt_handle = response["Messages"][0]["ReceiptHandle"]
-            for message in message_body:
-                service_area = message.get("ServiceArea")
+            for record in records:
+                service_area = record.get("ServiceArea")
                 prop_by_service_area = self.get_and_cache_property_by_service_area_org_number(
                     service_area
                 )
                 if prop_by_service_area:
-                    message = self.str_to_datetime(message)
-                    message.update({"is_dpsk": True})
-                    record_date = message[self.record_date_fieldname]
+                    record = self.str_to_datetime(record)
+                    record.update({"is_ppk": True})
+                    record_date = record[self.record_date_fieldname]
                     session_record = Record(
                         _index=self.get_target_elasticsearch_index(record_date),
                         _type=self.record_type,
-                        _source=message,
+                        _source=record,
                         _date=record_date,
                     )
 
@@ -72,15 +73,14 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                         self.date_fields_to_localize,
                     )
 
-                    self.add_record(session_record)
+                    self.add_record(session_record, flush=True, update_cursor=False)
                     self.info(f"{session_record.raw['ID']}")
 
             self.sqs.delete_message(
-                QueueUrl=self.config.sqs_queue_url,
-                ReceiptHandle=receipt_handle
+                QueueUrl=self.config.sqs_queue_url, ReceiptHandle=receipt_handle
             )
             return response["Messages"][0]["MessageId"]
-            
+
         return ""
 
     def sync(self, start_date: datetime = None):

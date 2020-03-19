@@ -98,8 +98,8 @@ class SyncBase(abc.ABC):
     def sync(self, star_date: datetime = None):
         raise NotImplementedError
 
-    def add_record(self, record: Record):
-        self.sns_buffer.add_record(record)
+    def add_record(self, record: Record, flush=False, update_cursor=True):
+        self.sns_buffer.add_record(record, flush=flush)
 
     def fetch_rows_as_dict(self, query, *args) -> List[dict]:
         return self.mssql.fetch_rows_as_dict(query, *args)

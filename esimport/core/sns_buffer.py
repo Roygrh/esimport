@@ -25,7 +25,7 @@ class SNSBuffer:
     _current_bytes_size: int = 0
     last_flush_time: Union[datetime, None] = None
 
-    def add_record(self, record: Record):
+    def add_record(self, record: Record, flush=False, update_cursor=True):
         """
         This adds a record to an internal records list and auto decides whether it's time 
         to send to SNS or not. Depending if the records list's size in bytes reached the SNS
@@ -33,9 +33,10 @@ class SNSBuffer:
         Once some records are sent to SNS, it resets the list and starts over.
         """
         record_size = self._get_record_size(record)
-
-        if self._should_flush(record_size):
+        if flush or self._should_flush(record_size):
             self._flush()
+
+        if update_cursor:
             self._update_cursor_state()
 
         self._records_list.append(record.as_dict())

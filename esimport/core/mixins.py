@@ -63,16 +63,15 @@ class PropertiesMixin:
         if self.cache_client.exists(service_area):
             self.debug(f"Fetching record from cache for Org Number: {service_area}.")
             parent_org_number = self.cache_client.get(service_area)
-            if isinstance(parent_org_number, dict):
-                parent_org_number = parent_org_number["Number"]
-            self.debug(f"Parent org number: {parent_org_number}")
             if parent_org_number is None:
                 return None
+
+            self.debug(f"Parent org number: {parent_org_number}")
             return self.cache_client.get(parent_org_number)
         else:
             self.info(f"Fetching record from DB for Org Number: {service_area}.")
             parent_org = self._get_property_by_service_area_org_number(service_area)
-            
+
             # Set the property in the cache. If the object is null, then this will create a key
             # for this org number and this will be how we know not to continually go back to ES
             # for data that doesn't exist. The ESImport process for properties will overwrite
@@ -83,8 +82,8 @@ class PropertiesMixin:
                 self.warning(msg)
                 self.cache_client.set(service_area, parent_org)
             else:
-                self.cache_client.set(service_area, parent_org['Number'])
-                self.cache_client.set(parent_org['Number'], parent_org)
+                self.cache_client.set(service_area, parent_org["Number"])
+                self.cache_client.set(parent_org["Number"], parent_org)
 
             return parent_org
 
