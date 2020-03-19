@@ -32,6 +32,8 @@ class PropertiesMixin:
         ("TimeZone", None),
     )
 
+    _parent_org_number_cache_prefix: str = "pon-"
+
     def append_site_values(
         self, record: Record, org_number: str, dates_to_localize: tuple
     ):
@@ -61,15 +63,14 @@ class PropertiesMixin:
 
     def get_and_cache_property_by_service_area_org_number(self, service_area: str):
         if self.cache_client.exists(service_area):
-            self.debug(f"Fetching record from cache for Org Number: {service_area}.")
-            parent_org_number = self.cache_client.get(service_area)
-            if parent_org_number is None:
+            self.debug(f"Fetching record from cache for Service Area: {service_area}.")
+            parent_org_key = self.cache_client.get(service_area)
+            if not parent_org_key:
                 return None
-
-            self.debug(f"Parent org number: {parent_org_number}")
-            return self.cache_client.get(parent_org_number)
+            self.debug(f"Parent org key: {parent_org_key}")
+            return self.cache_client.get(parent_org_key)
         else:
-            self.info(f"Fetching record from DB for Org Number: {service_area}.")
+            self.info(f"Fetching record from DB for Service Area: {service_area}.")
             parent_org = self._get_property_by_service_area_org_number(service_area)
 
             # Set the property in the cache. If the object is null, then this will create a key
@@ -80,10 +81,11 @@ class PropertiesMixin:
                 msg = f"Property not found for the service area: {service_area}."
                 " Updating cache with an empty object"
                 self.warning(msg)
-                self.cache_client.set(service_area, parent_org)
+                self.cache_client.set(service_area, "")
             else:
-                self.cache_client.set(service_area, parent_org["Number"])
-                self.cache_client.set(parent_org["Number"], parent_org)
+                parent_org_key = self._cache_key_for_org_number(parent_org["Number"])
+                self.cache_client.set(service_area, parent_org_key)
+                self.cache_client.set(parent_org_key, parent_org)
 
             return parent_org
 
@@ -179,13 +181,18 @@ class PropertiesMixin:
     def _set_org_number_tree(self, property_record: dict):
         org_number_tree_list = []
         record_id = property_record["ID"]
+        org_number = property_record["Number"]
 
         for row in self.fetch_rows(GET_ORG_NUMBER_TREE_QUERY, record_id, record_id):
             org_number_tree_list.append(row[0])  # row[0] is the orgNumber itself.
 
         # Cache service area parent org against org number
         for service_area_org_number in org_number_tree_list:
-            self.cache_client.set(service_area_org_number, property_record["Number"])
+            # make sure it's not the parent org itself
+            if service_area_org_number == org_number:
+                continue
+            org_number_key = self._cache_key_for_org_number(org_number)
+            self.cache_client.set(service_area_org_number, org_number_key)
 
     def _set_active_counts(self, property_record: dict):
         row = self.execute_query(
@@ -220,3 +227,7 @@ class PropertiesMixin:
                 "VLANRangeEnd": device.VLANRangeEnd,
                 "NetIP": device.NetIP,
             }
+
+    def _cache_key_for_org_number(self, org_number: str) -> str:
+        return "%s%s" % (self._parent_org_number_cache_prefix, org_number)
+

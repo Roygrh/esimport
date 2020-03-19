@@ -166,10 +166,8 @@ class SyncBase(abc.ABC):
         if datetime_object is None:
             return None
 
-        assert (
-            isinstance(datetime_object, datetime)
-            and datetime_object.tzinfo == timezone.utc
-        ), "Time zone is not set to UTC."
+        if datetime_object.tzinfo != timezone.utc:
+            datetime_object = datetime_object.replace(tzinfo=timezone.utc)
 
         local_datetime = datetime_object.astimezone(tz.gettz(tzone))
         return local_datetime.replace(tzinfo=tz.gettz(tzone))

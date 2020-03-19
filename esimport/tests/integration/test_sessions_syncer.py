@@ -3,6 +3,7 @@ from time import sleep
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import SessionsSyncer
+from esimport.infra import CacheClient
 
 from esimport.tests.base_fixtures import sqs
 
@@ -10,6 +11,8 @@ from esimport.tests.base_fixtures import sqs
 def test_sessions_syncer(sqs):
     ss = SessionsSyncer()
     ss.setup()
+    cc = CacheClient(redis_host=ss.config.redis_host, redis_port=ss.config.redis_port)
+    cc.client.flushdb()
     ss.resume(1, datetime(2000, 1, 1), False)
     ss.resume(1, datetime(2000, 1, 1), True)
 
