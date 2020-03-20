@@ -186,6 +186,8 @@ class PropertiesMixin:
         for row in self.fetch_rows(GET_ORG_NUMBER_TREE_QUERY, record_id, record_id):
             org_number_tree_list.append(row[0])  # row[0] is the orgNumber itself.
 
+        property_record["OrgNumberTree"] = org_number_tree_list
+
         # Cache service area parent org against org number
         for service_area_org_number in org_number_tree_list:
             # make sure it's not the parent org itself
