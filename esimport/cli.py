@@ -36,7 +36,7 @@ syncer_classes = {
     "devices": DeviceSyncer,
     "properties": PropertiesSyncer,
     "sessions": SessionsSyncer,
-    "sessions_dpsk": DPSKSessionSyncer,
+    "sessions_ppk": DPSKSessionSyncer,
 }
 
 
@@ -55,7 +55,7 @@ def cli():
             "devices",
             "properties",
             "sessions",
-            "sessions_dpsk",
+            "sessions_ppk",
         ],
         case_sensitive=False,
     ),

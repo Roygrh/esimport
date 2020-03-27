@@ -99,6 +99,20 @@
                 "sync",
                 "sessions"
             ]
+        },
+        {
+            "name": "sessions-ppk",
+            "image": "registry.gitlab.com/distrodev/esimport:master",
+            "essential": false,
+            "memoryReservation": 1000,
+            "links": [
+                "redis"
+            ],
+            "command": [
+                "esimport",
+                "sync",
+                "sessions_ppk"
+            ]
         }
     ]
 }
