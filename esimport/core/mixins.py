@@ -232,4 +232,3 @@ class PropertiesMixin:
 
     def _cache_key_for_org_number(self, org_number: str) -> str:
         return "%s%s" % (self._parent_org_number_cache_prefix, org_number)
-
