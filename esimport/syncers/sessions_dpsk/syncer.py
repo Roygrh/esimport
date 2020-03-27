@@ -23,7 +23,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
     )
 
     def deserialize_message(self, message_body: str) -> list:
-        records = orjson.loads(orjson.loads(message_body)["Message"])
+        records = orjson.loads(orjson.loads(message_body))
         return [records] if isinstance(records, dict) else records
 
     def str_to_datetime(self, session: dict) -> dict:
