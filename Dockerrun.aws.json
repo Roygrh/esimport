@@ -17,7 +17,7 @@
             "name": "redis",
             "image": "redis:5-alpine",
             "essential": true,
-            "memoryReservation": 1000,
+            "memoryReservation": 800,
             "mountPoints": [
                 {
                     "sourceVolume": "redis-store",
@@ -62,7 +62,7 @@
             "name": "devices",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 500,
+            "memory": 400,
             "links": [
                 "redis"
             ],
@@ -90,7 +90,7 @@
             "name": "sessions",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": true,
-            "memory": 500,
+            "memory": 400,
             "links": [
                 "redis"
             ],
@@ -104,7 +104,7 @@
             "name": "sessions-ppk",
             "image": "registry.gitlab.com/distrodev/esimport:master",
             "essential": false,
-            "memoryReservation": 1000,
+            "memoryReservation": 400,
             "links": [
                 "redis"
             ],
