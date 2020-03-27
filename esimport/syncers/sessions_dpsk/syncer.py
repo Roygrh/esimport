@@ -1,5 +1,6 @@
 import boto3
 import orjson
+from datetime import datetime
 from dateutil import parser
 from esimport.core import SyncBase, PropertiesMixin, Record
 
