@@ -67,6 +67,7 @@ class SyncBase(abc.ABC):
             "s3": self.config.s3_port,
             "sns": self.config.sns_port,
             "dynamodb": self.config.dynamodb_port,
+            "sqs": self.config.sqs_port,
         }
         self.aws = AmazonWebServices(
             endpoint_url=self.config.aws_endpoint_url,
@@ -99,7 +100,7 @@ class SyncBase(abc.ABC):
         raise NotImplementedError
 
     def add_record(self, record: Record, flush=False, update_cursor=True):
-        self.sns_buffer.add_record(record, flush=flush)
+        self.sns_buffer.add_record(record, flush=flush, update_cursor=update_cursor)
 
     def fetch_rows_as_dict(self, query, *args) -> List[dict]:
         return self.mssql.fetch_rows_as_dict(query, *args)

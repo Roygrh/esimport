@@ -31,7 +31,7 @@ def sqs():
 
     # Create/Get Queue
     res = sqs_client.create_queue(QueueName=sqs_queue_name)
-    sns_client.create_topic(Name="test")
+    sns_topic_resp = sns_client.create_topic(Name="test")
     sqs_queue = sqs_obj.Queue(res["QueueUrl"])
     sqs_queue_attrs = sqs_client.get_queue_attributes(
         QueueUrl=res["QueueUrl"], AttributeNames=["All"]
@@ -42,7 +42,7 @@ def sqs():
 
     # Subscribe SQS queue to SNS
     sns_client.subscribe(
-        TopicArn=os.getenv("SNS_TOPIC_ARN"), Protocol="sqs", Endpoint=sqs_queue_arn
+        TopicArn=sns_topic_resp["TopicArn"], Protocol="sqs", Endpoint=sqs_queue_arn
     )
 
     return sqs_queue

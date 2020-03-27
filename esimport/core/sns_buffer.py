@@ -36,8 +36,8 @@ class SNSBuffer:
         if flush or self._should_flush(record_size):
             self._flush()
 
-        if update_cursor:
-            self._update_cursor_state()
+            if update_cursor:
+                self._update_cursor_state()
 
         self._records_list.append(record.as_dict())
         self._current_bytes_size += record_size

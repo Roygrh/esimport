@@ -84,6 +84,13 @@ class AmazonWebServices(BaseInfra):
             self._sns_resource = self._get_service_resource("sns")
         return self._sns_resource
 
+    @property
+    def ppk_sqs_queue_client(self):
+        if not hasattr(self, "_ppk_sqs_resource"):
+            self._log("Setting up PPK SQS client")
+            self._ppk_sqs_resource = self._get_service_resource("sqs")
+        return self._ppk_sqs_resource.meta.client
+
     def create_sns_topic(self, topic_name):
         return self.sns_resource.create_topic(Name=topic_name)
 

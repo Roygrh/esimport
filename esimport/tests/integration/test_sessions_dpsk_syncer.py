@@ -10,7 +10,6 @@ from esimport.core import Config
 def test_sessions_dpsk_syncer(sqs_dpsk):
     ss = DPSKSessionSyncer()
     ss.config.sns_topic_arn = "arn:aws:sns:us-west-2:000000000000:target"
-    ss.config.sqs_queue_url = "http://localhost:4576/queue/source"
     ss.config.max_sns_bulk_send_size_in_bytes = 1000
     ss.setup()
 
@@ -20,7 +19,6 @@ def test_sessions_dpsk_syncer(sqs_dpsk):
 
     msg = [
         {
-            "ID": 5957,
             "ServiceArea": "UE-531-28",
             "UserName": "DSSPSTAFF",
             "NasIdentifier": "uu-423-423",
@@ -38,13 +36,22 @@ def test_sessions_dpsk_syncer(sqs_dpsk):
         }
     ]
 
-    response = sns_client.publish(TopicArn=sns_topic_arn, Message=json.dumps(msg))
+    _response = sns_client.publish(TopicArn=sns_topic_arn, Message=json.dumps(msg))
 
-    ss.receive()
-    ss.receive()
+    message_id = ss.receive()
+    assert message_id, "Got empty message ID"
+    assert ss.sns_buffer._last_added_record.id == msg[0]["ResidentID"]
+    indexed_msg = ss.sns_buffer._last_added_record._source
+    assert indexed_msg["ServiceArea"] == msg[0]["ServiceArea"]
 
-    response_msg = sqs_dpsk.receive_messages(AttributeNames=["All"])
-    response_msg_id = json.loads(json.loads(response_msg[0].body)["Message"])[0][
-        "_source"
-    ]["ID"]
-    assert msg[0]["ID"] == response_msg_id
+    # Make sure records are being filled up with property info
+    property_fields = [
+        "PropertyName",
+        "PropertyNumber",
+        "TimeZone",
+        "LoginTimeLocal",
+        "LogoutTimeLocal",
+    ]
+
+    for field in property_fields:
+        assert indexed_msg[field], f"Found {field} missing or with invalid value"

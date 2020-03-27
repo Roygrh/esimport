@@ -22,12 +22,6 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         ("LogoutTime", "LogoutTimeLocal"),
     )
 
-    def __init__(self):
-        super().__init__()
-        self.sqs = boto3.client(
-            "sqs", endpoint_url=f"{self.config.aws_endpoint_url}:{self.config.sqs_port}"
-        )
-
     def deserialize_message(self, message_body: str) -> list:
         records = orjson.loads(orjson.loads(message_body)["Message"])
         return [records] if isinstance(records, dict) else records
@@ -40,8 +34,9 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         return session
 
     def receive(self) -> str:
-        response = self.sqs.receive_message(
-            QueueUrl=self.config.sqs_queue_url,
+        self.info("Checking for new ppk messages..")
+        response = self.aws.ppk_sqs_queue_client.receive_message(
+            QueueUrl=self.config.dpsk_sqs_queue_url,
             AttributeNames=["All"],
             VisibilityTimeout=15,
             WaitTimeSeconds=20,
@@ -49,6 +44,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         )
         messages = response.get("Messages")
         if messages:
+            self.debug(f"Got this message from SQS: {messages}")
             records = self.deserialize_message(response["Messages"][0]["Body"])
             receipt_handle = response["Messages"][0]["ReceiptHandle"]
             for record in records:
@@ -74,10 +70,9 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                     )
 
                     self.add_record(session_record, flush=True, update_cursor=False)
-                    self.info(f"{session_record.raw['ID']}")
 
-            self.sqs.delete_message(
-                QueueUrl=self.config.sqs_queue_url, ReceiptHandle=receipt_handle
+            self.aws.ppk_sqs_queue_client.delete_message(
+                QueueUrl=self.config.dpsk_sqs_queue_url, ReceiptHandle=receipt_handle
             )
             return response["Messages"][0]["MessageId"]
 

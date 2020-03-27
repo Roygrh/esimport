@@ -12,6 +12,9 @@ Parameters:
   SNSTopicARN:
     Type: String
 
+  DPSKSNSTopicARN:
+    Type: String
+
   EsUrl:
     Description: The URL to the target ElasticSearch cluster
     Type: String
@@ -30,6 +33,8 @@ Parameters:
     Type: String
     Default: INFO
 
+Conditions: 
+  IsUSWestRegion: !Equals [ !Ref AWS::Region, us-west-2 ]
 
 Resources:
   SQSConsumerFunction:
@@ -154,4 +159,68 @@ Resources:
       Protocol: sqs
       RawMessageDelivery: true
       TopicArn: !Ref SNSTopicARN
+      Region: "us-west-2"
+
+
+  # DPSK
+  DPSKMessagesQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsUSWestRegion
+    Properties:
+      QueueName: 
+        Fn::Join: 
+        - "-"
+        - - 'esimport-dpsk-queue'
+          - !Ref AWS::Region
+      VisibilityTimeout: !Ref ExecutionTimeout
+
+
+  DPSKMessagesDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsUSWestRegion
+    Properties:
+      QueueName: 
+        Fn::Join: 
+        - "-"
+        - - 'esimport-dpsk-dlq'
+          - !Ref AWS::Region
+
+  DPSKMessagesQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Condition: IsUSWestRegion
+    Properties:
+      Queues:
+        - !Ref DPSKMessagesQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: "sqs:*"
+          Resource: "*"
+          Condition:
+            ArnEquals:
+              "aws:SourceArn": !Ref DPSKSNSTopicARN
+
+
+  DPSKMessagesDeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Condition: IsUSWestRegion
+    Properties:
+      Queues:
+        - !Ref DPSKMessagesDeadLetterQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: "sqs:*"
+          Resource: !GetAtt DPSKMessagesQueue.Arn
+
+  DPSKMessagesQueueToSnsSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: IsUSWestRegion
+    Properties:
+      Endpoint: !GetAtt DPSKMessagesQueue.Arn
+      Protocol: sqs
+      RawMessageDelivery: true
+      TopicArn: !Ref DPSKSNSTopicARN
       Region: "us-west-2"
