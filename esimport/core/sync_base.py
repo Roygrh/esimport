@@ -156,7 +156,7 @@ class SyncBase(abc.ABC):
 
     @staticmethod
     def set_utc_timezone(datetime_object: datetime) -> datetime:
-        if datetime_object is None:
+        if not datetime_object:
             return None
 
         assert isinstance(datetime_object, datetime), "Object is not a datetime object."
@@ -164,7 +164,7 @@ class SyncBase(abc.ABC):
 
     @staticmethod
     def convert_utc_to_local_time(datetime_object: datetime, tzone):
-        if datetime_object is None:
+        if not datetime_object:
             return None
 
         if datetime_object.tzinfo != timezone.utc:
@@ -175,7 +175,7 @@ class SyncBase(abc.ABC):
 
     @staticmethod
     def convert_pacific_to_utc(datetime_object: datetime):
-        if datetime_object is None:
+        if not datetime_object:
             return None
 
         assert isinstance(
@@ -188,7 +188,7 @@ class SyncBase(abc.ABC):
 
     @staticmethod
     def set_pacific_timezone(datetime_object: datetime):
-        if datetime_object is None:
+        if not datetime_object:
             return None
 
         assert isinstance(datetime_object, datetime), "Object is not a datetime object."
