@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from dataclasses import dataclass
-
+import uuid
 
 # This how the record to be sent to the SNS topic looks like:
 @dataclass
@@ -16,10 +16,10 @@ class Record:
     @property
     def id(self) -> int:
         # The ID of the document for Elasticsearch (same as its MSSQL ID)
-        # for DPSK (PPK) records, they don;t have an ID but probable a ResidentID or similar.
+        # for DPSK (PPK) records, they don;t have an ID so we need to generate one.
         if self._source.get("ID", None):
             return int(self._source["ID"])
-        return self._source["ResidentID"]
+        return str(uuid.uuid4())
 
     @property
     def version(self) -> int:
