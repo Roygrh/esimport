@@ -30,7 +30,11 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         datetime_field = ["LoginTime", "LogoutTime"]
         for k, v in session.items():
             if k in datetime_field:
-                session[k] = parser.isoparse(v)
+                try:
+                    session[k] = parser.isoparse(v)
+                except TypeError:
+                    # TODO: probably we need an alert here
+                    session[k] = ""
         return session
 
     def receive(self) -> str:
