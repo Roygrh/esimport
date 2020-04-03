@@ -52,28 +52,26 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             records = self.deserialize_message(response["Messages"][0]["Body"])
             receipt_handle = response["Messages"][0]["ReceiptHandle"]
             for record in records:
-                service_area = record.get("ServiceArea")
-                prop_by_service_area = self.get_and_cache_property_by_service_area_org_number(
-                    service_area
+                resident_id = record.get("ResidentID")
+
+                record = self.str_to_datetime(record)
+                record.update({"is_ppk": True})
+                record.update({"Name": resident_id})
+                record_date = record[self.record_date_fieldname]
+                session_record = Record(
+                    _index=self.get_target_elasticsearch_index(record_date),
+                    _type=self.record_type,
+                    _source=record,
+                    _date=record_date,
                 )
-                if prop_by_service_area:
-                    record = self.str_to_datetime(record)
-                    record.update({"is_ppk": True})
-                    record_date = record[self.record_date_fieldname]
-                    session_record = Record(
-                        _index=self.get_target_elasticsearch_index(record_date),
-                        _type=self.record_type,
-                        _source=record,
-                        _date=record_date,
-                    )
 
-                    self.append_site_values(
-                        session_record,
-                        session_record.raw.get("ServiceArea"),
-                        self.date_fields_to_localize,
-                    )
+                self.append_site_values(
+                    session_record,
+                    session_record.raw.get("ServiceArea"),
+                    self.date_fields_to_localize,
+                )
 
-                    self.add_record(session_record, flush=True, update_cursor=False)
+                self.add_record(session_record, flush=True, update_cursor=False)
 
             self.aws.ppk_sqs_queue_client.delete_message(
                 QueueUrl=self.config.dpsk_sqs_queue_url, ReceiptHandle=receipt_handle
