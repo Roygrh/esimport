@@ -16,10 +16,10 @@ class Record:
     @property
     def id(self) -> int:
         # The ID of the document for Elasticsearch (same as its MSSQL ID)
-        # for DPSK (PPK) records, they don;t have an ID so we need to generate one.
+        # for DPSK (PPK) records, they have a non-integer ID, stored in RECORD_ID field instead.
         if self._source.get("ID", None):
             return int(self._source["ID"])
-        return str(uuid.uuid4())
+        return self._source.get("RECORD_ID")
 
     @property
     def version(self) -> int:

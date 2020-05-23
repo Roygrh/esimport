@@ -67,7 +67,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
                 record = self.str_to_datetime(record)
                 record.update({"is_ppk": True})
-                record.update({"ID": unique_id})
+                record.update({"RECORD_ID": unique_id})
                 record.update({"Name": resident_id})
                 record_date = record[self.record_date_fieldname]
                 session_record = Record(
