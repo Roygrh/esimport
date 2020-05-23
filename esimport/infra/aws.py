@@ -85,11 +85,30 @@ class AmazonWebServices(BaseInfra):
         return self._sns_resource
 
     @property
-    def ppk_sqs_queue_client(self):
-        if not hasattr(self, "_ppk_sqs_resource"):
-            self._log("Setting up PPK SQS client")
-            self._ppk_sqs_resource = self._get_service_resource("sqs")
-        return self._ppk_sqs_resource.meta.client
+    def sqs_client(self):
+        if not hasattr(self, "_sqs_resource"):
+            self._log("Setting up SQS client")
+            self._sqs_resource = self._get_service_resource("sqs")
+        return self._sqs_resource.meta.client
+
+    def sqs_receive_messages(self, sqs_queue_url: str, max_number_of_messages: int = 1):
+        return self.sqs_client.receive_message(
+            QueueUrl=sqs_queue_url,
+            AttributeNames=["All"],
+            VisibilityTimeout=15,
+            WaitTimeSeconds=20,
+            MaxNumberOfMessages=max_number_of_messages,
+        )
+
+    def sqs_delete_message(self, sqs_queue_url: str, receipt_handle):
+        return self.sqs_client.delete_message(
+            QueueUrl=sqs_queue_url, ReceiptHandle=receipt_handle
+        )
+
+    def sqs_send_mesage(self, queue_url: str, message_body):
+        return self.sqs_client.send_message(
+            queue_url=queue_url, MessageBody=message_body
+        )
 
     def create_sns_topic(self, topic_name):
         return self.sns_resource.create_topic(Name=topic_name)

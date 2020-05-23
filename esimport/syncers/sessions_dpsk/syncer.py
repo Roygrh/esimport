@@ -1,4 +1,5 @@
 import boto3
+import json
 import orjson
 from datetime import datetime
 from dateutil import parser
@@ -39,18 +40,25 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
     def receive(self) -> str:
         self.info("Checking for new ppk messages..")
-        response = self.aws.ppk_sqs_queue_client.receive_message(
-            QueueUrl=self.config.dpsk_sqs_queue_url,
-            AttributeNames=["All"],
-            VisibilityTimeout=15,
-            WaitTimeSeconds=20,
-            MaxNumberOfMessages=1,
+        response = self.aws.sqs_receive_messages(
+            sqs_queue_url=self.config.ppk_sqs_queue_url
         )
         messages = response.get("Messages")
         if messages:
             self.debug(f"Got this message from SQS: {messages}")
-            records = self.deserialize_message(response["Messages"][0]["Body"])
+
+            records_str = response["Messages"][0]["Body"]
             receipt_handle = response["Messages"][0]["ReceiptHandle"]
+
+            try:
+                records = self.deserialize_message(records_str)
+            except json.decoder.JSONDecodeError:
+                # Malformed message, move to DLQ
+                records = []
+                self.aws.sqs_send_mesage(
+                    queue_url=self.config.ppk_dlq_queue_url, message_body=records_str
+                )
+
             for record in records:
                 resident_id = record.get("ResidentID")
 
@@ -73,8 +81,9 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
                 self.add_record(session_record, flush=True, update_cursor=False)
 
-            self.aws.ppk_sqs_queue_client.delete_message(
-                QueueUrl=self.config.dpsk_sqs_queue_url, ReceiptHandle=receipt_handle
+            self.aws.sqs_delete_message(
+                sqs_queue_url=self.config.ppk_sqs_queue_url,
+                receipt_handle=receipt_handle,
             )
             return response["Messages"][0]["MessageId"]
 

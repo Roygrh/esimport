@@ -82,7 +82,8 @@ class Config(BaseSettings):
 
     # SQS
     sqs_port: Union[int, None] = None
-    dpsk_sqs_queue_url: str = None
+    ppk_sqs_queue_url: str = None
+    ppk_dlq_queue_url: str = None
 
     # Sentry/Error Reporting
     sentry_dsn: str = ""
