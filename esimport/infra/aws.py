@@ -107,7 +107,7 @@ class AmazonWebServices(BaseInfra):
 
     def sqs_send_mesage(self, queue_url: str, message_body):
         return self.sqs_client.send_message(
-            queue_url=queue_url, MessageBody=message_body
+            QueueUrl=queue_url, MessageBody=message_body
         )
 
     def create_sns_topic(self, topic_name):
