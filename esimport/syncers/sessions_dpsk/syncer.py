@@ -62,8 +62,8 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             for record in records:
                 resident_id = record.get("ResidentID")
                 service_area = record.get("ServiceArea")
-                nas_identifier = record.get("NasIdentifier")
-                unique_id = f"{service_area}:{nas_identifier}"
+                session_id = record.get("SessionID")
+                unique_id = f"{service_area}:{session_id}"
 
                 record = self.str_to_datetime(record)
                 record.update({"is_ppk": True})
