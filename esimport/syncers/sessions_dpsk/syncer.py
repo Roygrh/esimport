@@ -61,9 +61,13 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
             for record in records:
                 resident_id = record.get("ResidentID")
+                service_area = record.get("ServiceArea")
+                nas_identifier = record.get("NasIdentifier")
+                unique_id = f"{service_area}:{nas_identifier}"
 
                 record = self.str_to_datetime(record)
                 record.update({"is_ppk": True})
+                record.update({"ID": unique_id})
                 record.update({"Name": resident_id})
                 record_date = record[self.record_date_fieldname]
                 session_record = Record(
@@ -74,9 +78,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 )
 
                 self.append_site_values(
-                    session_record,
-                    session_record.raw.get("ServiceArea"),
-                    self.date_fields_to_localize,
+                    session_record, service_area, self.date_fields_to_localize,
                 )
 
                 self.add_record(session_record, flush=True, update_cursor=False)
