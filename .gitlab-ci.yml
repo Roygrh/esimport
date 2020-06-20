@@ -28,7 +28,7 @@ build_base_image:
 build_image:
   stage: build
   script:
-    - apk add --update --no-cache gcc python3-dev  
+    - apk add --update --no-cache gcc python3-dev
     - pip3 --no-cache-dir install awscli
     - mkdir ~/.aws/
     - docker info
@@ -43,7 +43,7 @@ build_image:
 staging_deploy:
   stage: staging_deploy
   script:
-    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git 
+    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git
     - pip3 --no-cache-dir install awsebcli awscli
     - mkdir ~/.aws/
     - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
@@ -56,7 +56,7 @@ staging_deploy:
 production_deploy:
   stage: production_deploy
   script:
-    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git 
+    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git
     - pip3 --no-cache-dir install awsebcli awscli
     - mkdir ~/.aws/
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
@@ -68,10 +68,8 @@ production_deploy:
     - master
   when: manual
 
-
 esimport_testing:
   stage: testing
-  when: always
   only:
     - branches
     - tags
@@ -87,7 +85,8 @@ esimport_testing:
     - . .env
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
-  
+  when: manual
+
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
 #   stage: testing
@@ -144,7 +143,7 @@ esimport_datadog_deploy:
       us-west-2
       ${PROD_ROLE_ARN}
     # EAST deploy
-    - bash ./deploy.sh 
+    - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
       ${PROD_LAMBDA_S3_BUCKET_EAST}
       ${PROD_DATADOG_LOOKBACK_X_MINUTES}
@@ -153,7 +152,6 @@ esimport_datadog_deploy:
       ${PROD_DATADOG_API_KEY}
       us-east-1
       ${PROD_ROLE_ARN}
-
 # esimport_retention_unit_test:
 #   stage: esimport_retention
 #   when: manual
