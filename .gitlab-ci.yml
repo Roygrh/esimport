@@ -29,13 +29,13 @@ build_base_image:
 build_image:
   stage: build
   script:
-    - apt update && apt install -y awscli
     - mkdir ~/.aws/
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
+    - apt update && apt install -y awscli
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
