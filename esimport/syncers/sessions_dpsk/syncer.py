@@ -68,10 +68,14 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 session_id = record.get("SessionID")
                 unique_id = f"{service_area}:{session_id}"
 
+                ppk_type = record.get("PpkType")
+
                 record = self.str_to_datetime(record)
                 record.update({"is_ppk": True})
                 record.update({"RECORD_ID": unique_id})
                 record.update({"Name": resident_id})
+                record.update({"PpkType": ppk_type})
+
                 record_date = record[self.record_date_fieldname]
                 session_record = Record(
                     _index=self.get_target_elasticsearch_index(record_date),
