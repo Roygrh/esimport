@@ -1,9 +1,9 @@
-image: docker:latest
+image: ubuntu:20.04
+
 services:
   - docker:dind
 
 stages:
-  # TODO: uncomment the rest of stages when esimport is deployed as a serverless app
   - testing
   # - esimport_retention
   - build
@@ -14,6 +14,7 @@ stages:
 variables:
   DOCKER_DRIVER: overlay
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  DOCKER_HOST: "tcp://docker:2375"
 
 build_base_image:
   stage: build
@@ -28,8 +29,7 @@ build_base_image:
 build_image:
   stage: build
   script:
-    - apk add --update --no-cache gcc python3-dev
-    - pip3 --no-cache-dir install awscli
+    - apt -y install awscli
     - mkdir ~/.aws/
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
