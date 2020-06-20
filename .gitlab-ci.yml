@@ -29,7 +29,7 @@ build_base_image:
 build_image:
   stage: build
   script:
-    - apt -y install awscli
+    - apt update && apt install -y awscli
     - mkdir ~/.aws/
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
