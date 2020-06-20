@@ -61,6 +61,9 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
             for record in records:
                 resident_id = record.get("ResidentID")
+                if not resident_id:
+                    resident_id = record.get("ResidentId")
+
                 service_area = record.get("ServiceArea")
                 session_id = record.get("SessionID")
                 unique_id = f"{service_area}:{session_id}"
