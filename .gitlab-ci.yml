@@ -16,11 +16,17 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   DOCKER_HOST: "tcp://docker:2375"
 
+before_script:
+  - mkdir ~/.aws/
+  - apt-get update && apt-get install --no-install-recommends --yes curl awscli
+  - curl -fsSL https://get.docker.com -o get-docker.sh
+  - sh get-docker.sh
+  - docker info
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
 build_base_image:
   stage: build
   script:
-    - docker info
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $IMAGE_TAG -f base.Dockerfile .
     - docker push $IMAGE_TAG
   only:
@@ -29,13 +35,9 @@ build_base_image:
 build_image:
   stage: build
   script:
-    - mkdir ~/.aws/
-    - docker info
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-    - apt update && apt install -y awscli
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
