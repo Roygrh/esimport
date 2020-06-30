@@ -18,6 +18,7 @@ variables:
 
 before_script:
   - mkdir ~/.aws/
+  - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
   - apt-get update && apt-get install --no-install-recommends --yes curl awscli git
   - curl -fsSL https://get.docker.com -o get-docker.sh
   - sh get-docker.sh
@@ -37,7 +38,6 @@ build_image:
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
@@ -61,7 +61,6 @@ production_deploy:
     - pip --no-cache-dir install awsebcli
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
     - eb deploy $PROD_EB_ENV_NAME --verbose
   only:
