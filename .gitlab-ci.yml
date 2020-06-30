@@ -18,7 +18,7 @@ variables:
 
 before_script:
   - mkdir ~/.aws/
-  - apt-get update && apt-get install --no-install-recommends --yes curl awscli
+  - apt-get update && apt-get install --no-install-recommends --yes curl awscli git
   - curl -fsSL https://get.docker.com -o get-docker.sh
   - sh get-docker.sh
   - docker info
@@ -58,9 +58,7 @@ staging_deploy:
 production_deploy:
   stage: production_deploy
   script:
-    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git
-    - pip3 --no-cache-dir install awsebcli awscli
-    - mkdir ~/.aws/
+    - pip --no-cache-dir install awsebcli
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
