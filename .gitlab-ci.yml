@@ -19,7 +19,7 @@ variables:
 before_script:
   - mkdir ~/.aws/
   - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-  - apt-get update && apt-get install --no-install-recommends --yes curl awscli git
+  - DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get install --no-install-recommends --yes curl awscli git
   - curl -fsSL https://get.docker.com -o get-docker.sh
   - sh get-docker.sh
   - docker info
