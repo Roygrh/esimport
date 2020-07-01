@@ -19,7 +19,8 @@ variables:
 before_script:
   - mkdir ~/.aws/
   - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-  - DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get install --no-install-recommends --yes curl awscli git
+  - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+  - pip3 --no-cache-dir install awscli awsebcli
   - curl -fsSL https://get.docker.com -o get-docker.sh
   - sh get-docker.sh
   - docker info
@@ -58,7 +59,6 @@ staging_deploy:
 production_deploy:
   stage: production_deploy
   script:
-    - pip --no-cache-dir install awsebcli
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
