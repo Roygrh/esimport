@@ -17,7 +17,7 @@ SESSIONS_QUERY = """
         stop.Acct_Output_Octets AS BytesOut,
         stop.Acct_Input_Octets AS BytesIn,
         term.Name AS TerminationReason,
-        zp.Name AS ServicePlan
+        zp.Name AS ServicePlan,
         zp.Zone_Plan_Tag_ID AS ServicePlanTier
     FROM
         Radius.dbo.Radius_Stop_Event stop
