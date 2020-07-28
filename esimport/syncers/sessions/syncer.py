@@ -34,6 +34,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         self, start_id, limit, start_date="1900-01-01", use_historical=True
     ):
         query = self._get_sessions_query(True)
+        self.info(f"current limit {limit}, current start_id {start_id}")
 
         for row in self.fetch_rows_as_dict(query, limit, start_id, start_id, limit):
             for key, value in row.items():
