@@ -33,7 +33,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     def get_sessions(
         self, start_id, limit, start_date="1900-01-01", use_historical=True
     ):
-        query = self._get_sessions_query(use_historical)
+        query = self._get_sessions_query(True)
 
         for row in self.fetch_rows_as_dict(query, limit, start_id, start_id, limit):
             for key, value in row.items():
