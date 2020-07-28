@@ -35,7 +35,5 @@ SESSIONS_QUERY = """
         ) zpa
         LEFT JOIN Zone_Plan zp ON zp.ID = zpa.Zone_Plan_ID
     WHERE
-        stop.ID >= ? AND stop.ID < (? + ?) AND hist.Date_UTC > ?
-    ORDER BY
-        stop.ID ASC
+        stop.ID >= ? AND stop.ID < (? + ?)
 """
