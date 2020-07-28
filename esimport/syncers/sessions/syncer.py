@@ -38,6 +38,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         self.info(query)
 
         for row in self.fetch_rows_as_dict(query, limit, start_id, start_id, limit):
+            self.info(row)
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = self.set_utc_timezone(value)
