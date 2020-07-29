@@ -16,7 +16,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = SessionSchema
 
-    default_query_limit: int = 500
+    default_query_limit: int = 2000
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object
@@ -34,11 +34,8 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         self, start_id, limit, start_date="1900-01-01", use_historical=True
     ):
         query = self._get_sessions_query(True)
-        self.info(f"current limit {limit}, current start_id {start_id}")
-        self.info(query)
 
         for row in self.fetch_rows_as_dict(query, limit, start_id, start_id, limit):
-            self.info(row)
             for key, value in row.items():
                 if isinstance(value, datetime):
                     row[key] = self.set_utc_timezone(value)
@@ -134,7 +131,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
-                wait = self.db_wait * 2
+                wait = self.db_wait
                 self.info(f"[Delay] Reset SQL connection and waiting {wait} seconds")
                 self.mssql.reset()
                 self.sleep(wait)
