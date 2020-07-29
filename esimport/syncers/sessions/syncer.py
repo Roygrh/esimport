@@ -16,7 +16,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = SessionSchema
 
-    default_query_limit: int = 2000
+    default_query_limit: int = 300
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object
