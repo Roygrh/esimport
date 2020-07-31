@@ -1,118 +1,86 @@
 {
-    "AWSEBDockerrunVersion": 2,
-    "Authentication": {
-        "Bucket": "dataservices.esimport.production",
-        "Key": "docker-registry.json"
+  "AWSEBDockerrunVersion": 2,
+  "Authentication": {
+    "Bucket": "dataservices.esimport.production",
+    "Key": "docker-registry.json"
+  },
+  "volumes": [
+    {
+      "name": "redis-store",
+      "host": {
+        "sourcePath": "/var/data/redis"
+      }
+    }
+  ],
+  "containerDefinitions": [
+    {
+      "name": "redis",
+      "image": "redis:5-alpine",
+      "essential": true,
+      "memoryReservation": 800,
+      "mountPoints": [
+        {
+          "sourceVolume": "redis-store",
+          "containerPath": "/var/lib/redis/data"
+        }
+      ],
+      "command": ["redis-server", "--save \"\"", "--appendonly no"]
     },
-    "volumes": [
-        {
-            "name": "redis-store",
-            "host": {
-                "sourcePath": "/var/data/redis"
-            }
-        }
-    ],
-    "containerDefinitions": [
-        {
-            "name": "redis",
-            "image": "redis:5-alpine",
-            "essential": true,
-            "memoryReservation": 800,
-            "mountPoints": [
-                {
-                    "sourceVolume": "redis-store",
-                    "containerPath": "/var/lib/redis/data"
-                }
-            ],
-            "command": [
-                "redis-server",
-                "--save \"\"",
-                "--appendonly no"
-            ]
-        },
-        {
-            "name": "accounts",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": true,
-            "memory": 500,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "accounts"
-            ]
-        },
-        {
-            "name": "conferences",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": true,
-            "memory": 500,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "conferences"
-            ]
-        },
-        {
-            "name": "devices",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": true,
-            "memory": 400,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "devices"
-            ]
-        },
-        {
-            "name": "properties",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": true,
-            "memory": 500,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "properties"
-            ]
-        },
-        {
-            "name": "sessions",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": true,
-            "memory": 400,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "sessions"
-            ]
-        },
-        {
-            "name": "sessions-ppk",
-            "image": "registry.gitlab.com/distrodev/esimport:master",
-            "essential": false,
-            "memoryReservation": 400,
-            "links": [
-                "redis"
-            ],
-            "command": [
-                "esimport",
-                "sync",
-                "sessions_ppk"
-            ]
-        }
-    ]
+    {
+      "name": "accounts",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": true,
+      "memory": 500,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "accounts"]
+    },
+    {
+      "name": "conferences",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": true,
+      "memory": 500,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "conferences"]
+    },
+    {
+      "name": "devices",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": true,
+      "memory": 400,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "devices"]
+    },
+    {
+      "name": "properties",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": true,
+      "memory": 500,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "properties"]
+    },
+    {
+      "name": "sessions",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": true,
+      "memory": 400,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "sessions"]
+    },
+    {
+      "name": "sessions-ppk",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": false,
+      "memoryReservation": 400,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "sessions_ppk"]
+    },
+    {
+      "name": "sessions-current",
+      "image": "registry.gitlab.com/distrodev/esimport:master",
+      "essential": false,
+      "memoryReservation": 400,
+      "links": ["redis"],
+      "command": ["esimport", "sync", "sessions_current"]
+    }
+  ]
 }

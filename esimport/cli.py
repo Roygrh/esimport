@@ -21,6 +21,7 @@ from .syncers import (
     PropertiesSyncer,
     SessionsSyncer,
     DPSKSessionSyncer,
+    SessionsCurrentSyncer,
 )
 
 here_path = os.path.dirname(__file__)
@@ -37,6 +38,7 @@ syncer_classes = {
     "properties": PropertiesSyncer,
     "sessions": SessionsSyncer,
     "sessions_ppk": DPSKSessionSyncer,
+    "sessions_current": SessionsCurrentSyncer,
 }
 
 
@@ -56,6 +58,7 @@ def cli():
             "properties",
             "sessions",
             "sessions_ppk",
+            "sessions_current",
         ],
         case_sensitive=False,
     ),

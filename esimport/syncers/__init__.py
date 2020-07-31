@@ -4,3 +4,4 @@ from .devices import DeviceSyncer
 from .properties import PropertiesSyncer
 from .sessions import SessionsSyncer
 from .sessions_dpsk import DPSKSessionSyncer
+from .sessions_current import SessionsCurrentSyncer

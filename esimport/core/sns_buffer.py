@@ -25,7 +25,9 @@ class SNSBuffer:
     _current_bytes_size: int = 0
     last_flush_time: Union[datetime, None] = None
 
-    def add_record(self, record: Record, flush=False, update_cursor=True):
+    def add_record(
+        self, record: Record, flush=False, update_cursor=True, cursor_name=None
+    ):
         """
         This adds a record to an internal records list and auto decides whether it's time 
         to send to SNS or not. Depending if the records list's size in bytes reached the SNS
@@ -37,7 +39,7 @@ class SNSBuffer:
             self._flush()
 
             if update_cursor:
-                self._update_cursor_state()
+                self._update_cursor_state(cursor_name)
 
         self._records_list.append(record.as_dict())
         self._current_bytes_size += record_size
@@ -76,10 +78,11 @@ class SNSBuffer:
         self._records_list = []
         self._current_bytes_size = 0
 
-    def _update_cursor_state(self):
+    def _update_cursor_state(self, cursor_name=None):
+        cn = cursor_name or self._last_added_record._type
         response = self.dynamodb_table_client.put_item(
             Item={
-                "doctype": self._last_added_record._type,
+                "doctype": cn,
                 "latest_id": self._last_added_record.id,
                 "latest_date": self._last_added_record._date.isoformat(),
             }
