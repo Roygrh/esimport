@@ -16,7 +16,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = SessionSchema
 
-    default_query_limit: int = 300
+    default_query_limit: int = 500
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object
@@ -33,7 +33,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     def get_sessions(
         self, start_id, limit, start_date="1900-01-01", use_historical=True
     ):
-        query = self._get_sessions_query(True)
+        query = self._get_sessions_query(use_historical)
 
         for row in self.fetch_rows_as_dict(query, limit, start_id, start_id, limit):
             for key, value in row.items():

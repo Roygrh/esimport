@@ -73,14 +73,6 @@
       "memoryReservation": 400,
       "links": ["redis"],
       "command": ["esimport", "sync", "sessions_ppk"]
-    },
-    {
-      "name": "sessions-current",
-      "image": "registry.gitlab.com/distrodev/esimport:master",
-      "essential": false,
-      "memoryReservation": 400,
-      "links": ["redis"],
-      "command": ["esimport", "sync", "sessions_current"]
     }
   ]
 }
