@@ -122,14 +122,10 @@ esimport_testing:
 esimport_datadog_deploy:
   stage: production_deploy
   when: manual
-  before_script:
-    - apk add --update --no-cache zip bash gcc python3-dev musl-dev
-    - pip3 --no-cache-dir install awscli aws-sam-cli
-    - mkdir ~/.aws/
+  script:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
-
-  script:
+    - pip3 --no-cache-dir install awscli aws-sam-cli
     - cd lambdas/esimport_datadog
     # WEST deploy
     - bash ./deploy.sh
