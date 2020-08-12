@@ -1,7 +1,7 @@
 datadog
 # python-dateutil # - boto3 has this dependency but old version using it
 requests_aws4auth
-elasticsearch>=5.0.0,<6.0.0
+elasticsearch>=6.0.0,<7.0.0
 # urllib3 # - boto3 has this dependency
 boto3
 sentry_sdk

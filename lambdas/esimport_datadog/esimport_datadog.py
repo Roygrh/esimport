@@ -29,6 +29,11 @@ doc_types = {
     "device": ("devices-current", "DateUTC", "esimport.device.minutes_behind"),
     "property": ("properties", "UpdateTime", "esimport.property.minutes_behind"),
     "session": ("sessions-current", "LogoutTime", "esimport.session.minutes_behind"),
+    "session-ppk": (
+        "sessions-current",
+        "LogoutTime",
+        "esimport.session-ppk.minutes_behind",
+    ),
 }
 
 # how far back to look, in minutes
@@ -92,7 +97,11 @@ class EsimportDatadogLogger:
                 index_name, date_field_name, metric_name = params
 
                 result = self.get_last_inserted_doc(
-                    self.es, index_name, date_field_name, LOOK_BACK_FOR_X_MINUTES
+                    self.es,
+                    doc_type,
+                    index_name,
+                    date_field_name,
+                    LOOK_BACK_FOR_X_MINUTES,
                 )
                 now = datetime.now(tz=timezone.utc)
                 doc_timedelta = self.extract_doc_datetime(result, date_field_name, now)
@@ -113,13 +122,39 @@ class EsimportDatadogLogger:
 
     @staticmethod
     def get_last_inserted_doc(
-        es: Elasticsearch, index_name: str, date_field: str, minutes_behind: int
+        es: Elasticsearch,
+        doc_type: str,
+        index_name: str,
+        date_field: str,
+        minutes_behind: int,
     ):
-        search_body = {
-            "query": {"range": {date_field: {"gte": f"now-{minutes_behind}m"}}},
-            "size": 1,
-            "sort": {date_field: "desc"},
-        }
+        if doc_type in ["session", "session-ppk"]:
+            is_ppk = True if doc_type == "session-ppk" else False
+            search_body = {
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {"term": {"is_ppk": is_ppk}},
+                            {
+                                "range": {
+                                    date_field: {
+                                        "gte": f"now-{minutes_behind}m",
+                                        "lt": "now",
+                                    }
+                                }
+                            },
+                        ]
+                    }
+                },
+                "size": 1,
+                "sort": {date_field: "desc"},
+            }
+        else:
+            search_body = {
+                "query": {"range": {date_field: {"gte": f"now-{minutes_behind}m"}}},
+                "size": 1,
+                "sort": {date_field: "desc"},
+            }
         result = es.search(index=index_name, body=search_body)
         return result
 

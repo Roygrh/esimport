@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: 'AWS::Serverless-2016-10-31'
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
 Description: ESImport Datadog Lambda function.
 
 Parameters:
@@ -31,17 +31,17 @@ Parameters:
     Description: Log level for lambda function
     Type: String
     Default: INFO
-    
+
 Resources:
   LambdaEsimportDatadog:
-    Type: 'AWS::Serverless::Function'
+    Type: "AWS::Serverless::Function"
     Properties:
       Handler: esimport_datadog.lambda_handler
       Runtime: python3.7
       CodeUri: .
       Description: ESImport Datadog Lambda function.
       MemorySize: 128
-      Timeout: 3
+      Timeout: 10
       Role: !Ref RoleARN
       Environment:
         Variables:
@@ -56,4 +56,5 @@ Resources:
         ScheduleLambda:
           Type: Schedule
           Properties:
-            Schedule: cron(1/3 * * * ? *)
+            # IMPORTANT NOTE: if you ever change this to 01 minute, it needs to be MINUTE (singular) without S
+            Schedule: rate(2 minutes)
