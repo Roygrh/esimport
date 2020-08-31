@@ -27,7 +27,7 @@ setup(
         "PyYAML==5.1",
         "raven==6.5.0",
         "redis==3.3.11",
-        "requests==2.19.1",
+        "requests==2.20.0",
         "urllib3==1.24.2",
         "boto3==1.10.28",
         "orjson==2.1.1",
