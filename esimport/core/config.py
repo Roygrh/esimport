@@ -7,10 +7,10 @@ from pydantic import BaseModel, BaseSettings, Field, Schema
 class Config(BaseSettings):
     """
     This how the config object should look like.
-    This is using Pydantic's `BaseSettings`. 
+    This is using Pydantic's `BaseSettings`.
 
     INSTANTIATING THIS CLASS WILL AUTO FILL ITS FIELDS FROM YOUR ENVIRONMENT VARIABLES.
-    
+
     For more info, see: https://pydantic-docs.helpmanual.io/usage/settings/
     """
 
@@ -54,6 +54,8 @@ class Config(BaseSettings):
     # Reset database connection (seconds) giving esimport a chance to
     # pickup any DNS changes that have propagated since the last connection
     database_connection_reset_limit: int = 300
+
+    db_sessions_gap_in_seconds: int = 60 * 3
 
     # AWS
     # This endpoint can be set in case we're mocking AWS service. e.g. via localstack: https://github.com/localstack/localstack

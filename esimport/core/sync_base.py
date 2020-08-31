@@ -221,3 +221,7 @@ class SyncBase(abc.ABC):
     @property
     def database_connection_reset_limit(self):
         return self.config.database_connection_reset_limit
+
+    @property
+    def db_sessions_gap_in_seconds(self):
+        return self.config.db_sessions_gap_in_seconds
