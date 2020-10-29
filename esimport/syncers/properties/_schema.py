@@ -88,6 +88,8 @@ class Property(BaseSchema):
     GuestRooms: int  #  101
     ActiveDevices: int
     ActiveMembers: int
+    PortalURL: str
+    PortalTemplate: str
 
     ServiceAreaObjects: List[ServiceArea]
 

@@ -1,4 +1,4 @@
-import time
+import time, requests, json
 from datetime import datetime, timezone
 from typing import Generator
 
@@ -74,6 +74,7 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
         )
 
         for row in list(self.fetch_rows_as_dict(GET_PROPERTIES_QUERY, limit, start)):
+            self.add_portal_url_and_portal_template_to_property(row)
             self._set_additonal_property_info(row)
             record_date = row[self.record_date_fieldname]
             yield Record(
@@ -82,3 +83,20 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
                 _source=row,
                 _date=record_date,
             )
+
+    def add_portal_url_and_portal_template_to_property(self, property_record: dict):
+        """
+        Add PortalURL and PortalTemplate to properties
+        """
+        portal_url = property_record['PortalURL']
+        if portal_url is not None:
+            portal_template_url = portal_url.partition("resident")[0] + "resident/metadata/template.json"
+            try:
+                template = json.loads(requests.get(portal_template_url).content)
+                portal_template = template["displayName"]
+                property_record["PortalTemplate"] = portal_template
+            except ValueError as error:
+                property_record["PortalTemplate"] = None
+        else:
+            property_record["PortalTemplate"] = None
+

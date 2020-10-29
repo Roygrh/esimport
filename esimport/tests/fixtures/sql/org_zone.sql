@@ -18,6 +18,7 @@ GO
 CREATE TABLE [dbo].[Org_Zone](
 	[ID] [int] IDENTITY(1,1) NOT FOR REPLICATION NOT NULL,
 	[Organization_ID] [int] NOT NULL,
+	[Custom_Implementation_URL] [varchar](256) NULL,
  CONSTRAINT [PK_Org_Zone] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -26,11 +27,11 @@ CREATE TABLE [dbo].[Org_Zone](
 GO
 
 SET IDENTITY_INSERT Org_Zone ON
-INSERT INTO [dbo].[Org_Zone] (ID, Organization_ID)
+INSERT INTO [dbo].[Org_Zone] (ID, Organization_ID, Custom_Implementation_URL)
 VALUES
-	(1, 1),
-	(2, 2),
-	(3, 3),
-	(4, 4),
-	(5, 5)
+	(1, 1, 'https://secure.guestinternet.com/portal/juno/brands/mdu/resident/index.html?api_domain=https://secure.11os.com'),
+	(2, 2, 'https://secure.guestinternet.com/portal/juno/brands/mdu/resident/index.html?api_domain=https://secure.11os.com'),
+	(3, 3, 'https://secure.guestinternet.com/portal/juno/brands/wrong/resident/index.html?api_domain=https://secure.11os.com'),
+	(4, 4, 'https://secure.guestinternet.com/portal/juno/brands/mdu/resident/index.html?api_domain=https://secure.11os.com'),
+	(5, 5, 'https://secure.guestinternet.com/portal/juno/brands/mdu/resident/index.html?api_domain=https://secure.11os.com')
 GO
