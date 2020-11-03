@@ -15,8 +15,7 @@ Select TOP (?) Organization.ID as ID,
     Address.City,
     Address.Area,
     Address.Postal_Code as PostalCode,
-    Country.Name as CountryName,
-    Org_Zone.Custom_Implementation_URL as PortalURL
+    Country.Name as CountryName
 From Organization WITH (NOLOCK)
     Left Join Org_Status WITH (NOLOCK) ON Org_Status.ID = Organization.Org_Status_ID
     Left Join Time_Zone WITH (NOLOCK) ON Time_Zone.ID = Organization.Time_Zone_ID
@@ -24,7 +23,6 @@ From Organization WITH (NOLOCK)
     Left Join Contact_Address WITH (NOLOCK) ON Contact_Address.Contact_ID = Organization.Contact_ID
     Left Join Address WITH (NOLOCK) ON Address.ID = Contact_Address.Address_ID
     Left Join Country WITH (NOLOCK) ON Country.ID = Address.Country_ID
-    Left Join Org_Zone WITH (NOLOCK) ON Organization.ID = Org_Zone.Organization_ID
 Where 
     Organization.Org_Category_Type_ID = 3
     AND Organization.ID > ?

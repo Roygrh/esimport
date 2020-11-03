@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Iterator
+import requests, json
 
 from .record import Record
 from .shared_queries import (
@@ -151,6 +152,7 @@ class PropertiesMixin:
             id_ = service_area.ID
             # Get service plans:
             s_plans = site_level_sps[id_] if id_ in site_level_sps else []
+            portal_template = self.fetch_portal_template(service_area.PortalURL)
             sa_list.append(
                 {
                     "Number": service_area.Number,
@@ -158,6 +160,8 @@ class PropertiesMixin:
                     "ZoneType": service_area.ZoneType,
                     "ActiveMembers": service_area.ActiveMembers,
                     "ActiveDevices": service_area.ActiveDevices,
+                    "PortalURL": service_area.PortalURL,
+                    "PortalTemplate": portal_template,
                     "Hosts": [
                         device for device in self.__get_devices_for_service_area(id_)
                     ],
@@ -166,6 +170,21 @@ class PropertiesMixin:
             )
 
         property_record["ServiceAreaObjects"] = sa_list
+
+    def fetch_portal_template(self, portal_url):
+        """
+        Fetch PortalTemplate from PortalURL
+        """
+        if portal_url is not None:
+            portal_template_url = portal_url.partition("resident")[0] + "resident/metadata/template.json"
+            try:
+                template = json.loads(requests.get(portal_template_url).content)
+                portal_template = template["displayName"]
+                return portal_template
+            except ValueError as error:
+                return None
+        else:
+            return None
 
     def _set_provider(self, property_record: dict):
         property_record["Provider"] = self.execute_query(

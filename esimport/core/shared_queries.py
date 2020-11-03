@@ -52,19 +52,22 @@ SELECT Organization.ID as ID,
     Organization.Number as Number,
     Organization.Display_Name as Name,
     Org_Value.Value as ZoneType,
+    Org_Zone.Custom_Implementation_URL as PortalURL,
     COUNT(DISTINCT r.Member_ID) as ActiveMembers,
     COUNT(DISTINCT r.Calling_Station_Id) as ActiveDevices
 FROM Org_Relation_Cache WITH (NOLOCK)
     JOIN Organization WITH (NOLOCK) ON Organization.ID = Child_Org_ID
     LEFT JOIN Org_Value WITH (NOLOCK) ON Org_Value.Organization_ID = Organization.ID AND Org_Value.Name='ZoneType'
     LEFT JOIN Radius_Active_Usage r WITH (NOLOCK) ON r.Organization_ID = Child_Org_ID
+    LEFT JOIN Org_Zone WITH (NOLOCK) ON Organization.ID = Org_Zone.Organization_ID
 WHERE 
     Org_Relation_Cache.Parent_Org_ID = ?
     AND Organization.Org_Category_Type_ID = 4
 GROUP BY Organization.ID,
     Organization.Number,
     Organization.Display_Name,
-    Org_Value.Value"""
+    Org_Value.Value,
+    Org_Zone.Custom_Implementation_URL"""
 
 GET_SERVICE_AREA_DEVICES_QUERY = """
 SELECT NAS_Device.NAS_ID as NASID,

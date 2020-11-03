@@ -43,6 +43,8 @@ class ServiceArea(BaseSchema):
     ZoneType: str
     ActiveMembers: int
     ActiveDevices: int
+    PortalURL: str
+    PortalTemplate: str
     Hosts: List[Host]
     ServicePlans: List[ServicePlan]
 
@@ -88,8 +90,6 @@ class Property(BaseSchema):
     GuestRooms: int  #  101
     ActiveDevices: int
     ActiveMembers: int
-    PortalURL: str
-    PortalTemplate: str
 
     ServiceAreaObjects: List[ServiceArea]
 
