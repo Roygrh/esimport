@@ -176,11 +176,12 @@ class PropertiesMixin:
         Fetch PortalTemplate from PortalURL
         """
         if portal_url is not None:
-            self.info(f"Fetching PortalTemplate for PortalURL: {portal_url}")
-            portal_template_url = (
-                portal_url.partition("resident")[0] + "resident/metadata/template.json"
-            )
             try:
+                self.info(f"Fetching PortalTemplate for PortalURL: {portal_url}")
+                portal_template_url = portal_url.partition("?")[0].split("/")[:-1]
+                portal_template_url = "/".join(portal_template_url)
+                portal_template_url += "/metadata/template.json"
+                self.info(f"Constructed PortalTemplateURL is: {portal_template_url}")
                 template = json.loads(requests.get(portal_template_url).content)
                 portal_template = template["displayName"]
                 return portal_template
