@@ -176,12 +176,19 @@ class PropertiesMixin:
         Fetch PortalTemplate from PortalURL
         """
         if portal_url is not None:
-            portal_template_url = portal_url.partition("resident")[0] + "resident/metadata/template.json"
+            self.info(f"Fetching PortalTemplate for PortalURL: {portal_url}")
+            portal_template_url = (
+                portal_url.partition("resident")[0] + "resident/metadata/template.json"
+            )
             try:
                 template = json.loads(requests.get(portal_template_url).content)
                 portal_template = template["displayName"]
                 return portal_template
-            except ValueError as error:
+            except Exception as e:
+                str_excep = str(e)
+                self.warning(
+                    f"Could not fetch PortalTemplate for {portal_url} got the following exception: {str_excep}"
+                )
                 return None
         else:
             return None
