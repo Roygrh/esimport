@@ -176,7 +176,7 @@ class PropertiesMixin:
         Fetch PortalTemplate from PortalURL
         """
         if portal_url is not None:
-            cached_portal_url_value = self.cache_client.get(portal_url)
+            cached_portal_url_value = self.cache_client.raw_get(portal_url)
             if cached_portal_url_value is not None:
                 self.info(f"PortalTemplate for {portal_url} retreived from cache")
                 return cached_portal_url_value
@@ -190,7 +190,9 @@ class PropertiesMixin:
                 template = json.loads(requests.get(portal_template_url).content)
                 portal_template = template["displayName"]
 
-                self.cache_client.setex(portal_url, portal_template, timedelta(days=5))
+                self.cache_client.raw_setex(
+                    portal_url, portal_template, timedelta(days=5)
+                )
                 return portal_template
             except Exception as e:
                 str_excep = str(e)
@@ -198,7 +200,7 @@ class PropertiesMixin:
                     f"Could not fetch PortalTemplate for {portal_url} got the following exception: {str_excep}"
                 )
                 self.warning(f"Setting empty cache for {portal_url}")
-                self.cache_client.setex(portal_url, "", timedelta(days=5))
+                self.cache_client.raw_setex(portal_url, "", timedelta(days=5))
                 return None
         else:
             return None

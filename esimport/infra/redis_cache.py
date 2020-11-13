@@ -66,12 +66,17 @@ class CacheClient(BaseInfra):
         return json.loads(rec) if rec else None
 
     @retry_on_connection_refused
+    def raw_get(self, key: str) -> Union[str, None]:
+        self._log(f"Cache - getting value for key: {key}", level=logging.DEBUG)
+        return self.client.get(key)
+
+    @retry_on_connection_refused
     def set(self, key: str, value):
         self._log(f"Cache - setting value for key: {key}", level=logging.DEBUG)
         self.client.setex(key, self.ttl_value, self.orjson_dumps(value))
 
     @retry_on_connection_refused
-    def setex(self, key: str, value: str, ttl: datetime.timedelta):
+    def raw_setex(self, key: str, value: str, ttl: datetime.timedelta):
         self._log(
             f"Cache - {key} for {ttl.total_seconds()} seconds", level=logging.DEBUG
         )
