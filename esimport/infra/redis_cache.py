@@ -70,6 +70,13 @@ class CacheClient(BaseInfra):
         self._log(f"Cache - setting value for key: {key}", level=logging.DEBUG)
         self.client.setex(key, self.ttl_value, self.orjson_dumps(value))
 
+    @retry_on_connection_refused
+    def setex(self, key: str, value: str, ttl: datetime.timedelta):
+        self._log(
+            f"Cache - {key} for {ttl.total_seconds()} seconds", level=logging.DEBUG
+        )
+        self.client.setex(key, ttl, value)
+
     # We are going to use orjson (see below), this function is a small wrapper
     # to match the standard json.dumps behavior.
     def orjson_dumps(self, v):
