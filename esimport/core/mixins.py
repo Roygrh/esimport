@@ -214,7 +214,12 @@ class PropertiesMixin:
         record_id = property_record["ID"]
         for org_v in self.execute_query(GET_PROPERTY_ORG_VALUES_QUERY, record_id):
             val = org_v.Value
-            property_record[org_v.Name] = float(val) if org_v.Name == "TaxRate" else val
+            try:
+                property_record[org_v.Name] = (
+                    float(val) if org_v.Name == "TaxRate" else val
+                )
+            except (ValueError, TypeError):
+                property_record[org_v.Name] = None
 
     def _set_org_number_tree(self, property_record: dict):
         org_number_tree_list = []
