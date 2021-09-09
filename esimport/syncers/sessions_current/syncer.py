@@ -75,6 +75,9 @@ class SessionsCurrentSyncer(SyncBase, PropertiesMixin):
         ):
             count += 1
             session_id = session_record.raw.get("ID")
+            # Distinguish normal (DB originated) sessions from PPK sessions in Elasticsearch
+            # as we need to filter on 'is_ppk' for different reasons (e.g. alerting, debugging.. )
+            session_record.raw.update({"is_ppk": False})
             self.debug(f"Record found: {session_id}")
 
             self.append_site_values(
