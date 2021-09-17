@@ -91,7 +91,7 @@ class AmazonWebServices(BaseInfra):
             self._sqs_resource = self._get_service_resource("sqs")
         return self._sqs_resource.meta.client
 
-    def sqs_receive_messages(self, sqs_queue_url: str, max_number_of_messages: int = 1):
+    def sqs_receive_messages(self, sqs_queue_url: str, max_number_of_messages: int = 10):
         return self.sqs_client.receive_message(
             QueueUrl=sqs_queue_url,
             AttributeNames=["All"],
