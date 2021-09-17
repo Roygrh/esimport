@@ -88,7 +88,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                     session_record, service_area, self.date_fields_to_localize,
                 )
 
-                self.add_record(session_record, flush=True, update_cursor=False)
+                self.add_record(session_record, update_cursor=False)
 
             self.aws.sqs_delete_message(
                 sqs_queue_url=self.config.ppk_sqs_queue_url,
