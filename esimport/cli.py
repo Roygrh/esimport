@@ -76,6 +76,15 @@ def sync(records_type: str, start_date: datetime):
     syncer.setup()
     syncer.sync(start_date)
 
+@cli.command()
+def last_sessions_id():
+    syncer_class = syncer_classes["sessions"]
+    syncer = syncer_class()
+    syncer.setup()
+    row = syncer.execute_query(
+        "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Stop_Event"
+    ).fetchone()
+    print(row)
 
 @cli.command()
 @click.argument("topic_name")
