@@ -16,7 +16,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
     # Just take a look at `_schema.py` file
     incoming_data_schema = SessionSchema
 
-    default_query_limit: int = 500
+    default_query_limit: int = 10000
 
     # the field to consider its value as the record _date (and even a version)
     # it has to be a field holding a datetime object
@@ -151,7 +151,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
                         gap = new_max_id - orig_max_id
                         self.info(f"Detected a gap of {gap} records")
                         self.info(
-                            f"Shifting next start ID by {self.default_query_limit}"
+                            f"Shifting next start ID by the gap value of {self.default_query_limit}"
                         )
                         next_id_to_process += self.default_query_limit
                         self.info(f"Next start ID is {next_id_to_process}")
@@ -172,3 +172,9 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
             "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Stop_Event"
         ).fetchone()
         return row.MAX_ID
+
+    # def _get_next_id(self, last_known_id: int) -> int:
+    #     row = self.execute_query(
+    #         f"SELECT ID as NEXT_ID FROM Radius.dbo.Radius_Stop_Event WHERE ID > {last_known_id}"
+    #     ).fetchone()
+    #     return row.NEXT_ID

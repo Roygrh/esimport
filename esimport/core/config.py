@@ -53,7 +53,7 @@ class Config(BaseSettings):
     # we no longer need to account for any DNS propagation changes.  We should remove this.
     # Reset database connection (seconds) giving esimport a chance to
     # pickup any DNS changes that have propagated since the last connection
-    database_connection_reset_limit: int = 300
+    database_connection_reset_limit: int = 3600
 
     db_sessions_gap_in_seconds: int = 60 * 3
 
