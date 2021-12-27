@@ -7,7 +7,7 @@
 		"settings": {
 			"index": {
 				"max_result_window": "500000",
-				"number_of_shards": "6",
+				"number_of_shards": "20",
 				"number_of_replicas": "1"
 			}
 		},
