@@ -1,0 +1,179 @@
+{
+	"devices": {
+		"order": 0,
+		"index_patterns": [
+			"devices*"
+		],
+		"settings": {
+			"index": {
+				"max_result_window": "500000",
+				"number_of_shards": "1",
+				"number_of_replicas": "1"
+			}
+		},
+		"mappings": {
+			"device": {
+				"properties": {
+					"AncestorOrgNumberTree": {
+						"type": "keyword"
+					},
+					"Brand": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"Browser": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"CorporateBrand": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"Country": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"DateLocal": {
+						"type": "date"
+					},
+					"DateUTC": {
+						"type": "date"
+					},
+					"Device": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"ExtPropId": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"ID": {
+						"type": "long"
+					},
+					"IP": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"MAC": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"MARSHA_Code": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"MemberID": {
+						"type": "long"
+					},
+					"MemberNumber": {
+						"type": "keyword"
+					},
+					"OwnershipGroup": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"Platform": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"PropertyName": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"PropertyNumber": {
+						"type": "keyword",
+						"ignore_above": 12
+					},
+					"Provider": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"Region": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"ServiceArea": {
+						"type": "keyword"
+					},
+					"SubRegion": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"TaxRate": {
+						"type": "float"
+					},
+					"TimeZone": {
+						"type": "keyword",
+						"ignore_above": 32
+					},
+					"UserAgentRaw": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"Username": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 256
+							}
+						}
+					},
+					"ZoneType": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 128
+							}
+						}
+					}
+				}
+			}
+		},
+		"aliases": {
+			"devices-current": {
+				"filter": {
+					"type": {
+						"value": "device"
+					}
+				}
+			}
+		}
+	}
+}

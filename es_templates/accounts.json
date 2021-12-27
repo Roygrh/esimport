@@ -1,0 +1,209 @@
+{
+	"accounts": {
+		"order": 0,
+		"index_patterns": [
+			"accounts"
+		],
+		"settings": {
+			"index": {
+				"max_result_window": "500000",
+				"number_of_shards": "7",
+				"number_of_replicas": "1"
+			}
+		},
+		"mappings": {
+			"account": {
+				"properties": {
+					"Activated": {
+						"type": "date"
+					},
+					"ActivatedLocal": {
+						"type": "date"
+					},
+					"Brand": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"CardType": {
+						"type": "keyword",
+						"ignore_above": 16
+					},
+					"ConnectCode": {
+						"type": "text"
+					},
+					"ConsumableTime": {
+						"type": "integer"
+					},
+					"ConsumableUnit": {
+						"type": "keyword",
+						"ignore_above": 16
+					},
+					"CorporateBrand": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"Country": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"Created": {
+						"type": "date"
+					},
+					"CreatedLocal": {
+						"type": "date"
+					},
+					"CreditCardNumber": {
+						"type": "integer"
+					},
+					"Currency": {
+						"type": "keyword",
+						"ignore_above": 8
+					},
+					"DateModifiedUTC": {
+						"type": "date"
+					},
+					"DiscountCode": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 128
+							}
+						}
+					},
+					"DownCap": {
+						"type": "integer"
+					},
+					"ExtPropId": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"ID": {
+						"type": "long"
+					},
+					"LastName": {
+						"type": "text"
+					},
+					"MARSHA_Code": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"MarketingContact": {
+						"type": "text"
+					},
+					"MemberNumber": {
+						"type": "keyword",
+						"ignore_above": 32
+					},
+					"Name": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 128
+							}
+						}
+					},
+					"NetworkAccessEndDateUTC": {
+						"type": "date"
+					},
+					"NetworkAccessStartDateUTC": {
+						"type": "date"
+					},
+					"OwnershipGroup": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"PayMethod": {
+						"type": "keyword"
+					},
+					"Price": {
+						"type": "float"
+					},
+					"PropertyName": {
+						"type": "text"
+					},
+					"PropertyNumber": {
+						"type": "keyword",
+						"ignore_above": 12
+					},
+					"Provider": {
+						"type": "keyword",
+						"ignore_above": 128
+					},
+					"PurchaseMacAddress": {
+						"type": "keyword",
+						"ignore_above": 18
+					},
+					"Region": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"RoomNumber": {
+						"type": "keyword"
+					},
+					"ServiceArea": {
+						"type": "keyword",
+						"ignore_above": 12
+					},
+					"ServicePlan": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 128
+							}
+						}
+					},
+					"ServicePlanNumber": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"SpanTime": {
+						"type": "integer"
+					},
+					"SpanUnit": {
+						"type": "keyword",
+						"ignore_above": 16
+					},
+					"Status": {
+						"type": "keyword",
+						"ignore_above": 16
+					},
+					"SubRegion": {
+						"type": "keyword",
+						"ignore_above": 64
+					},
+					"TaxRate": {
+						"type": "float"
+					},
+					"TimeZone": {
+						"type": "keyword",
+						"ignore_above": 32
+					},
+					"UpCap": {
+						"type": "integer"
+					},
+					"UpsellAccountID": {
+						"type": "long"
+					},
+					"VLAN": {
+						"type": "integer"
+					},
+					"ZoneType": {
+						"type": "text",
+						"fields": {
+							"keyword": {
+								"type": "keyword",
+								"ignore_above": 128
+							}
+						}
+					}
+				}
+			}
+		},
+		"aliases": {
+			"accounts-current": {}
+		}
+	}
+}
