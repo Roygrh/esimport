@@ -189,7 +189,7 @@ class PropertiesMixin:
                 self.info(f"Constructed PortalTemplateURL is: {portal_template_url}")
                 template = json.loads(requests.get(portal_template_url).content)
                 portal_template = template["displayName"]
-                self.info(f"Constructed DisplayName {template} for is: {portal_template_url}")
+                self.info(f"Constructed DisplayName {portal_template} for Portal URL: {portal_template_url}")
                 self.cache_client.raw_setex(
                     portal_url, portal_template, timedelta(days=5)
                 )
