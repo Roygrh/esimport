@@ -84,13 +84,15 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
                     ppk_type = record.get("PpkType")
 
+                    record = self.str_to_datetime(record)
+
                     # JSON only support 2^53 - 1 int numbers
                     # somehow incoming data in SessionsLength can be bigger that that
                     # handling this case
                     if record['SessionLength'] > MAX_SAFE_JSON_INT:
                         self.adjust_to_safe_json_int(record)
 
-                    record = self.str_to_datetime(record)
+
                     record.update({"is_ppk": True})
                     record.update({"RECORD_ID": unique_id})
                     record.update({"Name": resident_id})
