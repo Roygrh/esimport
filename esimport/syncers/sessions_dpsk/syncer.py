@@ -121,7 +121,6 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
             except Exception as err:
                 logger.exception(err)
-                logger.info("Broken message: %s ", session_record)
 
         return ""
 
