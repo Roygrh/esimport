@@ -5,11 +5,9 @@ from datetime import datetime
 from datetime import timedelta
 from dateutil import parser
 from esimport.core import SyncBase, PropertiesMixin, Record
-import logging
 
 from ._schema import DPSKSessionSchema
-
-logger = logging.getLogger(__name__)
+import traceback
 
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
 MAX_SAFE_JSON_INT = 9007199254740992
@@ -122,7 +120,8 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 return response["Messages"][0]["MessageId"]
 
             except Exception as err:
-                logger.exception(err)
+                self.log(f"err: {err}")
+                traceback.print_exc()
 
         return ""
 
