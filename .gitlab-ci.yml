@@ -38,7 +38,7 @@ build_image:
   stage: build
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
@@ -60,7 +60,7 @@ production_deploy:
   stage: production_deploy
   script:
     - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
     - eb deploy $PROD_EB_ENV_NAME --verbose
   only:
@@ -123,7 +123,7 @@ esimport_datadog_deploy:
   stage: production_deploy
   when: manual
   script:
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$PROD_ACCESS_KEY_ID" "$PROD_ACCESS_KEY_SECRET" >> ~/.aws/credentials
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - cd lambdas/esimport_datadog
