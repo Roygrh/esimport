@@ -54,10 +54,10 @@ class SessionsCurrentSyncer(SyncBase, PropertiesMixin):
 
     @staticmethod
     def _get_sessions_query(use_historical: bool) -> str:
-        # Session data older than 15 minutes lives in the Radius_Event_History table.
-        # Real-time session data (less than 24 hours old) lives in the Radius_Event table.
-        event_table = "Radius_Event_History" if use_historical else "Radius_Event"
-        event_table_id = "Radius_Event_ID" if use_historical else "ID"
+        # Session data older than 15 minutes lives in the Radius_Accounting_Event_History table.
+        # Real-time session data (less than 24 hours old) lives in the Radius_Accounting_Event table.
+        event_table = "Radius_Accounting_Event_History" if use_historical else "Radius_Accounting_Event"
+        event_table_id = "Radius_Accounting_Event_ID" if use_historical else "ID"
         return SESSIONS_QUERY.format(event_table, event_table_id)
 
     def resume(

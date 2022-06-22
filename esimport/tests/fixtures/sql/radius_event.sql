@@ -1,11 +1,11 @@
 USE [Radius]
 GO
-/****** Object:  Table [dbo].[Radius_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Object:  Table [dbo].[Radius_Accounting_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[Radius_Event]
+CREATE TABLE [dbo].[Radius_Accounting_Event]
 (
 	[ID] [bigint] IDENTITY(1,1) NOT NULL,
 	[User_Name] [varchar](6000) NULL,
@@ -20,8 +20,8 @@ CREATE TABLE [dbo].[Radius_Event]
 GO
 
 -- TODO: Fix these in final commit
-SET IDENTITY_INSERT Radius_Event ON
-INSERT INTO [dbo].[Radius_Event]
+SET IDENTITY_INSERT Radius_Accounting_Event ON
+INSERT INTO [dbo].[Radius_Accounting_Event]
 	(ID, User_Name, Member_ID, Organization_ID, Date_UTC, NAS_Identifier, Called_Station_Id, VLAN, Calling_Station_Id)
 VALUES
 	(2652371592, 'username1', 1, 1, '2018-06-27 15:12:19.677', 'E8-1D-A8-20-1B-88', 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, '5C-52-1E-60-6A-17'),
