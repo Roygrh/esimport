@@ -11,6 +11,7 @@ END
 GO
 
 /****** Object:  Table [dbo].[Radius_Accounting_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Table names updated 6/22/22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON

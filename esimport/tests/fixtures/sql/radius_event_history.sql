@@ -11,13 +11,14 @@ END
 GO
 
 /****** Object:  Table [dbo].[Radius_Accounting_Event_History]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Table names updated 6/22/22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Radius_Accounting_Event_History]
 (
-	[User_Name] [varchar](6000) NULL,
+	[User_Name] [varchar](256) NULL,
 	[Radius_Accounting_Event_ID] [bigint] IDENTITY(1,1) NOT NULL,
 	[Organization_ID] [int] NULL,
 	[Member_ID] [bigint] NULL,
