@@ -1,7 +1,10 @@
 #!/bin/sh
 
 
-export REPOSITORY_NAME=ecsimport
+# export AWS_ACCOUNT_ID=684643752294
+# export AWS_REGION=us-west-2
+
+export REPOSITORY_NAME=esimport
 export ESImportEcrRepositoryUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPOSITORY_NAME 
 export IMAGE_TAG=$ESImportEcrRepositoryUri:$CI_COMMIT_SHA
 docker build -t $IMAGE_TAG .
