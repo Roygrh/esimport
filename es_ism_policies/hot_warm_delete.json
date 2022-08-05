@@ -50,6 +50,7 @@
                     "passpoint-acct-*",
                     "passpoint-auth-*",
                     "passpoint-first-use-device-*",
+                    "passpoint-first-use-profile-*",
                     "passpoint-new-profile-*",
                     "sessions-*"
                 ],
