@@ -34,7 +34,11 @@
             },
             {
                 "name": "delete",
-                "actions": [],
+                "actions": [
+                    {
+                        "delete": {}
+                    }
+                ],
                 "transitions": []
             }
         ],
