@@ -187,20 +187,27 @@ class PropertiesMixin:
                 portal_template_url = "/".join(portal_template_url)
                 portal_template_url += "/metadata/template.json"
                 self.info(f"Constructed PortalTemplateURL is: {portal_template_url}")
-                template = json.loads(requests.get(portal_template_url).content)
+                response = requests.get(portal_template_url).content
+                template = json.loads(response)
                 portal_template = template["displayName"]
                 self.info(f"Constructed DisplayName {portal_template} for Portal URL: {portal_template_url}")
                 self.cache_client.raw_setex(
                     portal_url, portal_template, timedelta(days=5)
                 )
                 return portal_template
-            except Exception as e:
+            except json.JSONDecodeError as e:
                 str_excep = str(e)
                 self.warning(
                     f"Could not fetch PortalTemplate for {portal_url} got the following exception: {str_excep}"
                 )
                 self.warning(f"Setting empty cache for {portal_url}")
                 self.cache_client.raw_setex(portal_url, "", timedelta(days=5))
+                return ""
+            except Exception as e:
+                str_excep = str(e)
+                self.warning(
+                    f"Could not fetch PortalTemplate for {portal_url} got the following exception: {str_excep}"
+                )
                 return ""
         else:
             return None
