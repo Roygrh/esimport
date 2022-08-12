@@ -1,0 +1,61 @@
+{
+    "policy": {
+        "policy_id": "hot_warm_delete",
+        "description": "Policy to migrate hot index to warm storage after 123 days and then delete it after 550 days",
+        "default_state": "hot",
+        "states": [
+            {
+                "name": "hot",
+                "actions": [],
+                "transitions": [
+                    {
+                        "state_name": "warm",
+                        "conditions": {
+                            "min_index_age": "123d"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "warm",
+                "actions": [
+                    {
+                        "warm_migration": {}
+                    }
+                ],
+                "transitions": [
+                    {
+                        "state_name": "delete",
+                        "conditions": {
+                            "min_index_age": "550d"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "delete",
+                "actions": [
+                    {
+                        "delete": {}
+                    }
+                ],
+                "transitions": []
+            }
+        ],
+        "ism_template": [
+            {
+                "index_patterns": [
+                    "devices-*",
+                    "microsite-visits-*",
+                    "passpoint-acct-*",
+                    "passpoint-auth-*",
+                    "passpoint-first-use-device-*",
+                    "passpoint-first-use-profile-*",
+                    "passpoint-new-profile-*",
+                    "sessions-*"
+                ],
+                "priority": 20
+            }
+        ]
+    }
+}
