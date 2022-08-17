@@ -153,7 +153,6 @@ class PropertiesMixin:
             # Get service plans:
             s_plans = site_level_sps[id_] if id_ in site_level_sps else []
             portal_template = self.fetch_portal_template(service_area.PortalURL)
-            self.info(f"Portal template: {portal_template}")
             sa_list.append(
                 {
                     "Number": service_area.Number,
@@ -179,7 +178,7 @@ class PropertiesMixin:
         if portal_url is not None:
             cached_portal_url_value = self.cache_client.raw_get(portal_url)
             if cached_portal_url_value is not None:
-                self.info(f"PortalTemplate for {portal_url} retreived from cache == {cached_portal_url_value}")
+                self.info(f"PortalTemplate for {portal_url} retreived from cache")
                 return cached_portal_url_value
 
             try:
