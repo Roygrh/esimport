@@ -75,6 +75,7 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
 
         for row in list(self.fetch_rows_as_dict(GET_PROPERTIES_QUERY, limit, start)):
             self._set_additonal_property_info(row)
+            self.info(f"debug row {row}")
             record_date = row[self.record_date_fieldname]
             yield Record(
                 _index=self.get_target_elasticsearch_index(record_date),
