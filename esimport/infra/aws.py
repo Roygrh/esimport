@@ -113,7 +113,16 @@ class AmazonWebServices(BaseInfra):
     def create_sns_topic(self, topic_name):
         return self.sns_resource.create_topic(Name=topic_name)
 
+    def _is_safe_environment(self):
+        """
+        Verify if this is a safe environment.
+        """
+        # If endpoint URL in not localhost/dynamodb-localhost then it is probably production
+        return "amazonaws.com" not in self.dynamodb_resource.meta.client.dynamodb_client._endpoint.host
+
     def create_dynamodb_table(self, table_name):
+        if not self._is_safe_environment():
+            return False
         dynamodb_client = self.dynamodb_resource.meta.client
         return dynamodb_client.create_table(
             AttributeDefinitions=[{"AttributeName": "doctype", "AttributeType": "S"}],
