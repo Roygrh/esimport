@@ -118,16 +118,16 @@ class AmazonWebServices(BaseInfra):
         Verify if this is a safe environment.
         """
         # If endpoint URL in not localhost/dynamodb-localhost then it is probably production
-        return "amazonaws.com" not in self.dynamodb_resource.meta.client.dynamodb_client._endpoint.host
+        return "amazonaws.com" not in self.dynamodb_resource.meta.client._endpoint.host
 
     def _table_exists(self, table_name):
         """
         Checks if table exists in dynamo db
         """
-        return table_name in self.dynamodb_resource.meta.client.dynamodb_client.list_tables()['TableNames']
+        return table_name in self.dynamodb_resource.meta.client.list_tables()['TableNames']
 
     def create_dynamodb_table(self, table_name):
-        if not self._is_safe_environment() or self._table_exists():
+        if not self._is_safe_environment() or self._table_exists(table_name):
             return False
         dynamodb_client = self.dynamodb_resource.meta.client
         return dynamodb_client.create_table(
