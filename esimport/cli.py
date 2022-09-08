@@ -82,7 +82,7 @@ def last_sessions_id():
     syncer = syncer_class()
     syncer.setup()
     row = syncer.execute_query(
-        "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Stop_Event"
+        "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Accounting_Stop_Event"
     ).fetchone()
     print(row)
 

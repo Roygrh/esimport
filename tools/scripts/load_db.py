@@ -69,19 +69,19 @@ def create_account_sql(n, dt):
 
 def create_session_sql(n, dt):
     # SQL queries for inserting session related demo data
-    radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Acct_Event
-                        (Session_ID, Radius_Event_ID)
+    radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event
+                        (Session_ID, Radius_Accounting_Event_ID)
                         VALUES"""
     radius_acct_event_column = """('{session_id}', '{radius_event_id}')"""
 
-    radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Stop_Event
-                            (Radius_Acct_Event_ID, Acct_Terminate_Cause, 
+    radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Stop_Event
+                            (Radius_Accounting_Event_ID, Acct_Terminate_Cause, 
                             Acct_Session_Time, Acct_Output_Octets, 
                             Acct_Input_Octets)
                             VALUES"""
     radius_stop_event_column = """('{radius_event_id}', 1, 9354, 43787611, 24313077)"""
 
-    radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Event_History(User_Name, 
+    radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event_History(User_Name, 
                                 Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, 
                                 VLAN, Calling_Station_Id, Date_UTC)
                                 VALUES"""
@@ -89,7 +89,7 @@ def create_session_sql(n, dt):
                                 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, 
                                 '5C-52-1E-60-6A-17', '{date_utc}')"""
 
-    radius_event_sql = """INSERT INTO Radius.dbo.Radius_Event (User_Name, 
+    radius_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event (User_Name, 
                         Member_ID, Organization_ID, Date_UTC, NAS_Identifier, 
                         Called_Station_Id, VLAN, Calling_Station_Id)
                         VALUES"""
