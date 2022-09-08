@@ -2,12 +2,6 @@ import boto3
 import pytest
 from time import sleep
 from esimport.core import Config
-from esimport.tests.base_fixutres import (
-    dynamodb_client,
-    latest_ids_table,
-    empty_table,
-    sns_client,
-)
 
 from esimport.infra import AmazonWebServices
 
