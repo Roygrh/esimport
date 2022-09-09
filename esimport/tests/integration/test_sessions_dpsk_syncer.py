@@ -40,7 +40,7 @@ def test_sessions_dpsk_syncer(sqs_dpsk):
 
     message_id = ss.receive()
     assert message_id, "Got empty message ID"
-    assert ss.sns_buffer._last_added_record.id == msg[0]["ResidentID"]
+    assert ss.sns_buffer._last_added_record.id == f"{msg[0]['ServiceArea']}:{msg[0]['SessionID']}"
     indexed_msg = ss.sns_buffer._last_added_record._source
     assert indexed_msg["ServiceArea"] == msg[0]["ServiceArea"]
 

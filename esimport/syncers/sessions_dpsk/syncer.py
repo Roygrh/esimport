@@ -31,7 +31,19 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
     def deserialize_message(self, message_body: str) -> list:
         records = orjson.loads(message_body)
-        return [records] if isinstance(records, dict) else records
+        if isinstance(records, dict) and "Message" in records:
+            return self.extract_message(records)
+        if isinstance(records, list):
+            parsed_records = []
+            for record in records:
+                if "Message" in record:
+                    parsed_records.extend(self.extract_message(record))
+                else:
+                    parsed_records.append(record)
+
+    def extract_message(self, record):
+        parsed_messages = orjson.loads(record["Message"])
+        return [parsed_messages] if isinstance(parsed_messages, dict) else parsed_messages
 
     def str_to_datetime(self, session: dict) -> dict:
         datetime_field = ["LoginTime", "LogoutTime"]
