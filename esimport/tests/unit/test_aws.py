@@ -6,7 +6,7 @@ from esimport.core import Config
 from esimport.infra import AmazonWebServices
 
 
-def test_aws(latest_ids_table):
+def test_aws():
 
     config = Config()
 
@@ -28,4 +28,10 @@ def test_aws(latest_ids_table):
     aws.create_dynamodb_table("latest_ids")
     # allow the table to be created
     sleep(2)
-    latest_ids_table.put_item(Item={"doctype": "account"})
+
+    topic = aws.sns_resource.Topic("test_topic")
+    assert topic.arn
+
+    table = aws.dynamodb_resource.Table("latest_ids")
+    table.put_item(Item={"doctype": "account"})
+    assert table.get_item(Key={"doctype": "account"})["Item"]["doctype"] == "account"
