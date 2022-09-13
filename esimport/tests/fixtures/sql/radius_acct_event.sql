@@ -4,41 +4,42 @@ GO
 IF (EXISTS (SELECT *
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'dbo'
-    AND TABLE_NAME = 'Radius_Acct_Event'))
+    AND TABLE_NAME = 'Radius_Accounting_Event'))
 BEGIN
-    DROP TABLE [dbo].[Radius_Acct_Event]
+    DROP TABLE [dbo].[Radius_Accounting_Event]
 END
 GO
 
-/****** Object:  Table [dbo].[Radius_Acct_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Object:  Table [dbo].[Radius_Accounting_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Table names updated 6/22/22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[Radius_Acct_Event]
+CREATE TABLE [dbo].[Radius_Accounting_Event]
 (
     [ID] [bigint] IDENTITY(1,1) NOT NULL,
     [Session_ID] [varchar](256) NOT NULL,
-    [Radius_Event_ID] [bigint] NOT NULL
+    [Radius_Accounting_Event_ID] [bigint] NOT NULL
 )
 GO
---  CONSTRAINT [PK_Radius_Acct_Event] PRIMARY KEY CLUSTERED 
+--  CONSTRAINT [PK_Radius_Accounting_Event] PRIMARY KEY CLUSTERED 
 -- (
 -- 	[ID] ASC
 -- )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PS_Partition_Acct_Event_By_Id]([ID])
 -- ) ON [PS_Partition_Acct_Event_By_Id]([ID])
 
 -- GO
--- ALTER TABLE [dbo].[Radius_Acct_Event]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Acct_Event_Radius_Acct_Type] FOREIGN KEY([Radius_Acct_Type_ID])
+-- ALTER TABLE [dbo].[Radius_Accounting_Event]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Accounting_Event_Radius_Acct_Type] FOREIGN KEY([Radius_Acct_Type_ID])
 -- REFERENCES [dbo].[Radius_Acct_Type] ([ID])
 -- GO
--- ALTER TABLE [dbo].[Radius_Acct_Event] CHECK CONSTRAINT [FK_Radius_Acct_Event_Radius_Acct_Type]
+-- ALTER TABLE [dbo].[Radius_Accounting_Event] CHECK CONSTRAINT [FK_Radius_Accounting_Event_Radius_Acct_Type]
 -- GO
 -- TODO: uncomment these in final commit
 -- PUT DATA INSERT SCRIPTS BELOW
-SET IDENTITY_INSERT Radius_Acct_Event ON
-INSERT INTO [dbo].[Radius_Acct_Event]
-    (ID, Session_ID, Radius_Event_ID)
+SET IDENTITY_INSERT Radius_Accounting_Event ON
+INSERT INTO [dbo].[Radius_Accounting_Event]
+    (ID, Session_ID, Radius_Accounting_Event_ID)
 VALUES
     (2652371592, '5B3657A7-331D8000', 1),
     (2652371591, '883D0997-0000ADC6', 2),
