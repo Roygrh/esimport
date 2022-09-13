@@ -84,7 +84,6 @@ esimport_testing:
     - . .env
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
-  when: manual
 
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
