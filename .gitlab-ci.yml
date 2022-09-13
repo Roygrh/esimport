@@ -77,7 +77,7 @@ esimport_testing:
   except:
     - base
   before_script:
-    - apk add --update --no-cache docker-compose make bash
+    - apk add --update --no-cache docker-compose make
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - cp .env-example .env
