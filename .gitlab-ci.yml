@@ -4,9 +4,9 @@ services:
   - docker:dind
 
 stages:
-  - testing
   # - esimport_retention
   - build
+  - testing
   - staging_deploy
   - production_deploy
 
