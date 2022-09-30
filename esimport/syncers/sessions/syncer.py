@@ -70,6 +70,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         for session_record in self.get_sessions(
             from_id, self.default_query_limit, start_date, use_historical
         ):
+            self.report_old_record(session_record)
             count += 1
             session_id = session_record.raw.get("ID")
             # Distinguish normal (DB originated) sessions from PPK sessions in Elasticsearch

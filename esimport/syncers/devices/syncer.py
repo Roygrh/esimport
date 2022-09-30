@@ -38,6 +38,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
         self.debug(f"Get Devices from {next_id} to {up_to} since {start_date}")
 
         for device in self.get_devices(next_id, self.default_query_limit, start_date):
+            self.report_old_record(device)
             count += 1
             self.debug(f"Record found: {device.id}")
             service_area = device.raw.get("ServiceArea")

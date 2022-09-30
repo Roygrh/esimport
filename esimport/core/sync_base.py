@@ -7,6 +7,7 @@ from typing import List
 
 from dateutil import tz, parser
 from esimport.infra import AmazonWebServices, CacheClient, MsSQLHandler
+from esimport.core import SentryClient
 
 from .base_schema import BaseSchema
 from .config import Config
@@ -225,3 +226,14 @@ class SyncBase(abc.ABC):
     @property
     def db_sessions_gap_in_seconds(self):
         return self.config.db_sessions_gap_in_seconds
+
+    def report_old_record(self, record:Record):
+        """
+            function to check if the es record being placed is of
+            the current month's index or not.
+            if it is not of the current month, report it using sentry
+        """
+        current_date = datetime.utcnow()
+        if current_date.month != record._date.month:
+            metadata = dict(current_date=current_date,record_date=record._date,index=record._index,record_id=record.id)
+            SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
