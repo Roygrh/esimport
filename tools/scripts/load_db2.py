@@ -98,13 +98,13 @@ def create_session_sql(n, start_date):
         return last_id
 
     # SQL queries for inserting session related demo data
-    radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Acct_Event
-                        (Session_ID, Radius_Event_ID)
+    radius_acct_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event
+                        (Session_ID, Radius_Accounting_Event_ID)
                         VALUES"""
     radius_acct_event_column = """('{session_id}', '{radius_event_id}')"""
 
-    radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Stop_Event
-                            ( Radius_Acct_Event_ID, Acct_Terminate_Cause, 
+    radius_stop_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Stop_Event
+                            ( Radius_Accounting_Event_ID, Acct_Terminate_Cause, 
                             Acct_Session_Time, Acct_Output_Octets, 
                             Acct_Input_Octets)
                             VALUES"""
@@ -112,7 +112,7 @@ def create_session_sql(n, start_date):
         """('{radius_act_event_id}', 1, 9354, 43787611, 24313077)"""
     )
 
-    radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Event_History (User_Name, 
+    radius_event_history_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event_History (User_Name, 
                                 Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, 
                                 VLAN, Calling_Station_Id, Date_UTC)
                                 VALUES"""
@@ -120,7 +120,7 @@ def create_session_sql(n, start_date):
                                 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, 
                                 '5C-52-1E-60-6A-17', cast(N'{date_utc}' AS DateTime2) )"""
 
-    radius_event_sql = """INSERT INTO Radius.dbo.Radius_Event ( User_Name, 
+    radius_event_sql = """INSERT INTO Radius.dbo.Radius_Accounting_Event ( User_Name, 
                         Member_ID, Organization_ID, Date_UTC, NAS_Identifier, 
                         Called_Station_Id, VLAN, Calling_Station_Id)
                         VALUES"""
@@ -134,9 +134,9 @@ def create_session_sql(n, start_date):
     records_radius_history = []
     records_radius_events = []
 
-    next_radius_event_id = get_last_id("Radius.dbo.Radius_Event")
-    next_radius_act_event_id = get_last_id("Radius.dbo.Radius_Acct_Event")
-    next_radius_stop_event_id = get_last_id("Radius.dbo.Radius_Stop_Event")
+    next_radius_event_id = get_last_id("Radius.dbo.Radius_Accounting_Event")
+    next_radius_act_event_id = get_last_id("Radius.dbo.Radius_Accounting_Event")
+    next_radius_stop_event_id = get_last_id("Radius.dbo.Radius_Accounting_Stop_Event")
 
     id = 0
     for i in range(n):
@@ -173,8 +173,6 @@ def create_session_sql(n, start_date):
     mssql_con.execute(" ".join([radius_event_sql, ",".join(records_radius_events)]))
 
 
-<<<<<<< HEAD
-=======
 def create_device_sql(n, start_date):
     # SQL query for inserting device related demo data
     client_tracking_sql = """
@@ -268,17 +266,12 @@ NULL,
     return final_sql
 
 
->>>>>>> d185a0a8d306bdbcf86bb450c9f1412e46387534
 mssql_con = MSSQLConnection()
 
 start_date = datetime(2019, 1, 1, 1, 1, 1, 123456)
 
 mssql_con.execute(create_conference_sql(10, start_date))
 mssql_con.execute(create_property_sql(10, start_date))
-<<<<<<< HEAD
-create_session_sql(10, start_date)
-=======
 create_session_sql(10, start_date)  # execute many sql statement inside
 mssql_con.execute(create_device_sql(10, start_date))
 mssql_con.execute(create_account_sql(10, start_date))
->>>>>>> d185a0a8d306bdbcf86bb450c9f1412e46387534

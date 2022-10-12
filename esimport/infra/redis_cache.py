@@ -68,7 +68,8 @@ class CacheClient(BaseInfra):
     @retry_on_connection_refused
     def raw_get(self, key: str) -> Union[str, None]:
         self._log(f"Cache - getting value for key: {key}", level=logging.DEBUG)
-        return self.client.get(key)
+        cached_value = self.client.get(key)
+        return cached_value.decode("utf-8") if isinstance(cached_value, bytes) else cached_value
 
     @retry_on_connection_refused
     def set(self, key: str, value):

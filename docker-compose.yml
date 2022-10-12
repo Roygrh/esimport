@@ -66,7 +66,7 @@ services:
   # ------------------------
   # feel free to create your own DB within this server, e.g. Eleven_OS_YOURNAME
   mssql:
-    image: microsoft/mssql-server-linux:2017-CU5
+    image: mcr.microsoft.com/mssql/server:2017-latest
     container_name: esimport-mssql
     environment:
       - ACCEPT_EULA=Y

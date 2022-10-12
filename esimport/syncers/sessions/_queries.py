@@ -20,9 +20,9 @@ SESSIONS_QUERY = """
         zp.Name AS ServicePlan,
         zp.Zone_Plan_Tag_ID AS ServicePlanTier
     FROM
-        Radius.dbo.Radius_Stop_Event stop
-        JOIN Radius.dbo.Radius_Acct_Event acct ON acct.ID = stop.Radius_Acct_Event_ID
-        JOIN Radius.dbo.{0} hist ON hist.{1} = acct.Radius_Event_ID
+        Radius.dbo.Radius_Accounting_Stop_Event stop
+        JOIN Radius.dbo.Radius_Accounting_Event acct ON acct.ID = stop.Radius_Accounting_Event_ID
+        JOIN Radius.dbo.{0} hist ON hist.{1} = acct.ID
         LEFT JOIN Radius.dbo.Radius_Terminate_Cause term ON term.ID = stop.Acct_Terminate_Cause
         JOIN Organization org ON org.ID = hist.Organization_ID
         LEFT JOIN Org_Value val ON val.Organization_ID = org.ID AND val.Name='ZoneType'
