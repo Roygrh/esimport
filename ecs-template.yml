@@ -4,20 +4,15 @@ Parameters:
   ImageId:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
-  ESImportEcrRepositoryUri:
-    Description: ECR repository uri
-    Default: 684643752294.dkr.ecr.us-west-2.amazonaws.com/eleven
+  ESImportImage:
     Type: String
-  ESImportImageTag:
-    Description: Image Tag
-    Default: esimport
-    Type: String
+    Description: Full docker container image name
   VpcId:
     Type: "AWS::EC2::VPC::Id"
     Description: Select a VPC that allows instances to access the Internet.
-  PrivateSubnetIds:
+  InstancesSbunet:
     Type: "List<AWS::EC2::Subnet::Id>"
-    Description: Select at least two private subnets in your selected VPC.
+    Description: Subnets in your selected VPC.
   DesiredCapacity:
     Type: Number
     Default: "1"
@@ -29,39 +24,7 @@ Parameters:
   InstanceType:
     Description: EC2 instance type
     Type: String
-    Default: t2.medium
-    AllowedValues:
-      - t2.medium
-      - t2.large
-      - m3.medium
-      - m3.large
-      - m3.xlarge
-      - m3.2xlarge
-      - m4.large
-      - m4.xlarge
-      - m4.2xlarge
-      - m4.4xlarge
-      - m4.10xlarge
-      - c4.large
-      - c4.xlarge
-      - c4.2xlarge
-      - c4.4xlarge
-      - c4.8xlarge
-      - c3.large
-      - c3.xlarge
-      - c3.2xlarge
-      - c3.4xlarge
-      - c3.8xlarge
-      - r3.large
-      - r3.xlarge
-      - r3.2xlarge
-      - r3.4xlarge
-      - r3.8xlarge
-      - i2.xlarge
-      - i2.2xlarge
-      - i2.4xlarge
-      - i2.8xlarge
-    ConstraintDescription: Please choose a valid instance type.
+    Default: m5a.xlarge
   Memory:
     Type: Number
     Default: "512"
@@ -78,6 +41,13 @@ Resources:
         - CidrIp: 0.0.0.0/0
           Description: Allow all outbound traffic by default
           IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: "10.0.0.0/8"
+          Description: Eleven AWS internal network
+          IpProtocol: -1
+        - CidrIp: "11.0.0.0/8"
+          Description: "Weird Eleven VPN network"
+          IpProtocol: -1
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
@@ -144,21 +114,16 @@ Resources:
         - !GetAtt
           - EcsClusterDefaultAsgSG
           - GroupId
-      UserData: !Base64
-        "Fn::Join":
-          - ""
-          - - |-
-              #!/bin/bash
-              echo ECS_CLUSTER=
-            - !Ref ESImportEcsCluster
-            - >2-
-               >> /etc/ecs/ecs.config
-              sudo iptables --insert FORWARD 1 --in-interface docker+
-              --destination 169.254.169.254/32 --jump DROP
-
-              sudo service iptables save
-
-              echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
+          
+          sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+          sudo service iptables save
+          echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
     DependsOn:
       - EcsClusterDefaultAsgPolicy
       - EcsClusterDefaultAsgRole
@@ -166,14 +131,14 @@ Resources:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
       MinSize: "1"
-      MaxSize: !Ref MaxSize
-      DesiredCapacity: !Ref DesiredCapacity
+      MaxSize: "1"
+      DesiredCapacity: "1"
       LaunchConfigurationName: !Ref EcsClusterLaunchConfig
       Tags:
         - Key: Name
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
-      VPCZoneIdentifier: !Ref PrivateSubnetIds
+      VPCZoneIdentifier: !Ref InstancesSbunet
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: true
@@ -193,12 +158,11 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        - Command:
-            - redis-server
-            - --save ""
-            - --appendonly no
-          Essential: true
+        - Name: redis
           Image: redis:5-alpine
+          Command:
+            - redis-server --save "" --appendonly no
+          Essential: true
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -206,17 +170,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 800
-          Name: redis
-        - Command:
-            - esimport
-            - sync
-            - accounts
+
+        - Name: accounts
+          Command:
+            - esimport sync accounts
           Essential: true
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -224,17 +183,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: accounts
-        - Command:
-            - esimport
-            - sync
-            - conferences
+
+        - Name: conferences
+          Command:
+            - esimport sync conferences
           Essential: true
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -242,17 +196,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: conferences
-        - Command:
-            - esimport
-            - sync
-            - devices
+
+        - Name: devices
+          Command:
+            - esimport sync devices
           Essential: true
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -260,17 +209,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: devices
-        - Command:
-            - esimport
-            - sync
-            - properties
+
+        - Name: properties
+          Command:
+            - esimport sync properties
           Essential: true
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -278,17 +222,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: properties
-        - Command:
-            - esimport
-            - sync
-            - sessions
+
+        - Name: sessions
+          Command:
+            - esimport sync sessions
           Essential: true
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -296,17 +235,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: sessions
-        - Command:
-            - esimport
-            - sync
-            - sessions_current
+
+        - Name: sessions-current
+          Command:
+            - esimport sync sessions_current
           Essential: false
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -314,17 +248,12 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: sessions-current
-        - Command:
-            - esimport
-            - sync
-            - sessions_ppk
+
+        - Name: sessions-ppk
+          Command:
+            - esimport sync sessions_ppk
           Essential: false
-          Image: !Join
-            - ""
-            - - !Ref ESImportEcrRepositoryUri
-              - ":"
-              - !Ref ESImportImageTag
+          Image: !Ref ESImportImage
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -332,7 +261,7 @@ Resources:
               awslogs-stream-prefix: ESImportTaskLogGroup
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
-          Name: sessions-ppk
+
       ExecutionRoleArn:
         Fn::GetAtt:
           - TaskDefExecutionRole
@@ -348,7 +277,7 @@ Resources:
   ESImportTaskLogGroup:
     Type: "AWS::Logs::LogGroup"
     Properties:
-      RetentionInDays: 1
+      RetentionInDays: 365
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
   TaskDefExecutionRole:
@@ -371,22 +300,7 @@ Resources:
               - "ecr:BatchGetImage"
               - "ecr:GetDownloadUrlForLayer"
             Effect: Allow
-            Resource: !Join
-              - ""
-              - - "arn:"
-                - !Ref "AWS::Partition"
-                - ":ecr:*:"
-                - !Select
-                  - 0
-                  - !Split
-                    - .
-                    - !Ref ESImportEcrRepositoryUri
-                - ":repository/"
-                - !Select
-                  - 1
-                  - !Split
-                    - /
-                    - !Ref ESImportEcrRepositoryUri
+            Resource: !Sub 'arn:aws:ecr:*:${AWS::AccountId}:repository/esimport'
           - Action: "ecr:GetAuthorizationToken"
             Effect: Allow
             Resource: "*"
@@ -412,3 +326,4 @@ Resources:
       LaunchType: EC2
       SchedulingStrategy: DAEMON
       TaskDefinition: !Ref ESImportTask
+      ServiceName: ESImport ECS
