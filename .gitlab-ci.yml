@@ -46,7 +46,12 @@ build_ecs_image_dev:
 
   script:
     - |
-      apk add --update --no-cache aws-cli
+      apt-get update 
+      apt-get install \
+        curl \
+        unzip 
+      
+      bash ./aws/install
       
       source ./variables-dev
       
