@@ -37,6 +37,8 @@ build_base_image:
 
 build_ecs_image_dev:
   stage: build_ecs_image
+  image:
+    name: docker:latest
   before_script:
     - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-dev
     - echo "export KEY_NAME=eleven-deploy" >> variables-dev
@@ -46,12 +48,7 @@ build_ecs_image_dev:
 
   script:
     - |
-      apt-get update 
-      apt-get install \
-        curl \
-        unzip 
-      
-      bash ./aws/install
+      apk add --update --no-cache aws-cli
       
       source ./variables-dev
       
