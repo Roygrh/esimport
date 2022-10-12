@@ -6,6 +6,7 @@ services:
 stages:
   - testing
   # - esimport_retention
+  - build_ecs_image
   - build
   - staging_deploy
   - production_deploy
@@ -33,6 +34,41 @@ build_base_image:
     - docker push $IMAGE_TAG
   only:
     - base
+
+build_ecs_image_dev:
+  stage: build_ecs_image
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-dev
+    - echo "export KEY_NAME=eleven-deploy" >> variables-dev
+    - echo "export REPOSITORY_NAME=esimport" >> variables-dev
+    - echo "export AWS_ACCESS_KEY_ID=$dev_AWS_ACCESS_KEY_ID" >> variables-dev
+    - echo "export AWS_SECRET_ACCESS_KEY=$dev_AWS_SECRET_ACCESS_KEY" >> variables-dev
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli
+      
+      source ./variables-dev
+      
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+      
+      export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+      
+      export ElevenApiEcrRepositoryUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
+      export IMAGE_TAG=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+      
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+      docker build -t $IMAGE_TAG .
+      
+      # login after building image because image need access to base image that stored in gilab registry
+      echo $(aws ecr get-login-password --region us-west-2) | docker login --password-stdin --username AWS $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      docker push $IMAGE_TAG
+      echo $IMAGE_TAG
+
+  when: manual
 
 build_image:
   stage: build
