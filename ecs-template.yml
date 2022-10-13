@@ -1,0 +1,329 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ESImportECS
+Parameters:
+  ImageId:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+  ESImportImage:
+    Type: String
+    Description: Full docker container image name
+  VpcId:
+    Type: "AWS::EC2::VPC::Id"
+    Description: Select a VPC that allows instances to access the Internet.
+  InstancesSbunet:
+    Type: "List<AWS::EC2::Subnet::Id>"
+    Description: Subnets in your selected VPC.
+  DesiredCapacity:
+    Type: Number
+    Default: "1"
+    Description: Number of instances to launch in your ECS cluster.
+  MaxSize:
+    Type: Number
+    Default: "1"
+    Description: Maximum number of instances that can be launched in your ECS cluster.
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: m5a.xlarge
+  Memory:
+    Type: Number
+    Default: "512"
+    Description: Docker Memory.
+Resources:
+  ESImportEcsCluster:
+    Type: "AWS::ECS::Cluster"
+  EcsClusterDefaultAsgSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: >-
+        ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: "10.0.0.0/8"
+          Description: Eleven AWS internal network
+          IpProtocol: -1
+        - CidrIp: "11.0.0.0/8"
+          Description: "Weird Eleven VPN network"
+          IpProtocol: -1
+      Tags:
+        - Key: Name
+          Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+      VpcId: !Ref VpcId
+  EcsClusterDefaultAsgRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: 2012-10-17
+      Tags:
+        - Key: Name
+          Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+  EcsClusterDefaultAsgPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "ecs:DeregisterContainerInstance"
+              - "ecs:RegisterContainerInstance"
+              - "ecs:Submit*"
+            Effect: Allow
+            Resource: !GetAtt
+              - ESImportEcsCluster
+              - Arn
+          - Action:
+              - "ecs:Poll"
+              - "ecs:StartTelemetrySession"
+            Condition:
+              ArnEquals:
+                "ecs:cluster": !GetAtt
+                  - ESImportEcsCluster
+                  - Arn
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - "ecr:GetAuthorizationToken"
+              - "ecs:DiscoverPollEndpoint"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Effect: Allow
+            Resource: "*"
+        Version: 2012-10-17
+      PolicyName: EcsClusterDefaultAsgPolicy
+      Roles:
+        - !Ref EcsClusterDefaultAsgRole
+  EcsInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+        - !Ref EcsClusterDefaultAsgRole
+  EcsClusterLaunchConfig:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref EcsInstanceProfile
+      SecurityGroups:
+        - !GetAtt
+          - EcsClusterDefaultAsgSG
+          - GroupId
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
+          
+          sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+          sudo service iptables save
+          echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+    DependsOn:
+      - EcsClusterDefaultAsgPolicy
+      - EcsClusterDefaultAsgRole
+  EcsClusterDefaultASG:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      MinSize: "1"
+      MaxSize: "1"
+      DesiredCapacity: "1"
+      LaunchConfigurationName: !Ref EcsClusterLaunchConfig
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+      VPCZoneIdentifier: !Ref InstancesSbunet
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+  TaskDefRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+  ESImportTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: redis
+          Image: redis:5-alpine
+          Command:
+            - redis-server --save "" --appendonly no
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 800
+
+        - Name: accounts
+          Command:
+            - esimport sync accounts
+          Essential: true
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: conferences
+          Command:
+            - esimport sync conferences
+          Essential: true
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: devices
+          Command:
+            - esimport sync devices
+          Essential: true
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: properties
+          Command:
+            - esimport sync properties
+          Essential: true
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: sessions
+          Command:
+            - esimport sync sessions
+          Essential: true
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: sessions-current
+          Command:
+            - esimport sync sessions_current
+          Essential: false
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+        - Name: sessions-ppk
+          Command:
+            - esimport sync sessions_ppk
+          Essential: false
+          Image: !Ref ESImportImage
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ESImportTaskLogGroup
+              awslogs-stream-prefix: ESImportTaskLogGroup
+              awslogs-region: !Ref AWS::Region
+          MemoryReservation: 400
+
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - TaskDefExecutionRole
+          - Arn
+      Family: ESImportEcsStack
+      NetworkMode: bridge
+      RequiresCompatibilities:
+        - EC2
+      TaskRoleArn:
+        Fn::GetAtt:
+          - TaskDefRole
+          - Arn
+  ESImportTaskLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      RetentionInDays: 365
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+  TaskDefExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+  TaskDefExecutionRoleDefaultPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:BatchGetImage"
+              - "ecr:GetDownloadUrlForLayer"
+            Effect: Allow
+            Resource: !Sub 'arn:aws:ecr:*:${AWS::AccountId}:repository/esimport'
+          - Action: "ecr:GetAuthorizationToken"
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Effect: Allow
+            Resource: !GetAtt
+              - ESImportTaskLogGroup
+              - Arn
+        Version: 2012-10-17
+      PolicyName: TaskDefExecutionRoleDefaultPolicy
+      Roles:
+        - !Ref TaskDefExecutionRole
+  ESImportEcsService:
+    Type: "AWS::ECS::Service"
+    Properties:
+      Cluster: !Ref ESImportEcsCluster
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      EnableECSManagedTags: false
+      LaunchType: EC2
+      SchedulingStrategy: DAEMON
+      TaskDefinition: !Ref ESImportTask
+      ServiceName: ESImport ECS
