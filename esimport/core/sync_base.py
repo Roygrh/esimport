@@ -29,7 +29,11 @@ class SyncBase(abc.ABC):
     target_elasticsearch_index_prefix: str
     uses_date_partitioned_index: bool
     incoming_data_schema: BaseSchema
-
+    
+    current_date: str = datetime.utcnow().strftime("%Y-%m")
+    current_date_month_fixed: bool = False
+    target_index_date: str
+    
     default_query_limit: int
 
     # the field to consider its value as the record version
@@ -121,6 +125,7 @@ class SyncBase(abc.ABC):
         if self.uses_date_partitioned_index:
             if rec_date:
                 target_index_date = rec_date.strftime("%Y-%m")
+                self.target_index_date = target_index_date
                 return f"{self.target_elasticsearch_index_prefix}-{target_index_date}"
 
             raise ESImportImproperlyConfigured
@@ -231,9 +236,35 @@ class SyncBase(abc.ABC):
         """
             function to check if the es record being placed is of
             the current month's index or not.
-            if it is not of the current month, report it using sentry
+            if it is not of the current month, report it via sentry
         """
-        current_date = datetime.utcnow()
-        if current_date.month != record._date.month:
-            metadata = dict(current_date=current_date,record_date=record._date,index=record._index,record_id=record.id)
-            SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+
+        # check if current date and record's date are different
+        if self.current_date != self.target_index_date:
+            metadata = {
+                        "current_date": self.current_date,
+                        "record_date": self.target_index_date,
+                        "index": record._index,
+                        "record_id": record.id
+                        }
+            # check if record's date is first day of the month
+            # if it is, update current date and check again for
+            # out of date record
+            if record._date.day == 1:
+                # the 'current_date_month_fixed' bool flag optimizes so
+                # that we have to update date here only once 
+                if not self.current_date_month_fixed:
+                    self.update_current_date()
+                    self.current_date_month_fixed = True
+                if self.current_date != self.target_index_date:
+                    SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+            else:
+                self.current_date_month_fixed = False
+                SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+
+    def update_current_date(self):
+        """
+            updates the current date stored
+            is normally called when the sql connection is reset
+        """
+        self.current_date = datetime.utcnow().strftime("%Y-%m")

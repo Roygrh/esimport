@@ -70,8 +70,8 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         for session_record in self.get_sessions(
             from_id, self.default_query_limit, start_date, use_historical
         ):
-            self.report_old_record(session_record)
             count += 1
+            self.report_old_record(session_record)
             session_id = session_record.raw.get("ID")
             # Distinguish normal (DB originated) sessions from PPK sessions in Elasticsearch
             # as we need to filter on 'is_ppk' for different reasons (e.g. alerting, debugging.. )
@@ -137,7 +137,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
-
+                self.update_current_date()
                 # Do something when nothing happens for more than `self.db_sessions_gap_in_seconds`
                 potential_gap_wait_time = int(time.time() - no_data_init_time)
                 if potential_gap_wait_time >= self.db_sessions_gap_in_seconds:
