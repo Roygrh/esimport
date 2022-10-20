@@ -10,6 +10,8 @@ stages:
   - build
   - staging_deploy
   - production_deploy
+  - deploy_ecs_image_staging
+  - deploy_ecs_image_prod
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -52,23 +54,7 @@ build_ecs_image_dev:
       
       source ./variables-dev
       
-      if [ -z "$CI_COMMIT_SHA" ]; then
-          export CI_COMMIT_SHA=$(git rev-parse HEAD)
-      fi
-      
-      export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-      
-      export ElevenApiEcrRepositoryUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
-      export IMAGE_TAG=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
-      
-      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-      docker build -t $IMAGE_TAG .
-      
-      # login after building image because image need access to base image that stored in gilab registry
-      echo $(aws ecr get-login-password --region us-west-2) | docker login --password-stdin --username AWS $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-
-      docker push $IMAGE_TAG
-      echo $IMAGE_TAG
+     bash ./ecs_build_and_upload_ecr.sh
 
   when: manual
 
@@ -124,6 +110,58 @@ esimport_testing:
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   when: manual
 
+deploy_ecs_image_staging:
+  stage: deploy_ecs_image_staging
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-dev
+    - echo "export KEY_NAME=eleven-deploy" >> variables-dev
+    - echo "export REPOSITORY_NAME=esimport" >> variables-dev
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" >> variables-dev
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-dev
+    - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-dev
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli
+      
+      source ./variables-dev
+      
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+      
+      export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+
+      bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+
+  when: manual
+
+
+deploy_ecs_image_prod:
+  stage: deploy_ecs_image_prod
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-dev
+    - echo "export KEY_NAME=eleven-deploy" >> variables-dev
+    - echo "export REPOSITORY_NAME=esimport" >> variables-dev
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-dev
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-dev
+    - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-dev
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli
+      
+      source ./variables-dev
+      
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+      
+      export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+
+      bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+
+  when: manual
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
 #   stage: testing

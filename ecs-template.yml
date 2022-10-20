@@ -10,6 +10,9 @@ Parameters:
   VpcId:
     Type: "AWS::EC2::VPC::Id"
     Description: Select a VPC that allows instances to access the Internet.
+  KeyName:
+    Type: String
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances.
   InstancesSbunet:
     Type: "List<AWS::EC2::Subnet::Id>"
     Description: Subnets in your selected VPC.
@@ -29,6 +32,36 @@ Parameters:
     Type: Number
     Default: "512"
     Description: Docker Memory.
+
+  MssqlHost:
+    Type: String
+    Description: MssqlHost
+  MssqlUser:
+    Type: String
+    NoEcho: 'true'
+    Description: MssqlUser
+  MssqlPassword:
+    Type: String
+    NoEcho: 'true'
+    Description: MssqlPassword
+  SnsTopicArn:
+    Type: String
+    NoEcho: 'true'
+    Description: SnsTopicArn
+  SentryDSN:
+    Type: String
+    NoEcho: 'true'
+    Description: SentryDSN
+  PpkSqsQueueURL:
+    Type: String
+    NoEcho: 'true'
+    Description: PpkSqsQueueURL
+  PpkDlqQueueURL:
+    Type: String
+    NoEcho: 'true'
+    Description: PpkDlqQueueURL
+
+
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -109,6 +142,7 @@ Resources:
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
       IamInstanceProfile: !Ref EcsInstanceProfile
       SecurityGroups:
         - !GetAtt
@@ -176,6 +210,21 @@ Resources:
             - esimport sync accounts
           Essential: true
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -189,6 +238,21 @@ Resources:
             - esimport sync conferences
           Essential: true
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -202,6 +266,21 @@ Resources:
             - esimport sync devices
           Essential: true
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -215,6 +294,21 @@ Resources:
             - esimport sync properties
           Essential: true
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -228,6 +322,21 @@ Resources:
             - esimport sync sessions
           Essential: true
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -241,6 +350,21 @@ Resources:
             - esimport sync sessions_current
           Essential: false
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -254,6 +378,21 @@ Resources:
             - esimport sync sessions_ppk
           Essential: false
           Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -326,4 +465,4 @@ Resources:
       LaunchType: EC2
       SchedulingStrategy: DAEMON
       TaskDefinition: !Ref ESImportTask
-      ServiceName: ESImport ECS
+      ServiceName: ESImportECS
