@@ -9,7 +9,7 @@ if [ $# -ne 2 ]; then
 fi
 
 eleven_product="ESImport"
-eleven_component="ESImport"
+eleven_component="$2"
 
 # Install logger to /usr/bin
 curl -SL https://github.com/Geeker1/log-aggregator/releases/download/v1.1/log-aggregator -o /usr/local/bin/log-aggregator
