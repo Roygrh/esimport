@@ -7,13 +7,13 @@ from typing import List
 
 from dateutil import tz, parser
 from esimport.infra import AmazonWebServices, CacheClient, MsSQLHandler
-from esimport.core import SentryClient
 
 from .base_schema import BaseSchema
 from .config import Config
 from .exceptions import ESImportImproperlyConfigured
 from .record import Record
 from .sns_buffer import SNSBuffer
+from .sentry import SentryClient
 from dotenv import load_dotenv
 
 here_path = os.path.dirname(__file__)
@@ -237,6 +237,8 @@ class SyncBase(abc.ABC):
             function to check if the es record being placed is of
             the current month's index or not.
             if it is not of the current month, report it via sentry
+
+            Returns 'True' if it is reported
         """
 
         # check if current date and record's date are different
@@ -258,9 +260,11 @@ class SyncBase(abc.ABC):
                     self.current_date_month_fixed = True
                 if self.current_date != self.target_index_date:
                     SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+                    return True
             else:
                 self.current_date_month_fixed = False
                 SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+                return True
 
     def update_current_date(self):
         """
