@@ -106,6 +106,16 @@ def create_encrypted_sns_topic(topic_name, kms_key_id):
 
 
 @cli.command()
+@click.argument("topic_arn")
+@click.argument("kms_key_id")
+def enable_encryption_on_sns_topic(topic_arn, kms_key_id):
+    any_syncer = PropertiesSyncer()
+    any_syncer.setup()
+    any_syncer.aws.enable_encryption_on_existing_sns_topic(topic_arn, kms_key_id)
+    click.echo("Topic encrypted!")
+
+
+@cli.command()
 @click.argument("table_name")
 def create_dynamodb_table(table_name):
     any_syncer = PropertiesSyncer()
