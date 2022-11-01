@@ -32,6 +32,7 @@ Parameters:
   FirehoseStream:
     Description: Delivery stream to send ESImport logs
     Type: String
+    Default: 'syslog_stream'
   ElevenComponent:
     Description: Component type to specify in logger
     Type: String
