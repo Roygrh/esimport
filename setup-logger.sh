@@ -12,7 +12,7 @@ eleven_product="ESImport"
 eleven_component="$2"
 
 # Install logger to /usr/bin
-curl -SL https://github.com/Geeker1/log-aggregator/releases/download/v1.1/log-aggregator -o /usr/local/bin/log-aggregator
+curl -SL https://github.com/vo-va/log-aggregator/releases/download/1.2/log-aggregator_1.2 -o /usr/local/bin/log-aggregator
 
 chmod +x /usr/local/bin/log-aggregator
 
