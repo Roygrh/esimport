@@ -1,5 +1,6 @@
 #!/bin/sh
 MSSQL_SERVER_CONTAINER_NAME=$(docker ps | grep "mssql.*esimport"| awk '{print $1}')
+echo $MSSQL_SERVER_CONTAINER_NAME
 
 if  [ -z "$MSSQL_SERVER_CONTAINER_NAME" ]
 then
@@ -23,5 +24,5 @@ $sqlcmd -Q "CREATE DATABASE Radius" &> /dev/null || true
 #     'ls -1' sorts the file names based on the current locale 
 #     and presents them in a single column
 for i in `ls -1 esimport/tests/fixtures/sql/*.sql`; do 
-    $sqlcmd -d Eleven_OS -i "${i/esimport\/tests\/fixtures/\/esimport}"
+    $sqlcmd -d Eleven_OS -i "$($i)"
 done

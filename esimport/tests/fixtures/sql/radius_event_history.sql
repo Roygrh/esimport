@@ -4,21 +4,22 @@ GO
 IF (EXISTS (SELECT *
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'dbo'
-	AND TABLE_NAME = 'Radius_Event_History'))
+	AND TABLE_NAME = 'Radius_Accounting_Event_History'))
 BEGIN
-	DROP TABLE [dbo].[Radius_Event_History]
+	DROP TABLE [dbo].[Radius_Accounting_Event_History]
 END
 GO
 
-/****** Object:  Table [dbo].[Radius_Event_History]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Object:  Table [dbo].[Radius_Accounting_Event_History]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Table names updated 6/22/22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[Radius_Event_History]
+CREATE TABLE [dbo].[Radius_Accounting_Event_History]
 (
-	[User_Name] [varchar](6000) NULL,
-	[Radius_Event_ID] [bigint] IDENTITY(1,1) NOT NULL,
+	[User_Name] [varchar](256) NULL,
+	[Radius_Accounting_Event_ID] [bigint] IDENTITY(1,1) NOT NULL,
 	[Organization_ID] [int] NULL,
 	[Member_ID] [bigint] NULL,
 	[Calling_Station_Id] [varchar](256) NULL,
@@ -31,9 +32,9 @@ GO
 -- TODO: uncomment these in final commit
 
 -- PUT DATA INSERT SCRIPTS BELOW
-SET IDENTITY_INSERT Radius_Event_History ON
-INSERT INTO [dbo].[Radius_Event_History]
-	(User_Name, Radius_Event_ID, Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, VLAN, Calling_Station_Id, Date_UTC)
+SET IDENTITY_INSERT Radius_Accounting_Event_History ON
+INSERT INTO [dbo].[Radius_Accounting_Event_History]
+	(User_Name, Radius_Accounting_Event_ID, Organization_ID, Member_ID, NAS_Identifier, Called_Station_Id, VLAN, Calling_Station_Id, Date_UTC)
 VALUES
 	('username1', 4464775943, 1, 1, 'E8-1D-A8-20-1B-88', 'E8-1D-A8-20-1B-88:WOODSPRING_GUEST', 95, '5C-52-1E-60-6A-17', '2018-06-27 15:12:19.677'),
 	('username2', 4464775940, 1, 2, 'DALEMES', '00-50-E8-04-0F-0A', 1021, '08-6D-41-E3-7B-B4', '2018-06-27 15:12:19.690'),
@@ -60,19 +61,19 @@ VALUES
 	('username11', 11, 4, 2, 'Dunedin Commons', '90-3A-72-55-60-28:Dunedin_Commons_Resident', 1000, '30-07-4D-2C-51-7B', '2018-06-27 15:12:19.795'),
 	('username12', 12, 4, 3, 'Mesa_Nueva-UCSD', '0C-F4-D5-7C-C5-18:Mesa Nueva Resident', 90, '30-07-4D-2C-51-7B', '2018-06-27 15:12:19.810')
 GO
---  CONSTRAINT [PK_Radius_Event_History] PRIMARY KEY CLUSTERED 
+--  CONSTRAINT [PK_Radius_Accounting_Event_History] PRIMARY KEY CLUSTERED 
 -- (
--- 	[Radius_Event_ID] ASC
--- )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PS_Partition_By_Id]([Radius_Event_ID])
--- ) ON [PS_Partition_By_Id]([Radius_Event_ID])
+-- 	[Radius_Accounting_Event_ID] ASC
+-- )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PS_Partition_By_Id]([Radius_Accounting_Event_ID])
+-- ) ON [PS_Partition_By_Id]([Radius_Accounting_Event_ID])
 
 -- GO
--- ALTER TABLE [dbo].[Radius_Event_History] ADD  CONSTRAINT [DF_Radius_Event_History_Date]  DEFAULT (getdate()) FOR [Date]
+-- ALTER TABLE [dbo].[Radius_Accounting_Event_History] ADD  CONSTRAINT [DF_Radius_Accounting_Event_History_Date]  DEFAULT (getdate()) FOR [Date]
 -- GO
--- ALTER TABLE [dbo].[Radius_Event_History] ADD  CONSTRAINT [DF_Radius_Event_History_Date_UTC]  DEFAULT (getutcdate()) FOR [Date_UTC]
+-- ALTER TABLE [dbo].[Radius_Accounting_Event_History] ADD  CONSTRAINT [DF_Radius_Accounting_Event_History_Date_UTC]  DEFAULT (getutcdate()) FOR [Date_UTC]
 -- GO
--- ALTER TABLE [dbo].[Radius_Event_History]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Event_History_Radius_Event_Type] FOREIGN KEY([Radius_Event_Type_ID])
--- REFERENCES [dbo].[Radius_Event_Type] ([ID])
+-- ALTER TABLE [dbo].[Radius_Accounting_Event_History]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Accounting_Event_History_Radius_Accounting_Event_Type] FOREIGN KEY([Radius_Accounting_Event_Type_ID])
+-- REFERENCES [dbo].[Radius_Accounting_Event_Type] ([ID])
 -- GO
--- ALTER TABLE [dbo].[Radius_Event_History] NOCHECK CONSTRAINT [FK_Radius_Event_History_Radius_Event_Type]
+-- ALTER TABLE [dbo].[Radius_Accounting_Event_History] NOCHECK CONSTRAINT [FK_Radius_Accounting_Event_History_Radius_Accounting_Event_Type]
 -- GO

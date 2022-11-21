@@ -4,45 +4,52 @@ GO
 IF (EXISTS (SELECT *
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'dbo'
-	AND TABLE_NAME = 'Radius_Stop_Event'))
+	AND TABLE_NAME = 'Radius_Accounting_Stop_Event'))
 BEGIN
-	DROP TABLE [dbo].[Radius_Stop_Event]
+	DROP TABLE [dbo].[Radius_Accounting_Stop_Event]
 END
 GO
 
-/****** Object:  Table [dbo].[Radius_Stop_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Object:  Table [dbo].[Radius_Accounting_Stop_Event]    Script Date: 6/29/2018 8:12:55 AM ******/
+/****** Table names updated 6/22/22 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[Radius_Stop_Event]
+CREATE TABLE [dbo].[Radius_Accounting_Stop_Event]
 (
 	[ID] [bigint] IDENTITY(1,1) NOT NULL,
-	[Radius_Acct_Event_ID] [bigint] NOT NULL,
+	[Radius_Accounting_Event_ID] [bigint] NOT NULL,
 	[Acct_Terminate_Cause] [int] NULL,
 	[Acct_Session_Time] [int] NULL,
 	[Acct_Output_Octets] [bigint] NULL,
 	[Acct_Input_Octets] [bigint] NULL
 )
---  CONSTRAINT [PK_Radius_Stop_Event] PRIMARY KEY CLUSTERED 
+-- The section below was already commented out, and no longer exists for this table on 
+-- production as of 6/20/22.
+-- The table name was changed from Radius_Stop_Event -> Radius_Accounting_Stop_Event.  
+-- This section was updated to match the new naming, but does not represent what is
+-- running in production.
+--
+--  CONSTRAINT [PK_Radius_Accounting_Stop_Event] PRIMARY KEY CLUSTERED 
 -- (
 -- 	[ID] ASC
 -- )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PS_Partition_Stop_Event_By_Id]([ID])
 -- ) ON [PS_Partition_Stop_Event_By_Id]([ID])
 
 -- GO
--- ALTER TABLE [dbo].[Radius_Stop_Event]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Stop_Event_Radius_Acct_Event] FOREIGN KEY([Radius_Acct_Event_ID])
--- REFERENCES [dbo].[Radius_Acct_Event] ([ID])
+-- ALTER TABLE [dbo].[Radius_Accounting_Stop_Event]  WITH NOCHECK ADD  CONSTRAINT [FK_Radius_Accounting_Stop_Event_Radius_Accounting_Event] FOREIGN KEY([Radius_Accounting_Event_ID])
+-- REFERENCES [dbo].[Radius_Accounting_Event] ([ID])
 -- GO
--- ALTER TABLE [dbo].[Radius_Stop_Event] CHECK CONSTRAINT [FK_Radius_Stop_Event_Radius_Acct_Event]
+-- ALTER TABLE [dbo].[Radius_Accounting_Stop_Event] CHECK CONSTRAINT [FK_Radius_Accounting_Stop_Event_Radius_Accounting_Event]
 -- GO
 
 -- TODO: uncomment these in final commit
 
 -- PUT DATA INSERT SCRIPTS BELOW
-SET IDENTITY_INSERT Radius_Stop_Event ON
-INSERT INTO [dbo].[Radius_Stop_Event]
-	(ID, Radius_Acct_Event_ID, Acct_Terminate_Cause, Acct_Session_Time, Acct_Output_Octets, Acct_Input_Octets)
+SET IDENTITY_INSERT Radius_Accounting_Stop_Event ON
+INSERT INTO [dbo].[Radius_Accounting_Stop_Event]
+	(ID, Radius_Accounting_Event_ID, Acct_Terminate_Cause, Acct_Session_Time, Acct_Output_Octets, Acct_Input_Octets)
 VALUES
 	(1, 2652371592, 1, 9354, 43787611, 24313077),
 	(2, 2652371591, 2, 3331, 1599360, 33766292),

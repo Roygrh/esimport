@@ -51,10 +51,10 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
 
     @staticmethod
     def _get_sessions_query(use_historical: bool) -> str:
-        # Session data older than 15 minutes lives in the Radius_Event_History table.
-        # Real-time session data (less than 24 hours old) lives in the Radius_Event table.
-        event_table = "Radius_Event_History" if use_historical else "Radius_Event"
-        event_table_id = "Radius_Event_ID" if use_historical else "ID"
+        # Session data older than 15 minutes lives in the Radius_Accounting_Event_History table.
+        # Real-time session data (less than 24 hours old) lives in the Radius_Accounting_Event table.
+        event_table = "Radius_Accounting_Event_History" if use_historical else "Radius_Accounting_Event"
+        event_table_id = "Radius_Accounting_Event_ID" if use_historical else "ID"
         return SESSIONS_QUERY.format(event_table, event_table_id)
 
     def resume(
@@ -169,12 +169,12 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
 
     def _get_db_max_id(self) -> int:
         row = self.execute_query(
-            "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Stop_Event"
+            "SELECT MAX(ID) as MAX_ID from Radius.dbo.Radius_Accounting_Stop_Event"
         ).fetchone()
         return row.MAX_ID
 
     # def _get_next_id(self, last_known_id: int) -> int:
     #     row = self.execute_query(
-    #         f"SELECT ID as NEXT_ID FROM Radius.dbo.Radius_Stop_Event WHERE ID > {last_known_id}"
+    #         f"SELECT ID as NEXT_ID FROM Radius.dbo.Radius_Accounting_Stop_Event WHERE ID > {last_known_id}"
     #     ).fetchone()
     #     return row.NEXT_ID
