@@ -1,4 +1,4 @@
-image: docker:latest
+image: ubuntu:20.04
 
 services:
   - docker:dind
@@ -107,6 +107,8 @@ production_deploy:
 
 esimport_testing:
   stage: testing
+  image:
+    name: docker:latest
   only:
     - branches
     - tags
