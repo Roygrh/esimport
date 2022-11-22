@@ -13,6 +13,8 @@ shell: build
 
 start-environment:
 	docker-compose up -d redis mssql localstack
+	echo "Waiting for 10 seconds to start the environment completely..."
+	sleep 10
 
 stop-environment:
 	docker-compose stop
