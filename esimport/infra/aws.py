@@ -126,6 +126,13 @@ class AmazonWebServices(BaseInfra):
         """
         return table_name in self.dynamodb_resource.meta.client.list_tables()['TableNames']
 
+    def create_encrypted_sns_topic(self, topic_name, kms_key_id):
+        return self.sns_resource.create_topic(Name=topic_name, Attributes={"KmsMasterKeyId": kms_key_id})
+
+    def enable_encryption_on_existing_sns_topic(self, topic_arn, kms_key_id):
+        self.sns_resource.set_topic_attributes(
+            TopicArn=topic_arn, AttributeName="KmsMasterKeyId", AttributeValue=kms_key_id)
+
     def create_dynamodb_table(self, table_name):
         if not self._is_safe_environment() or self._table_exists(table_name):
             return False

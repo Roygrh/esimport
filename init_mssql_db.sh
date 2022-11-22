@@ -23,7 +23,6 @@ $sqlcmd -Q "CREATE DATABASE Radius" &> /dev/null || true
 # loop over the result of 'ls -1 *.sql'
 #     'ls -1' sorts the file names based on the current locale 
 #     and presents them in a single column
-for i in `ls -1 esimport/tests/fixtures/sql/*.sql`; do
-    filename=$(basename "$i")
-    $sqlcmd -d Eleven_OS -i "esimport/sql/$filename"
+for i in `cd esimport/tests/fixtures/sql/ && ls -1 *.sql`; do
+    $sqlcmd -d Eleven_OS -i "/esimport/sql/${i}"
 done
