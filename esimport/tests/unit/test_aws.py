@@ -6,7 +6,7 @@ from esimport.core import Config
 from esimport.infra import AmazonWebServices
 
 
-def test_aws(latest_ids_table):
+def test_aws():
 
     config = Config()
 
