@@ -121,8 +121,7 @@ esimport_testing:
     - . .env
     - cat .env
     - env
-    - aws sts get-caller-identity --query 'Arn' --output text
-#    - make test
+    - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 # TODO: Activate the following stages when esimport is deployed as a serverless app
