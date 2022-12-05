@@ -82,12 +82,13 @@ def sqs_dpsk():
     source_sqs_queue = sqs_obj.Queue(source_sqs["QueueUrl"])
     target_sqs_queue = sqs_obj.Queue(target_sqs["QueueUrl"])
 
-    dynamodb = dynamodb_obj.create_table(
-        AttributeDefinitions=[{"AttributeName": "doctype", "AttributeType": "S"},],
-        TableName=config.dynamodb_table,
-        KeySchema=[{"AttributeName": "doctype", "KeyType": "HASH"},],
-        ProvisionedThroughput={"ReadCapacityUnits": 123, "WriteCapacityUnits": 123},
-    )
+    if config.dynamodb_table not in dynamodb_obj.meta.client.list_tables()["TableNames"]:
+        dynamodb = dynamodb_obj.create_table(
+            AttributeDefinitions=[{"AttributeName": "doctype", "AttributeType": "S"},],
+            TableName=config.dynamodb_table,
+            KeySchema=[{"AttributeName": "doctype", "KeyType": "HASH"},],
+            ProvisionedThroughput={"ReadCapacityUnits": 123, "WriteCapacityUnits": 123},
+        )
 
     source_sqs_attributes = sqs_client.get_queue_attributes(
         QueueUrl=source_sqs["QueueUrl"], AttributeNames=["All"]
