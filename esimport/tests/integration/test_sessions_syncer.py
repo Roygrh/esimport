@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep
+import pytest
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import SessionsSyncer
@@ -8,6 +9,7 @@ from esimport.infra import CacheClient
 from esimport.tests.base_fixtures import sqs
 
 
+@pytest.mark.skip()
 def test_sessions_syncer(sqs):
     ss = SessionsSyncer()
     ss.setup()
