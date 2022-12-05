@@ -110,9 +110,6 @@ esimport_testing:
   image:
     name: docker:latest
   only:
-    - branches
-    - tags
-    - pushes
     - merge_requests
   except:
     - base
@@ -122,7 +119,10 @@ esimport_testing:
   script:
     - cp .env-example .env
     - . .env
-    - make test
+    - cat .env
+    - env
+    - aws sts get-caller-identity --query 'Arn' --output text
+#    - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 # TODO: Activate the following stages when esimport is deployed as a serverless app
