@@ -40,6 +40,18 @@ Parameters:
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
+    Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgSG:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
