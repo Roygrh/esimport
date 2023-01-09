@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep
+import pytest
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import SessionsSyncer
@@ -13,7 +14,6 @@ def test_sessions_syncer(sqs):
     ss.setup()
     cc = CacheClient(redis_host=ss.config.redis_host, redis_port=ss.config.redis_port)
     cc.client.flushdb()
-    ss.resume(1, datetime(2000, 1, 1), False)
     ss.resume(1, datetime(2000, 1, 1), True)
 
     ss.sns_buffer._flush()
