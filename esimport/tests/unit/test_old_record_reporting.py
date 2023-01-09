@@ -27,12 +27,12 @@ def test_report_old_record():
                     )
     assert ss.report_old_record(record) == True
 
-    # Check if it reports normal up to date records
+    # Check no reports on record for current month
     record_date = datetime.utcnow()
     record = Record(
                     ss.get_target_elasticsearch_index(record_date),
                     ss.record_type,
-                      {
+                    {
                         "ID": "1",
                         "Radius_Accounting_Event_ID": "2652371592",
                         "Acct_Terminate_Cause": 1,
@@ -44,15 +44,21 @@ def test_report_old_record():
                     )
     assert ss.report_old_record(record) == None
 
-    # Edge case test. Check if the function works as intended
-    # on end of months i.e 2022-01-30:23:59:59 
+    # Edge case test.
+    # Checks taht syncert class that stores in variable current_date value for pervious month
+    # will not report record once date and therefore index name will change name to new month
+    # Example: end of months i.e 2022-01-30:23:59:59
+    # I.e. it expectedt that class will detect that `current_date` should be updated, and condition will not trigger
+    # report
     now = datetime.utcnow()
-    record_date = datetime(now.year,now.month,1)
+    record_date = datetime(now.year,now.month,1) # record date first day of current month
+
+    # Syncer class store current_date stores outdated date (previous day)
     ss.current_date = (record_date - timedelta(days=1)).strftime("%Y-%m")
     record = Record(
                     ss.get_target_elasticsearch_index(record_date),
                     ss.record_type,
-                      {
+                    {
                         "ID": "1",
                         "Radius_Accounting_Event_ID": "2652371592",
                         "Acct_Terminate_Cause": 1,
