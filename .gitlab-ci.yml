@@ -4,10 +4,10 @@ services:
   - docker:dind
 
 stages:
-  - testing
   # - esimport_retention
   - build_ecs_image
   - build
+  - testing
   - staging_deploy
   - production_deploy
   - deploy_ecs_image_staging
@@ -93,22 +93,22 @@ production_deploy:
 
 esimport_testing:
   stage: testing
+  image:
+    name: docker:latest
   only:
-    - branches
-    - tags
-    - pushes
     - merge_requests
   except:
     - base
   before_script:
-    - apk add --update --no-cache docker-compose make bash
+    - apk add --update --no-cache docker-compose make
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - cp .env-example .env
     - . .env
+    - cat .env
+    - env
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
-  when: manual
 
 deploy_ecs_image_staging:
   stage: deploy_ecs_image_staging

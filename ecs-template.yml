@@ -62,6 +62,14 @@ Parameters:
     Description: PpkDlqQueueURL
 
 
+  FirehoseStream:
+    Description: Delivery stream to send ESImport logs
+    Type: String
+    Default: 'syslog-stream'
+  ElevenComponent:
+    Description: Component type to specify in logger
+    Type: String
+    Default: 'ESImport Sys'
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -139,6 +147,14 @@ Resources:
         - !Ref EcsClusterDefaultAsgRole
   EcsClusterLaunchConfig:
     Type: "AWS::AutoScaling::LaunchConfiguration"
+    Metadata:
+      'AWS::CloudFormation::Init':
+        config:
+          commands:
+            01_command: !join
+              - ''
+              - - 'chmod +x setup-logger.sh'
+                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType

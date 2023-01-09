@@ -1,5 +1,3 @@
-SHELL := /bin/bash
-
 all:
 
 fixwindows:
@@ -23,4 +21,4 @@ init-data:
 	./init_mssql_db.sh
 
 test: start-environment build init-data
-	docker-compose run --rm --service-ports --entrypoint="" esimport pytest --cov-config=.coveragerc --cov=. esimport
+	docker-compose run --rm --service-ports --no-deps --entrypoint="" esimport pytest --cov-config=.coveragerc --cov=. esimport

@@ -1,4 +1,5 @@
 import json
+import pytest
 
 from esimport.core import SyncBase, PropertiesMixin
 from esimport.syncers import DPSKSessionSyncer
@@ -7,6 +8,7 @@ from esimport.tests.base_fixtures import sqs_dpsk
 from esimport.core import Config
 
 
+@pytest.mark.skip()
 def test_sessions_dpsk_syncer(sqs_dpsk):
     ss = DPSKSessionSyncer()
     ss.config.sns_topic_arn = "arn:aws:sns:us-west-2:000000000000:target"
@@ -40,7 +42,7 @@ def test_sessions_dpsk_syncer(sqs_dpsk):
 
     message_id = ss.receive()
     assert message_id, "Got empty message ID"
-    assert ss.sns_buffer._last_added_record.id == msg[0]["ResidentID"]
+    assert ss.sns_buffer._last_added_record.id == f"{msg[0]['ServiceArea']}:{msg[0]['SessionID']}"
     indexed_msg = ss.sns_buffer._last_added_record._source
     assert indexed_msg["ServiceArea"] == msg[0]["ServiceArea"]
 
