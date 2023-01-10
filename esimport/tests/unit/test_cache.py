@@ -2,6 +2,8 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
+import pytest
+import redis.exceptions
 from dateutil import tz
 
 from esimport.infra import CacheClient
@@ -9,10 +11,23 @@ from esimport.core import Config
 
 
 class TestCacheClient:
+    def test_connection(self):
+        config = Config()
+        cc = CacheClient(redis_host=config.redis_host, redis_port=config.redis_port)
+        cc.client.flushdb()
+        cc.set("test_key", {"a": 1, "b": 2})
+        assert cc.exists("test_key") is True
+
+        # wrong host and port
+        with pytest.raises(redis.exceptions.ConnectionError) as exc_info:
+            cc = CacheClient(redis_host="localhostt", redis_port=1111)
+            cc.set("test_key", {"a": 1, "b": 2})
+
     def test_cache_client(self):
         config = Config()
         cc = CacheClient(redis_host=config.redis_host, redis_port=config.redis_port)
         cc.client.flushdb()
+        assert cc.exists(None) is False
         assert cc.exists("test_key") is False
 
         cc.set("test_key", {"a": 1, "b": 2})
