@@ -67,6 +67,34 @@ Parameters:
     Description: Component type to specify in logger
     Type: String
     Default: 'ESImport Sys'
+  DatabaseCallsWaitInSeconds:
+    Description: DB calls wait in seconds
+    Type: Number
+    Default: 5
+  DatabaseQueryTimeout:
+    Description: DB query timeout in seconds
+    Type: Number
+    Default: 120
+  LogLevel:
+    Description: Log level
+    Type: String
+    Default: 'info'
+  MSSQLDSN:
+    Description: Template for OBC DSN string
+    Type: String
+    Default: 'DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes'
+  RedisHost:
+    Description: RedisHost
+    Type: String
+    Default: 'redis'
+  RedisPort:
+    Description: RedisHost
+    Type: Number
+    Default: 6379
+
+
+
+
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -238,6 +266,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -266,6 +306,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -294,6 +346,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -322,6 +386,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -350,6 +426,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -378,6 +466,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -406,6 +506,18 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
           LogConfiguration:
             LogDriver: awslogs
             Options:
