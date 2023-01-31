@@ -38,6 +38,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
         self.debug(f"Get Devices from {next_id} to {up_to} since {start_date}")
 
         for device in self.get_devices(next_id, self.default_query_limit, start_date):
+            self.report_old_record(device)
             count += 1
             self.debug(f"Record found: {device.id}")
             service_area = device.raw.get("ServiceArea")
@@ -63,6 +64,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
+                self.update_current_date()
                 self.info(
                     f"[Delay] Reset SQL connection and waiting {self.db_wait} seconds"
                 )

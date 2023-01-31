@@ -104,6 +104,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                         _source=record,
                         _date=record_date,
                     )
+                    self.report_old_record(session_record)
 
                     self.append_site_values(
                         session_record, service_area, self.date_fields_to_localize,
@@ -129,6 +130,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         while True:
             message_id = self.receive()
             if not message_id:
+                self.update_current_date()
                 self.info(
                     f"[Delay] Waiting {self.config.sns_calls_wait_in_seconds} seconds"
                 )
