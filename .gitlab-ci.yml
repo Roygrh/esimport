@@ -73,7 +73,7 @@ build_ecs_image_staging:
   script:
     - |
       apk add --update --no-cache aws-cli bash
-      
+      cat ./variables-staging
       source ./variables-staging
       
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY

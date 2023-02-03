@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+set -e
 
 # export AWS_ACCOUNT_ID=684643752294
 export AWS_REGION=us-west-2
@@ -6,6 +8,8 @@ export AWS_REGION=us-west-2
 export AWS_PAGER=""
 
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+
+echo $AWS_ACCOUNT_ID
 
 if [ -z "$CI_COMMIT_SHA" ]; then
     export CI_COMMIT_SHA=$(git rev-parse HEAD)
