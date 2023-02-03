@@ -5,11 +5,12 @@ services:
 
 stages:
   # - esimport_retention
-  - build_ecs_image
+
   - build
   - testing
   - staging_deploy
   - production_deploy
+  - build_ecs_image
   - deploy_ecs_image_staging
   - deploy_ecs_image_prod
 
