@@ -50,7 +50,7 @@ build_ecs_image_dev:
 
   script:
     - |
-      apk add --update --no-cache aws-cli
+      apk add --update --no-cache aws-cli bash
       
       source ./variables-dev
       
@@ -71,7 +71,7 @@ build_ecs_image_staging:
 
   script:
     - |
-      apk add --update --no-cache aws-cli
+      apk add --update --no-cache aws-cli bash
       
       source ./variables-staging
       
@@ -170,7 +170,7 @@ deploy_esc_staging:
 
   script:
     - |
-      apk add --update --no-cache aws-cli
+      apk add --update --no-cache aws-cli bash
       
       source ./variables-staging
       
