@@ -58,6 +58,27 @@ build_ecs_image_dev:
 
   when: manual
 
+build_ecs_image_staging:
+  stage: build_ecs_image
+  image:
+    name: docker:latest
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-staging
+    - echo "export KEY_NAME=eleven-deploy" >> variables-staging
+    - echo "export REPOSITORY_NAME=esimport" >> variables-staging
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" >> variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli
+      
+      source ./variables-staging
+      
+      bash ./ecs_build_and_upload_ecr.sh
+
+  when: manual
+
 build_image:
   stage: build
   script:
@@ -157,7 +178,13 @@ deploy_esc_staging:
           export CI_COMMIT_SHA=$(git rev-parse HEAD)
       fi
       
-      export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+      repo_region="us-west-2"
+      export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+      
+      export esimport_docker_repo_url=$AWS_ACCOUNT_ID.dkr.ecr.$repo_region.amazonaws.com/$REPOSITORY_NAME
+      export IMAGE_TAG=$esimport_docker_repo_url:$CI_COMMIT_SHA
+      
+      export IMAGE_TO_DEPLOY=$esimport_docker_repo_url:$CI_COMMIT_SHA
 
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
 
