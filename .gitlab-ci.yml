@@ -54,7 +54,7 @@ build_ecs_image_dev:
       
       source ./variables-dev
       
-     bash ./ecs_build_and_upload_ecr.sh
+      bash ./ecs_build_and_upload_ecr.sh
 
   when: manual
 
@@ -110,7 +110,7 @@ esimport_testing:
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
-deploy_ecs_image_staging:
+deploy_esc_staging:
   stage: deploy_ecs_image_staging
   before_script:
     # us-east-1 region where staging-db04.11os.com and it's VPC is located
