@@ -54,6 +54,7 @@ build_ecs_image_dev:
       
       source ./variables-dev
       
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
   when: manual
@@ -75,6 +76,7 @@ build_ecs_image_staging:
       
       source ./variables-staging
       
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
   when: manual
