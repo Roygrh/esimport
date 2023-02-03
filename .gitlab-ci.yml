@@ -90,6 +90,9 @@ build_image:
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
+  only:
+    - master
+
 
 staging_deploy:
   stage: staging_deploy
