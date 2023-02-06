@@ -31,6 +31,7 @@ aws cloudformation deploy \
     ESImportImage=$ESImportImage \
     KeyName=$KEY_NAME \
     MSSQLDSN=$MSSQL_DSN \
+    MssqlHost=$MSSQL_HOST \
     MssqlUser=$MSSQL_USER \
     MssqlPassword=$MSSQL_PASSWORD \
     DatabaseCallsWaitInSeconds=$DATABASE_CALLS_WAIT_IN_SECONDS \

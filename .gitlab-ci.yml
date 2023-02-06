@@ -157,8 +157,8 @@ deploy_esc_staging:
     - echo "export LOG_LEVEL=$staging_LOG_LEVEL" >> variables-staging
     - echo "export MSSQL_DSN=$staging_MSSQL_DSN" >> variables-staging
 
-    # strictly not necessary, legacy variable
-    # - echo "export MSSQL_HOST=$staging_MSSQL_HOST" >> variables-staging
+    # is used in odbc.ini file
+    - echo "export MSSQL_HOST=$staging_MSSQL_HOST" >> variables-staging
     - echo "export MSSQL_USER=$staging_MSSQL_USER" >> variables-staging
     - echo "export MSSQL_PASSWORD=$staging_MSSQL_PASSWORD" >> variables-staging
     - echo "export PPK_SQS_QUEUE_URL=$staging_PPK_SQS_QUEUE_URL" >> variables-staging
