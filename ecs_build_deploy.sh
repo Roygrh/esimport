@@ -20,6 +20,7 @@ fi
 
 set -e
 
+export ESImportImage=$1
 
 set -x
 aws cloudformation deploy \
@@ -27,7 +28,7 @@ aws cloudformation deploy \
     --stack-name $STACK_NAME \
     --parameter-overrides \
     VpcId=$VPC_ID \
-    InstancesSbunet=InstancesSbunet \
+    InstancesSbunet=$InstancesSbunet \
     ESImportImage=$ESImportImage \
     KeyName=$KEY_NAME \
     MSSQLDSN=$MSSQL_DSN \

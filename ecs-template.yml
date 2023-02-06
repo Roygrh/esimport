@@ -172,7 +172,7 @@ Resources:
         - !Ref EcsClusterDefaultAsgRole
   EcsClusterLaunchConfig:
     Type: "AWS::AutoScaling::LaunchConfiguration"
-    Metadata:
+#    Metadata:
 #      'AWS::CloudFormation::Init':
 #        config:
 #          commands:
