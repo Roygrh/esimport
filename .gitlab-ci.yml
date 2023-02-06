@@ -169,7 +169,7 @@ deploy_esc_staging:
     - echo "export SNS_TOPIC_ARN=$staging_SNS_TOPIC_ARN" >> variables-staging
 
     # ssh-key
-    - echo "export KEY_NAME=eleven-deploy" >> variables-staging
+    - echo "export KEY_NAME=shared_esimport_dev_ecs" >> variables-staging
     - echo "export REPOSITORY_NAME=esimport" >> variables-staging
 
     - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-staging
