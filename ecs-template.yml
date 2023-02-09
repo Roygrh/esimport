@@ -236,7 +236,7 @@ Resources:
         - Name: redis
           Image: redis:5-alpine
           Command:
-            - redis-server --save "" --appendonly no
+            - --save "" --appendonly no
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
