@@ -23,7 +23,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: "esimport_cursor"
-      BillingMode: PROVISIONED
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         -
           AttributeName: "doctype"

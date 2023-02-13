@@ -194,7 +194,7 @@ Resources:
           #!/bin/bash -xe
           echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
           yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region !Ref "AWS::Region"
           
           sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
           sudo service iptables save
@@ -243,7 +243,7 @@ Resources:
             Options:
               awslogs-group: !Ref ESImportTaskLogGroup
               awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              awslogs-region: !Ref "AWS::Region"
           MemoryReservation: 800
 
         - Name: accounts
@@ -278,6 +278,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -318,6 +320,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -358,6 +362,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -398,6 +404,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -438,6 +446,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -518,6 +528,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
