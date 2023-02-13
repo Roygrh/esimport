@@ -19,6 +19,20 @@ Resources:
       DisplayName: "esimport-stream-staging"
       TopicName: "esimport-stream"
 
+  ESRecordsSNSDynamoDBCursor:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "esimport_cursor"
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        -
+          AttributeName: "doctype"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "doctype"
+          KeyType: "HASH"
+
    # DPSK
   DPSKMessagesQueue:
     Type: AWS::SQS::Queue
