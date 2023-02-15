@@ -254,6 +254,8 @@ Resources:
 
         -
           Name: accounts
+          Links:
+            - redis
           Command:
             - esimport sync accounts
           Essential: true
@@ -295,7 +297,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: conferences
+        -
+          Name: conferences
+          Links:
+            - redis
           Command:
             - esimport sync conferences
           Essential: true
@@ -337,7 +342,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: devices
+        -
+          Name: devices
+          Links:
+            - redis
           Command:
             - esimport sync devices
           Essential: true
@@ -379,7 +387,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: properties
+        -
+          Name: properties
+          Links:
+            - redis
           Command:
             - esimport sync properties
           Essential: true
@@ -421,7 +432,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: sessions
+        -
+          Name: sessions
+          Links:
+            - redis
           Command:
             - esimport sync sessions
           Essential: true
@@ -463,7 +477,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: sessions-current
+        -
+          Name: sessions-current
+          Links:
+            - redis
           Command:
             - esimport sync sessions_current
           Essential: false
@@ -505,7 +522,10 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        - Name: sessions-ppk
+        -
+          Name: sessions-ppk
+          Links:
+            - redis
           Command:
             - esimport sync sessions_ppk
           Essential: false
