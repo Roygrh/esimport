@@ -237,7 +237,9 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        - Name: redis
+        -
+          Name: redis
+          Hostname: redis
           Image: redis:5-alpine
           Command:
             - --save "" --appendonly no
@@ -250,7 +252,8 @@ Resources:
               awslogs-region: !Ref "AWS::Region"
           MemoryReservation: 800
 
-        - Name: accounts
+        -
+          Name: accounts
           Command:
             - esimport sync accounts
           Essential: true
