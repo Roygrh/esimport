@@ -492,6 +492,8 @@ Resources:
               Value: !Ref RedisHost
             - Name: REDIS_PORT
               Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: awslogs
             Options:
