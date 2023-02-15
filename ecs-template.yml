@@ -630,6 +630,7 @@ Resources:
       PolicyName: TaskDefExecutionRoleDefaultPolicy
       Roles:
         - !Ref TaskDefExecutionRole
+        - !Ref TaskDefRole
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
