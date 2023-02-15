@@ -41,6 +41,7 @@ aws cloudformation deploy \
     SnsTopicArn=$SNS_TOPIC_ARN \
     SentryDSN=$SENTRY_DSN \
     PpkSqsQueueURL=$PPK_SQS_QUEUE_URL \
+    PpkSqsQueueArn=$PPK_SQS_QUEUE_ARN \
     PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \
-    SQSArn=$SQS_ARN \
+    PpkDlqQueueArn=$PPK_DLQ_QUEUE_ARN \
     --capabilities CAPABILITY_IAM

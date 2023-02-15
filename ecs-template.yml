@@ -37,7 +37,6 @@ Parameters:
     Description: MssqlHost
   MssqlUser:
     Type: String
-    NoEcho: 'true'
     Description: MssqlUser
   MssqlPassword:
     Type: String
@@ -45,7 +44,6 @@ Parameters:
     Description: MssqlPassword
   SnsTopicArn:
     Type: String
-    NoEcho: 'true'
     Description: SnsTopicArn
   SentryDSN:
     Type: String
@@ -53,11 +51,9 @@ Parameters:
     Description: SentryDSN
   PpkSqsQueueURL:
     Type: String
-    NoEcho: 'true'
     Description: PpkSqsQueueURL
   PpkDlqQueueURL:
     Type: String
-    NoEcho: 'true'
     Description: PpkDlqQueueURL
   FirehoseStream:
     Description: Delivery stream to send ESImport logs
@@ -95,7 +91,10 @@ Parameters:
     Description: DynamoDB Table name which stores the cursor to the last processed 
     Type: String
     Default: "esimport_cursor"
-  SQSArn:
+  PpkSqsQueueArn:
+    Description: SQS Arn
+    Type: String
+  PpkDlqQueueArn:
     Description: SQS Arn
     Type: String
 
@@ -623,7 +622,9 @@ Resources:
             - sqs:ReceiveMessage
             - sqs:SendMessage
             Effect: Allow
-            Resource: !Ref SQSArn
+            Resource:
+              - !Ref PpkSqsQueueArn
+              - !Ref PpkDlqQueueArn
         Version: 2012-10-17
       PolicyName: TaskDefExecutionRoleDefaultPolicy
       Roles:
