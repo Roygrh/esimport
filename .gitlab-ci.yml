@@ -162,7 +162,9 @@ deploy_esc_staging:
     - echo "export MSSQL_USER=$staging_MSSQL_USER" >> variables-staging
     - echo "export MSSQL_PASSWORD=$staging_MSSQL_PASSWORD" >> variables-staging
     - echo "export PPK_SQS_QUEUE_URL=$staging_PPK_SQS_QUEUE_URL" >> variables-staging
+    - echo "export PPK_SQS_QUEUE_ARN=$staging_PPK_SQS_QUEUE_ARN" >> variables-staging
     - echo "export PPK_DLQ_QUEUE_URL=$staging_PPK_DLQ_QUEUE_URL" >> variables-staging
+    - echo "export PPK_DLQ_QUEUE_ARN=$staging_PPK_DLQ_QUEUE_ARN" >> variables-staging
     - echo "export REDIS_HOST=$staging_REDIS_HOST" >> variables-staging
     - echo "export REDIS_PORT=$staging_REDIS_PORT" >> variables-staging
     - echo "export SENTRY_DSN=$staging_SENTRY_DSN" >> variables-staging
