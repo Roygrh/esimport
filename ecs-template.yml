@@ -603,6 +603,7 @@ Resources:
             - dynamodb:Delete*
             - dynamodb:Update*
             - dynamodb:PutItem
+            - dynamodb:GetItem
             Effect: Allow
             Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
           - Action:
