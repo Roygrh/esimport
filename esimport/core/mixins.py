@@ -277,7 +277,8 @@ class PropertiesMixin:
                 "HostType": device.HostType,
                 "VLANRangeStart": device.VLANRangeStart,
                 "VLANRangeEnd": device.VLANRangeEnd,
-                "NetIP": device.NetIP,
+                "NetIP": "",
+                "NetHostname":device.NetHostname
             }
 
     def _cache_key_for_org_number(self, org_number: str) -> str:
