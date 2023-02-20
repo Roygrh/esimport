@@ -243,7 +243,7 @@ class SyncBase(abc.ABC):
 
         # check if current date and record's date are different
         if self.current_date != self.target_index_date:
-            metadata = {
+            tags = {
                         "current_date": self.current_date,
                         "record_date": self.target_index_date,
                         "index": record._index,
@@ -259,11 +259,11 @@ class SyncBase(abc.ABC):
                     self.update_current_date()
                     self.current_date_month_fixed = True
                 if self.current_date != self.target_index_date:
-                    SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+                    SentryClient.captureMessage(f"Out of date record being put detected",level="info",tags=tags)
                     return True
             else:
                 self.current_date_month_fixed = False
-                SentryClient.captureMessage(f"Out of date record being put detected",level="info",extra=metadata)
+                SentryClient.captureMessage(f"Out of date record being put detected",level="info",tags=tags)
                 return True
 
     def update_current_date(self):
