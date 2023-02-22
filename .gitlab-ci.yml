@@ -201,6 +201,73 @@ deploy_esc_staging:
 
   when: manual
 
+deploy_esc_prod:
+  stage: deploy_ecs_image_prod
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli awsebcli
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - sh get-docker.sh
+
+    - echo "export AWS_DEFAULT_REGION=$prod_AWS_DEFAULT_REGION" > variables-prod
+
+    # account from Monolith Prod that has permission to deploy `distrodev-deployer`
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+
+    - echo "export DATABASE_CALLS_WAIT_IN_SECONDS=$prod_DATABASE_CALLS_WAIT_IN_SECONDS" >> variables-prod
+    - echo "export DATABASE_QUERY_TIMEOUT=$prod_DATABASE_QUERY_TIMEOUT" >> variables-prod
+
+    # DSN config name. Uses "Eleven_OS" value if inside Docker conatiner (check config.py ) or specified value if outside
+    - echo "export DSN=$prod_DSN" >> variables-prod
+    - echo "export LOG_LEVEL=$prod_LOG_LEVEL" >> variables-prod
+    - echo "export MSSQL_DSN=$prod_MSSQL_DSN" >> variables-prod
+
+    # is used in odbc.ini file
+    - echo "export MSSQL_HOST=$prod_MSSQL_HOST" >> variables-prod
+    - echo "export MSSQL_USER=$prod_MSSQL_USER" >> variables-prod
+    - echo "export MSSQL_PASSWORD=$prod_MSSQL_PASSWORD" >> variables-prod
+    - echo "export PPK_SQS_QUEUE_URL=$prod_PPK_SQS_QUEUE_URL" >> variables-prod
+    - echo "export PPK_SQS_QUEUE_ARN=$prod_PPK_SQS_QUEUE_ARN" >> variables-prod
+    - echo "export PPK_DLQ_QUEUE_URL=$prod_PPK_DLQ_QUEUE_URL" >> variables-prod
+    - echo "export PPK_DLQ_QUEUE_ARN=$prod_PPK_DLQ_QUEUE_ARN" >> variables-prod
+    - echo "export REDIS_HOST=$prod_REDIS_HOST" >> variables-prod
+    - echo "export REDIS_PORT=$prod_REDIS_PORT" >> variables-prod
+    - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
+    - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
+
+    # ssh-key
+    - echo "export KEY_NAME=$prod_ESIMPORT_SSH_KEY" >> variables-prod
+    - echo "export REPOSITORY_NAME=esimport" >> variables-prod
+
+    - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-prod
+    # subnet where DB instance staging-db04.11os.com located
+    - echo "export InstancesSbunet=$prod_INSTANCES_SUBNET" >> variables-prod
+    # VPC where DB instance staging-db04.11os.com located
+    - echo "export VPC_ID=$prod_VPC" >> variables-prod
+
+  script:
+    - |
+      
+      source ./variables-prod
+      
+      
+      # It is the Monolith DEV account, to use the same image that was tested on Monolith DEV and staging db taging-db04.11os.com
+      export VENDOR_ACCOUNT_ID=489354756207
+      export VENDOR_DEFAULT_REGION=us-west-2
+
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+
+      export ElevenApiEcrRepositoryUri=$VENDOR_ACCOUNT_ID.dkr.ecr.$VENDOR_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
+      export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+      bash ./ecs_deploy_generic.sh $IMAGE_TO_DEPLOY
+      
+      bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+
+  when: manual
+
 
 
 
