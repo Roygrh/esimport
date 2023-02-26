@@ -17,11 +17,11 @@ services:
       - DEFAULT_REGION=${AWS_DEFAULT_REGION}
       - DATA_DIR=/tmp/localstack/data
       - DEBUG=1
-      
-  
+
   esimport:
     container_name: esimport
-    build: .
+    build:
+      dockerfile: dev.Dockerfile
     env_file: .env
     links:
       - redis
@@ -77,7 +77,6 @@ services:
     volumes:
       - './esimport/tests/fixtures/sql:/esimport/sql'
       - 'mssql:/var/opt/mssql'
-
   # If you prefer working with Kibana, uncomment this:
   # kibana:
   #   container_name: esimport-kibana
