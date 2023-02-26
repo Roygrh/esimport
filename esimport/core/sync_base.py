@@ -156,10 +156,10 @@ class SyncBase(abc.ABC):
         )
 
     def max_id(self):
-        return self.last_inserted_cursor_state["Item"].get("latest_id", 0)
+        return self.last_inserted_cursor_state.get("Item",{}).get("latest_id", 0)
 
     def latest_date(self) -> datetime:
-        dt_str = self.last_inserted_cursor_state["Item"].get(
+        dt_str = self.last_inserted_cursor_state.get("Item",{}).get(
             "latest_date", "1900-01-01"
         )
         return parser.parse(dt_str).replace(tzinfo=timezone.utc)
