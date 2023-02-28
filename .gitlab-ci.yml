@@ -262,9 +262,8 @@ deploy_esc_prod:
 
       export ElevenApiEcrRepositoryUri=$VENDOR_ACCOUNT_ID.dkr.ecr.$VENDOR_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
       export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
-      bash ./ecs_deploy_generic.sh $IMAGE_TO_DEPLOY
-      
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+      
 
   when: manual
 
