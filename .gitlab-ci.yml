@@ -205,7 +205,7 @@ deploy_esc_prod:
   stage: deploy_ecs_image_prod
   before_script:
     - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
-    - pip3 --no-cache-dir install awscli awsebcli
+    - pip3 --no-cache-dir install awscli
     - curl -fsSL https://get.docker.com -o get-docker.sh
     - sh get-docker.sh
 
