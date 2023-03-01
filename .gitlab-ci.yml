@@ -81,6 +81,29 @@ build_ecs_image_staging:
 
   when: manual
 
+
+build_ecs_image_production:
+  stage: build_ecs_image
+  image:
+    name: docker:latest
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-prod
+    - echo "export KEY_NAME=eleven-deploy" >> variables-prod
+    - echo "export REPOSITORY_NAME=esimport" >> variables-prod
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli bash
+      cat ./variables-prod
+      source ./variables-prod
+      
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+      bash ./ecs_build_and_upload_ecr.sh
+
+  when: manual
+
 build_image:
   stage: build
   script:
@@ -252,9 +275,12 @@ deploy_esc_prod:
       source ./variables-prod
       
       
-      # It is the Monolith DEV account, to use the same image that was tested on Monolith DEV and staging db taging-db04.11os.com
-      export VENDOR_ACCOUNT_ID=489354756207
-      export VENDOR_DEFAULT_REGION=us-west-2
+#       It is the Monolith DEV account, to use the same image that was tested on Monolith DEV and staging db taging-db04.11os.com
+#      export VENDOR_ACCOUNT_ID=489354756207
+#      export VENDOR_DEFAULT_REGION=us-west-2
+
+      export VENDOR_DEFAULT_REGION="us-west-2"
+      export VENDOR_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 
       if [ -z "$CI_COMMIT_SHA" ]; then
           export CI_COMMIT_SHA=$(git rev-parse HEAD)
