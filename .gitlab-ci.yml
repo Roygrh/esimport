@@ -273,12 +273,6 @@ deploy_esc_prod:
     - |
       
       source ./variables-prod
-      
-      
-#       It is the Monolith DEV account, to use the same image that was tested on Monolith DEV and staging db taging-db04.11os.com
-#      export VENDOR_ACCOUNT_ID=489354756207
-#      export VENDOR_DEFAULT_REGION=us-west-2
-
       export VENDOR_DEFAULT_REGION="us-west-2"
       export VENDOR_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 
