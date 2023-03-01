@@ -222,17 +222,7 @@ Resources:
       AutoScalingReplacingUpdate:
         WillReplace: true
       AutoScalingScheduledAction:
-        IgnoreUnmodifiedGroupSizeProperties: true
-  TaskDefRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-        Version: 2012-10-17
+        IgnoreUnmodifiedGroupSizeProperties: trues
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
