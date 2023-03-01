@@ -69,3 +69,7 @@ $ esimport sync sessions --start-date 2020-01-01
 ## How to run tests?
 
 TODO
+
+
+
+## The ECR repo for prod was created manually

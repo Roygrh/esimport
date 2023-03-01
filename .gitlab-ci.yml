@@ -5,11 +5,13 @@ services:
 
 stages:
   # - esimport_retention
-  - build_ecs_image
   - build
   - testing
   - staging_deploy
   - production_deploy
+  - build_ecs_image
+  - deploy_ecs_image_staging
+  - deploy_ecs_image_prod
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -48,27 +50,57 @@ build_ecs_image_dev:
 
   script:
     - |
-      apk add --update --no-cache aws-cli
+      apk add --update --no-cache aws-cli bash
       
       source ./variables-dev
       
-      if [ -z "$CI_COMMIT_SHA" ]; then
-          export CI_COMMIT_SHA=$(git rev-parse HEAD)
-      fi
-      
-      export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-      
-      export ElevenApiEcrRepositoryUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
-      export IMAGE_TAG=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+      bash ./ecs_build_and_upload_ecr.sh
+
+  when: manual
+
+build_ecs_image_staging:
+  stage: build_ecs_image
+  image:
+    name: docker:latest
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-staging
+    - echo "export KEY_NAME=eleven-deploy" >> variables-staging
+    - echo "export REPOSITORY_NAME=esimport" >> variables-staging
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" >> variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli bash
+      cat ./variables-staging
+      source ./variables-staging
       
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-      docker build -t $IMAGE_TAG .
-      
-      # login after building image because image need access to base image that stored in gilab registry
-      echo $(aws ecr get-login-password --region us-west-2) | docker login --password-stdin --username AWS $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      bash ./ecs_build_and_upload_ecr.sh
 
-      docker push $IMAGE_TAG
-      echo $IMAGE_TAG
+  when: manual
+
+
+build_ecs_image_production:
+  stage: build_ecs_image
+  image:
+    name: docker:latest
+  before_script:
+    - echo "export AWS_DEFAULT_REGION=us-west-2" > variables-prod
+    - echo "export KEY_NAME=eleven-deploy" >> variables-prod
+    - echo "export REPOSITORY_NAME=esimport" >> variables-prod
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+
+  script:
+    - |
+      apk add --update --no-cache aws-cli bash
+      cat ./variables-prod
+      source ./variables-prod
+      
+      docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+      bash ./ecs_build_and_upload_ecr.sh
 
   when: manual
 
@@ -80,6 +112,9 @@ build_image:
     - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
     - docker build -t $IMAGE_TAG -f prod.Dockerfile .
     - docker push $IMAGE_TAG
+  only:
+    - master
+
 
 staging_deploy:
   stage: staging_deploy
@@ -123,6 +158,137 @@ esimport_testing:
     - env
     - make test
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+
+deploy_esc_staging:
+  stage: deploy_ecs_image_staging
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli awsebcli
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - sh get-docker.sh
+
+    # us-east-1 region where staging-db04.11os.com and it's VPC is located
+    - echo "export AWS_DEFAULT_REGION=us-east-1" > variables-staging
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" >> variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+
+    - echo "export DATABASE_CALLS_WAIT_IN_SECONDS=$staging_DATABASE_CALLS_WAIT_IN_SECONDS" >> variables-staging
+    - echo "export DATABASE_QUERY_TIMEOUT=$staging_DATABASE_QUERY_TIMEOUT" >> variables-staging
+
+    # DSN config name. Uses "Eleven_OS" value if inside Docker conatiner (check config.py ) or specified value if outside
+    - echo "export DSN=$staging_DSN" >> variables-staging
+    - echo "export LOG_LEVEL=$staging_LOG_LEVEL" >> variables-staging
+    - echo "export MSSQL_DSN=$staging_MSSQL_DSN" >> variables-staging
+
+    # is used in odbc.ini file
+    - echo "export MSSQL_HOST=$staging_MSSQL_HOST" >> variables-staging
+    - echo "export MSSQL_USER=$staging_MSSQL_USER" >> variables-staging
+    - echo "export MSSQL_PASSWORD=$staging_MSSQL_PASSWORD" >> variables-staging
+    - echo "export PPK_SQS_QUEUE_URL=$staging_PPK_SQS_QUEUE_URL" >> variables-staging
+    - echo "export PPK_SQS_QUEUE_ARN=$staging_PPK_SQS_QUEUE_ARN" >> variables-staging
+    - echo "export PPK_DLQ_QUEUE_URL=$staging_PPK_DLQ_QUEUE_URL" >> variables-staging
+    - echo "export PPK_DLQ_QUEUE_ARN=$staging_PPK_DLQ_QUEUE_ARN" >> variables-staging
+    - echo "export REDIS_HOST=$staging_REDIS_HOST" >> variables-staging
+    - echo "export REDIS_PORT=$staging_REDIS_PORT" >> variables-staging
+    - echo "export SENTRY_DSN=$staging_SENTRY_DSN" >> variables-staging
+    - echo "export SNS_TOPIC_ARN=$staging_SNS_TOPIC_ARN" >> variables-staging
+
+    # ssh-key
+    - echo "export KEY_NAME=shared_esimport_dev_ecs" >> variables-staging
+    - echo "export REPOSITORY_NAME=esimport" >> variables-staging
+
+    - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-staging
+    # subnet where DB instance staging-db04.11os.com located
+    - echo "export InstancesSbunet=subnet-24220141" >> variables-staging
+    # VPC where DB instance staging-db04.11os.com located
+    - echo "export VPC_ID=vpc-88a043f1" >> variables-staging
+
+  script:
+    - |
+      
+      source ./variables-staging
+      
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+      
+      repo_region="us-west-2"
+      export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+      
+      export esimport_docker_repo_url=$AWS_ACCOUNT_ID.dkr.ecr.$repo_region.amazonaws.com/$REPOSITORY_NAME
+      export IMAGE_TAG=$esimport_docker_repo_url:$CI_COMMIT_SHA
+      
+      export IMAGE_TO_DEPLOY=$esimport_docker_repo_url:$CI_COMMIT_SHA
+
+      bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+
+  when: manual
+
+deploy_esc_prod:
+  stage: deploy_ecs_image_prod
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - sh get-docker.sh
+
+    - echo "export AWS_DEFAULT_REGION=$prod_AWS_DEFAULT_REGION" > variables-prod
+
+    # account from Monolith Prod that has permission to deploy `distrodev-deployer`
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+
+    - echo "export DATABASE_CALLS_WAIT_IN_SECONDS=$prod_DATABASE_CALLS_WAIT_IN_SECONDS" >> variables-prod
+    - echo "export DATABASE_QUERY_TIMEOUT=$prod_DATABASE_QUERY_TIMEOUT" >> variables-prod
+
+    # DSN config name. Uses "Eleven_OS" value if inside Docker conatiner (check config.py ) or specified value if outside
+    - echo "export DSN=$prod_DSN" >> variables-prod
+    - echo "export LOG_LEVEL=$prod_LOG_LEVEL" >> variables-prod
+    - echo "export MSSQL_DSN=$prod_MSSQL_DSN" >> variables-prod
+
+    # is used in odbc.ini file
+    - echo "export MSSQL_HOST=$prod_MSSQL_HOST" >> variables-prod
+    - echo "export MSSQL_USER=$prod_MSSQL_USER" >> variables-prod
+    - echo "export MSSQL_PASSWORD=$prod_MSSQL_PASSWORD" >> variables-prod
+    - echo "export PPK_SQS_QUEUE_URL=$prod_PPK_SQS_QUEUE_URL" >> variables-prod
+    - echo "export PPK_SQS_QUEUE_ARN=$prod_PPK_SQS_QUEUE_ARN" >> variables-prod
+    - echo "export PPK_DLQ_QUEUE_URL=$prod_PPK_DLQ_QUEUE_URL" >> variables-prod
+    - echo "export PPK_DLQ_QUEUE_ARN=$prod_PPK_DLQ_QUEUE_ARN" >> variables-prod
+    - echo "export REDIS_HOST=$prod_REDIS_HOST" >> variables-prod
+    - echo "export REDIS_PORT=$prod_REDIS_PORT" >> variables-prod
+    - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
+    - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
+
+    # ssh-key
+    - echo "export KEY_NAME=$prod_ESIMPORT_SSH_KEY" >> variables-prod
+    - echo "export REPOSITORY_NAME=esimport" >> variables-prod
+
+    - echo "export ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri" >> variables-prod
+    # subnet where DB instance staging-db04.11os.com located
+    - echo "export InstancesSbunet=$prod_INSTANCES_SUBNET" >> variables-prod
+    # VPC where DB instance staging-db04.11os.com located
+    - echo "export VPC_ID=$prod_VPC" >> variables-prod
+
+  script:
+    - |
+      
+      source ./variables-prod
+      export VENDOR_DEFAULT_REGION="us-west-2"
+      export VENDOR_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+
+      if [ -z "$CI_COMMIT_SHA" ]; then
+          export CI_COMMIT_SHA=$(git rev-parse HEAD)
+      fi
+
+      export ElevenApiEcrRepositoryUri=$VENDOR_ACCOUNT_ID.dkr.ecr.$VENDOR_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
+      export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
+      bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+      
+
+  when: manual
+
+
+
 
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
