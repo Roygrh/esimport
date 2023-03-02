@@ -596,16 +596,12 @@ Resources:
               - "ecr:GetDownloadUrlForLayer"
             Effect: Allow
             # The function bellow will generate a repository ARN based on the passed image value.
-            Resource: !Join
-              - ""
-              - - "arn:"
-                - !Ref "AWS::Partition"
-                - ":ecr:"
-                - !Select [3, !Split [".", !Ref ESImportImage]]
-                - ":"                                
-                - !Select [0, !Split [".", !Ref ESImportImage]]
-                - ":repository/"
-                - !Select [0, !Split [":", !Select [1, !Split ["/", !Ref ESImportImage]]]]
+            Resource:
+              - !Sub
+                - 'arn:aws:ecr:*:${AWSAccountID}:repository/esimport'
+                - AWSAccountID: !Select [0, !Split [".", !Ref ESImportImage]]
+                # the string above will select account id from arn of image
+                # arn of image is look like this 615423619382.dkr.ecr.us-west-2.amazonaws.com/esimport:d0a...
           - Action: "ecr:GetAuthorizationToken"
             Effect: Allow
             Resource: "*"
