@@ -125,6 +125,8 @@ Resources:
   EcsClusterDefaultAsgRole:
     Type: "AWS::IAM::Role"
     Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
