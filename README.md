@@ -79,3 +79,6 @@ run and makes sure the data sources file odbc.ini is populated/confiured properl
 run below command to see odbc config settings.
 
 ```odbcinst -j ```
+
+## The ECR repo for prod was created manually
+
