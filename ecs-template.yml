@@ -222,7 +222,7 @@ Resources:
       AutoScalingReplacingUpdate:
         WillReplace: true
       AutoScalingScheduledAction:
-        IgnoreUnmodifiedGroupSizeProperties: trues
+        IgnoreUnmodifiedGroupSizeProperties: true
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
