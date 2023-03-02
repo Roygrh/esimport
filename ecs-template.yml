@@ -189,6 +189,13 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       IamInstanceProfile: !Ref EcsInstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: 
+            DeleteOnTermination: True
+            Encrypted: True
+            VolumeSize: 30
+            VolumeType: gp2
       SecurityGroups:
         - !GetAtt
           - EcsClusterDefaultAsgSG
