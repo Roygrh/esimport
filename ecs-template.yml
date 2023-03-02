@@ -223,16 +223,6 @@ Resources:
         WillReplace: true
       AutoScalingScheduledAction:
         IgnoreUnmodifiedGroupSizeProperties: true
-  TaskDefRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-        Version: 2012-10-17
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -569,7 +559,7 @@ Resources:
 
       ExecutionRoleArn:
         Fn::GetAtt:
-          - TaskDefExecutionRole
+          - ExecutionRole
           - Arn
       Family: ESImportEcsStack
       NetworkMode: bridge
@@ -577,7 +567,7 @@ Resources:
         - EC2
       TaskRoleArn:
         Fn::GetAtt:
-          - TaskDefRole
+          - TaskRole
           - Arn
   ESImportTaskLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -585,7 +575,7 @@ Resources:
       RetentionInDays: 365
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
-  TaskDefExecutionRole:
+  ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -595,7 +585,7 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
         Version: 2012-10-17
-  TaskDefExecutionRoleDefaultPolicy:
+  ExecutionPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
       PolicyDocument:
@@ -605,7 +595,13 @@ Resources:
               - "ecr:BatchGetImage"
               - "ecr:GetDownloadUrlForLayer"
             Effect: Allow
-            Resource: !Sub 'arn:aws:ecr:*:${AWS::AccountId}:repository/esimport'
+            # The function bellow will generate a repository ARN based on the passed image value.
+            Resource:
+              - !Sub
+                - 'arn:aws:ecr:*:${AWSAccountID}:repository/esimport'
+                - AWSAccountID: !Select [0, !Split [".", !Ref ESImportImage]]
+                # the string above will select account id from arn of image
+                # arn of image is look like this 615423619382.dkr.ecr.us-west-2.amazonaws.com/esimport:d0a...
           - Action: "ecr:GetAuthorizationToken"
             Effect: Allow
             Resource: "*"
@@ -613,49 +609,66 @@ Resources:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
             Effect: Allow
-            Resource: !GetAtt
-              - ESImportTaskLogGroup
-              - Arn
-          - Action:
-            - dynamodb:BatchGet*
-            - dynamodb:DescribeStream
-            - dynamodb:DescribeTable
-            - dynamodb:Get*
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:BatchWrite*
-            - dynamodb:CreateTable
-            - dynamodb:Delete*
-            - dynamodb:Update*
-            - dynamodb:PutItem
-            - dynamodb:GetItem
-            Effect: Allow
-            Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
-          - Action:
-            - sns:ConfirmSubscription
-            - sns:CreateTopic
-            - sns:DeleteTopic
-            - sns:Publish
-            - sns:Subscribe
-            - sns:Unsubscribe
-            Effect: Allow
-            Resource: !Ref SnsTopicArn
-          - Action:
-            - sqs:ChangeMessageVisibility
-            - sqs:CreateQueue
-            - sqs:DeleteMessage
-            - sqs:GetQueueAttributes
-            - sqs:ReceiveMessage
-            - sqs:SendMessage
-            Effect: Allow
-            Resource:
-              - !Ref PpkSqsQueueArn
-              - !Ref PpkDlqQueueArn
+            Resource: !GetAtt ESImportTaskLogGroup.Arn
         Version: 2012-10-17
-      PolicyName: TaskDefExecutionRoleDefaultPolicy
+      PolicyName: ExecutionPolicy
       Roles:
-        - !Ref TaskDefExecutionRole
-        - !Ref TaskDefRole
+        - !Ref ExecutionRole
+  TaskRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              ArnLike:
+                "aws:SourceArn": !Sub "arn:aws:ecs:*:${AWS::AccountId}:*"
+              StringEquals:
+                "aws:SourceAccount": !Sub "${AWS::AccountId}"
+      Policies:
+        - PolicyName: ESImportTaskPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+             - Action:
+               - dynamodb:BatchGet*
+               - dynamodb:DescribeStream
+               - dynamodb:DescribeTable
+               - dynamodb:Get*
+               - dynamodb:Query
+               - dynamodb:Scan
+               - dynamodb:BatchWrite*
+               - dynamodb:CreateTable
+               - dynamodb:Delete*
+               - dynamodb:Update*
+               - dynamodb:PutItem
+               - dynamodb:GetItem
+               Effect: Allow
+               Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
+             - Action:
+               - sns:ConfirmSubscription
+               - sns:CreateTopic
+               - sns:DeleteTopic
+               - sns:Publish
+               - sns:Subscribe
+               - sns:Unsubscribe
+               Effect: Allow
+               Resource: !Ref SnsTopicArn
+             - Action:
+               - sqs:ChangeMessageVisibility
+               - sqs:CreateQueue
+               - sqs:DeleteMessage
+               - sqs:GetQueueAttributes
+               - sqs:ReceiveMessage
+               - sqs:SendMessage
+               Effect: Allow
+               Resource:
+                 - !Ref PpkSqsQueueArn
+                 - !Ref PpkDlqQueueArn
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
