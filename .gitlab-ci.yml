@@ -286,6 +286,8 @@ deploy_esc_prod:
       
 
   when: manual
+  only:
+    - master
 
 
 
