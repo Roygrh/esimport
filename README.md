@@ -71,5 +71,14 @@ $ esimport sync sessions --start-date 2020-01-01
 TODO
 
 
+## Troubleshooting
+
+pyodbc.InterfaceError: ('IM002', '[IM002] [unixODBC][Driver Manager]Data source name not found and no default driver specified (0) (SQLDriverConnect)
+
+run and makes sure the data sources file odbc.ini is populated/confiured properly.
+run below command to see odbc config settings.
+
+```odbcinst -j ```
 
 ## The ECR repo for prod was created manually
+
