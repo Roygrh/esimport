@@ -64,7 +64,8 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
             try:
                 records = self.deserialize_message(records_str)
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as e:
+                self.warning(f"deserialize_message failed -> {e.msg}\n{records_str}")
                 # Malformed message, move to DLQ
                 records = []
                 self.aws.sqs_send_mesage(
