@@ -206,12 +206,15 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
-          yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region !Ref "AWS::Region"
+          yum install -y \
+            aws-cfn-bootstrap \
+            iptables-services
+          
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
           
           sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
-          sudo service iptables save
-          echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+          sudo iptables-save | sudo tee /etc/sysconfig/iptables && sudo systemctl enable --now iptables
+          echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
     DependsOn:
       - EcsClusterDefaultAsgPolicy
       - EcsClusterDefaultAsgRole
