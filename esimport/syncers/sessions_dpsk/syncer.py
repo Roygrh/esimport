@@ -56,11 +56,11 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             sqs_queue_url=self.config.ppk_sqs_queue_url
         )
         messages = response.get("Messages")
-        if messages:
-            self.debug(f"Got this message from SQS: {messages}")
+        self.debug(f"Got this message from SQS: {messages}")
 
-            records_str = response["Messages"][0]["Body"]
-            receipt_handle = response["Messages"][0]["ReceiptHandle"]
+        for message in messages:
+            records_str = message["Body"]
+            receipt_handle = message["ReceiptHandle"]
 
             try:
                 records = self.deserialize_message(records_str)
@@ -119,7 +119,6 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                     sqs_queue_url=self.config.ppk_sqs_queue_url,
                     receipt_handle=receipt_handle,
                 )
-                return response["Messages"][0]["MessageId"]
 
             except Exception as err:
                 self.log(f"err: {err}")
