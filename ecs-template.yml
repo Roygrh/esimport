@@ -679,7 +679,8 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 0
-      EnableECSManagedTags: false
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
       LaunchType: EC2
       SchedulingStrategy: DAEMON
       TaskDefinition: !Ref ESImportTask
