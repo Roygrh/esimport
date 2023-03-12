@@ -40,14 +40,14 @@ Parameters:
     Description: MssqlUser
   MssqlPassword:
     Type: String
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: MssqlPassword
   SnsTopicArn:
     Type: String
     Description: SnsTopicArn
   SentryDSN:
     Type: String
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: SentryDSN
   PpkSqsQueueURL:
     Type: String
@@ -58,11 +58,11 @@ Parameters:
   FirehoseStream:
     Description: Delivery stream to send ESImport logs
     Type: String
-    Default: 'syslog-stream'
+    Default: "syslog-stream"
   ElevenComponent:
     Description: Component type to specify in logger
     Type: String
-    Default: 'ESImport Sys'
+    Default: "ESImport Sys"
   DatabaseCallsWaitInSeconds:
     Description: DB calls wait in seconds
     Type: Number
@@ -74,21 +74,21 @@ Parameters:
   LogLevel:
     Description: Log level
     Type: String
-    Default: 'info'
+    Default: "info"
   MSSQLDSN:
     Description: Template for OBC DSN string
     Type: String
-    Default: 'DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes'
+    Default: "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes"
   RedisHost:
     Description: RedisHost
     Type: String
-    Default: 'redis'
+    Default: "redis"
   RedisPort:
     Description: RedisHost
     Type: Number
     Default: 6379
   DDBCursorTableName:
-    Description: DynamoDB Table name which stores the cursor to the last processed 
+    Description: DynamoDB Table name which stores the cursor to the last processed
     Type: String
     Default: "esimport_cursor"
   PpkSqsQueueArn:
@@ -97,7 +97,6 @@ Parameters:
   PpkDlqQueueArn:
     Description: SQS Arn
     Type: String
-
 
 Resources:
   ESImportEcsCluster:
@@ -178,14 +177,14 @@ Resources:
         - !Ref EcsClusterDefaultAsgRole
   EcsClusterLaunchConfig:
     Type: "AWS::AutoScaling::LaunchConfiguration"
-#    Metadata:
-#      'AWS::CloudFormation::Init':
-#        config:
-#          commands:
-#            01_command: !join
-#              - ''
-#              - - 'chmod +x setup-logger.sh'
-#                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
+    #    Metadata:
+    #      'AWS::CloudFormation::Init':
+    #        config:
+    #          commands:
+    #            01_command: !join
+    #              - ''
+    #              - - 'chmod +x setup-logger.sh'
+    #                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
@@ -193,7 +192,7 @@ Resources:
       IamInstanceProfile: !Ref EcsInstanceProfile
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
-          Ebs: 
+          Ebs:
             DeleteOnTermination: True
             Encrypted: True
             VolumeSize: 30
@@ -206,12 +205,15 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
-          yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region !Ref "AWS::Region"
-          
+          yum install -y \
+            aws-cfn-bootstrap \
+            iptables-services
+
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
+
           sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
-          sudo service iptables save
-          echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+          sudo iptables-save | sudo tee /etc/sysconfig/iptables && sudo systemctl enable --now iptables
+          echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
     DependsOn:
       - EcsClusterDefaultAsgPolicy
       - EcsClusterDefaultAsgRole
@@ -244,8 +246,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
-        -
-          Name: redis
+        - Name: redis
           Hostname: redis
           Image: redis:5-alpine
           Command:
@@ -259,8 +260,7 @@ Resources:
               awslogs-region: !Ref "AWS::Region"
           MemoryReservation: 800
 
-        -
-          Name: accounts
+        - Name: accounts
           Links:
             - redis
           Command:
@@ -304,8 +304,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: conferences
+        - Name: conferences
           Links:
             - redis
           Command:
@@ -349,8 +348,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: devices
+        - Name: devices
           Links:
             - redis
           Command:
@@ -394,8 +392,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: properties
+        - Name: properties
           Links:
             - redis
           Command:
@@ -439,8 +436,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: sessions
+        - Name: sessions
           Links:
             - redis
           Command:
@@ -484,8 +480,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: sessions-current
+        - Name: sessions-current
           Links:
             - redis
           Command:
@@ -529,8 +524,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
           MemoryReservation: 400
 
-        -
-          Name: sessions-ppk
+        - Name: sessions-ppk
           Links:
             - redis
           Command:
@@ -615,7 +609,7 @@ Resources:
             # The function bellow will generate a repository ARN based on the passed image value.
             Resource:
               - !Sub
-                - 'arn:aws:ecr:*:${AWSAccountID}:repository/esimport'
+                - "arn:aws:ecr:*:${AWSAccountID}:repository/esimport"
                 - AWSAccountID: !Select [0, !Split [".", !Ref ESImportImage]]
                 # the string above will select account id from arn of image
                 # arn of image is look like this 615423619382.dkr.ecr.us-west-2.amazonaws.com/esimport:d0a...
@@ -635,7 +629,7 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -649,43 +643,43 @@ Resources:
       Policies:
         - PolicyName: ESImportTaskPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
-             - Action:
-               - dynamodb:BatchGet*
-               - dynamodb:DescribeStream
-               - dynamodb:DescribeTable
-               - dynamodb:Get*
-               - dynamodb:Query
-               - dynamodb:Scan
-               - dynamodb:BatchWrite*
-               - dynamodb:CreateTable
-               - dynamodb:Delete*
-               - dynamodb:Update*
-               - dynamodb:PutItem
-               - dynamodb:GetItem
-               Effect: Allow
-               Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
-             - Action:
-               - sns:ConfirmSubscription
-               - sns:CreateTopic
-               - sns:DeleteTopic
-               - sns:Publish
-               - sns:Subscribe
-               - sns:Unsubscribe
-               Effect: Allow
-               Resource: !Ref SnsTopicArn
-             - Action:
-               - sqs:ChangeMessageVisibility
-               - sqs:CreateQueue
-               - sqs:DeleteMessage
-               - sqs:GetQueueAttributes
-               - sqs:ReceiveMessage
-               - sqs:SendMessage
-               Effect: Allow
-               Resource:
-                 - !Ref PpkSqsQueueArn
-                 - !Ref PpkDlqQueueArn
+              - Action:
+                  - dynamodb:BatchGet*
+                  - dynamodb:DescribeStream
+                  - dynamodb:DescribeTable
+                  - dynamodb:Get*
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWrite*
+                  - dynamodb:CreateTable
+                  - dynamodb:Delete*
+                  - dynamodb:Update*
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
+              - Action:
+                  - sns:ConfirmSubscription
+                  - sns:CreateTopic
+                  - sns:DeleteTopic
+                  - sns:Publish
+                  - sns:Subscribe
+                  - sns:Unsubscribe
+                Effect: Allow
+                Resource: !Ref SnsTopicArn
+              - Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:CreateQueue
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ReceiveMessage
+                  - sqs:SendMessage
+                Effect: Allow
+                Resource:
+                  - !Ref PpkSqsQueueArn
+                  - !Ref PpkDlqQueueArn
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
