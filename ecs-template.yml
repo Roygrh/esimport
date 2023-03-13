@@ -221,7 +221,7 @@ Resources:
     Type: "AWS::AutoScaling::AutoScalingGroup"
     Properties:
       MinSize: "1"
-      MaxSize: "2"
+      MaxSize: "1"
       DesiredCapacity: "1"
       LaunchConfigurationName: !Ref EcsClusterLaunchConfig
       Tags:
@@ -233,8 +233,8 @@ Resources:
       # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
       AutoScalingRollingUpdate:
         MaxBatchSize: 1
-        MinInstancesInService: 1
-        MinSuccessfulInstancesPercent: 50 
+        MinInstancesInService: 0
+        MinSuccessfulInstancesPercent: 50
         WaitOnResourceSignals: True
         PauseTime: "PT15M"
         SuspendProcesses:
