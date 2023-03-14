@@ -214,6 +214,13 @@ Resources:
           sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
           sudo iptables-save | sudo tee /etc/sysconfig/iptables && sudo systemctl enable --now iptables
           echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
+          echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
+          export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
+          export ELEVEN_PRODUCT=ESImport
+          export ELEVEN_COMPONENT="${ElevenComponent}"
+          sudo curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/setup-logger.sh -o /usr/local/bin/setup-logger.sh
+          sudo chmod +x /usr/local/bin/setup-logger.sh
+          sudo -E sh /usr/local/bin/setup-logger.sh
     DependsOn:
       - EcsClusterDefaultAsgPolicy
       - EcsClusterDefaultAsgRole
@@ -256,11 +263,9 @@ Resources:
             - --save "" --appendonly no
           Essential: true
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref "AWS::Region"
+              tag: esimport_redis
           MemoryReservation: 800
 
         - Name: accounts
@@ -300,11 +305,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_accounts
           MemoryReservation: 400
 
         - Name: conferences
@@ -344,11 +347,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_conferences
           MemoryReservation: 400
 
         - Name: devices
@@ -388,11 +389,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_devices
           MemoryReservation: 400
 
         - Name: properties
@@ -432,11 +431,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_properties
           MemoryReservation: 400
 
         - Name: sessions
@@ -476,11 +473,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions
           MemoryReservation: 400
 
         - Name: sessions-current
@@ -520,11 +515,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions_current
           MemoryReservation: 400
 
         - Name: sessions-ppk
@@ -564,11 +557,9 @@ Resources:
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions_ppk
           MemoryReservation: 400
 
       ExecutionRoleArn:
