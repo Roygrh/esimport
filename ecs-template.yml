@@ -237,8 +237,19 @@ Resources:
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
       VPCZoneIdentifier: !Ref InstancesSbunet
     UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: true
+      # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: 0
+        MinSuccessfulInstancesPercent: 50
+        WaitOnResourceSignals: True
+        PauseTime: "PT15M"
+        SuspendProcesses:
+          - "HealthCheck"
+          - "ReplaceUnhealthy"
+          - "AZRebalance"
+          - "AlarmNotification"
+          - "ScheduledActions"
       AutoScalingScheduledAction:
         IgnoreUnmodifiedGroupSizeProperties: true
   ESImportTask:
@@ -670,7 +681,8 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 0
-      EnableECSManagedTags: false
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
       LaunchType: EC2
       SchedulingStrategy: DAEMON
       TaskDefinition: !Ref ESImportTask
