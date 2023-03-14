@@ -144,8 +144,8 @@ Resources:
                   - "firehose:PutRecordBatch"
                 Effect: Allow
                 Resource:
-                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_log_stream",
-                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_syslog_stream",
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_log_stream"
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_syslog_stream"
                   - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/syslog-stream"
       Tags:
         - Key: Name
