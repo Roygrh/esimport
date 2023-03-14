@@ -133,6 +133,20 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
         Version: 2012-10-17
+      Policies:
+        # access to firehose
+        - PolicyName: ESimportLogsToFirehoseAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "firehose:PutRecord"
+                  - "firehose:PutRecordBatch"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_log_stream",
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_syslog_stream",
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/syslog-stream"
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
@@ -173,6 +187,7 @@ Resources:
   EcsInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
+      # only 1 role can be assigined limitation by AWS
       Roles:
         - !Ref EcsClusterDefaultAsgRole
   EcsClusterLaunchConfig:
