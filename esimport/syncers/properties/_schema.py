@@ -13,6 +13,7 @@ class Host(BaseSchema):
 
     RadiusNASID: Union[str, None]
     NetIP: Union[str, None]
+    NetHostname: Union[str, None]
 
 
 class ServicePlan(BaseSchema):

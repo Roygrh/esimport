@@ -32,44 +32,72 @@ Parameters:
     Type: Number
     Default: "512"
     Description: Docker Memory.
-
   MssqlHost:
     Type: String
     Description: MssqlHost
   MssqlUser:
     Type: String
-    NoEcho: 'true'
     Description: MssqlUser
   MssqlPassword:
     Type: String
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: MssqlPassword
   SnsTopicArn:
     Type: String
-    NoEcho: 'true'
     Description: SnsTopicArn
   SentryDSN:
     Type: String
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: SentryDSN
   PpkSqsQueueURL:
     Type: String
-    NoEcho: 'true'
     Description: PpkSqsQueueURL
   PpkDlqQueueURL:
     Type: String
-    NoEcho: 'true'
     Description: PpkDlqQueueURL
-
-
   FirehoseStream:
     Description: Delivery stream to send ESImport logs
     Type: String
-    Default: 'syslog-stream'
+    Default: "syslog-stream"
   ElevenComponent:
     Description: Component type to specify in logger
     Type: String
-    Default: 'ESImport Sys'
+    Default: "ESImport Sys"
+  DatabaseCallsWaitInSeconds:
+    Description: DB calls wait in seconds
+    Type: Number
+    Default: 5
+  DatabaseQueryTimeout:
+    Description: DB query timeout in seconds
+    Type: Number
+    Default: 120
+  LogLevel:
+    Description: Log level
+    Type: String
+    Default: "info"
+  MSSQLDSN:
+    Description: Template for OBC DSN string
+    Type: String
+    Default: "DSN=%(DSN)s;UID=%(USER)s;PWD=%(PASSWORD)s;trusted_connection=no;MARS_Connection=yes"
+  RedisHost:
+    Description: RedisHost
+    Type: String
+    Default: "redis"
+  RedisPort:
+    Description: RedisHost
+    Type: Number
+    Default: 6379
+  DDBCursorTableName:
+    Description: DynamoDB Table name which stores the cursor to the last processed
+    Type: String
+    Default: "esimport_cursor"
+  PpkSqsQueueArn:
+    Description: SQS Arn
+    Type: String
+  PpkDlqQueueArn:
+    Description: SQS Arn
+    Type: String
+
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -96,6 +124,8 @@ Resources:
   EcsClusterDefaultAsgRole:
     Type: "AWS::IAM::Role"
     Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
@@ -103,6 +133,20 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
         Version: 2012-10-17
+      Policies:
+        # access to firehose
+        - PolicyName: ESimportLogsToFirehoseAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "firehose:PutRecord"
+                  - "firehose:PutRecordBatch"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_log_stream"
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/prod_syslog_stream"
+                  - !Sub "arn:aws:firehose:*:${AWS::AccountId}:deliverystream/syslog-stream"
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
@@ -143,23 +187,31 @@ Resources:
   EcsInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
+      # only 1 role can be assigined limitation by AWS
       Roles:
         - !Ref EcsClusterDefaultAsgRole
   EcsClusterLaunchConfig:
     Type: "AWS::AutoScaling::LaunchConfiguration"
-    Metadata:
-      'AWS::CloudFormation::Init':
-        config:
-          commands:
-            01_command: !join
-              - ''
-              - - 'chmod +x setup-logger.sh'
-                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
+    #    Metadata:
+    #      'AWS::CloudFormation::Init':
+    #        config:
+    #          commands:
+    #            01_command: !join
+    #              - ''
+    #              - - 'chmod +x setup-logger.sh'
+    #                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       IamInstanceProfile: !Ref EcsInstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: True
+            Encrypted: True
+            VolumeSize: 30
+            VolumeType: gp2
       SecurityGroups:
         - !GetAtt
           - EcsClusterDefaultAsgSG
@@ -168,7 +220,10 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
-          yum install -y aws-cfn-bootstrap
+          yum install -y \
+            aws-cfn-bootstrap \
+            iptables-services
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
           
           # Add 1GiB swap file
@@ -178,9 +233,18 @@ Resources:
           sudo swapon /swapfile
           echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 
-          sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
-          sudo service iptables save
-          echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+          iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+          iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
+          echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
+          echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
+         
+          export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
+          export ELEVEN_PRODUCT=ESImport
+          export ELEVEN_COMPONENT="${ElevenComponent}"
+          curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
+          tar -xvf log_aggregator.tar.gz 
+          bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+
     DependsOn:
       - EcsClusterDefaultAsgPolicy
       - EcsClusterDefaultAsgRole
@@ -201,38 +265,40 @@ Resources:
         Count: '1'
         Timeout: PT5M
     UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: true
+      # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: 0
+        MinSuccessfulInstancesPercent: 50
+        WaitOnResourceSignals: True
+        PauseTime: "PT15M"
+        SuspendProcesses:
+          - "HealthCheck"
+          - "ReplaceUnhealthy"
+          - "AZRebalance"
+          - "AlarmNotification"
+          - "ScheduledActions"
       AutoScalingScheduledAction:
         IgnoreUnmodifiedGroupSizeProperties: true
-  TaskDefRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: "sts:AssumeRole"
-            Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-        Version: 2012-10-17
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
       ContainerDefinitions:
         - Name: redis
+          Hostname: redis
           Image: redis:5-alpine
           Command:
-            - redis-server --save "" --appendonly no
+            - --save "" --appendonly no
           Essential: true
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_redis
           MemoryReservation: 800
 
         - Name: accounts
+          Links:
+            - redis
           Command:
             - esimport sync accounts
           Essential: true
@@ -252,15 +318,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_accounts
           MemoryReservation: 400
 
         - Name: conferences
+          Links:
+            - redis
           Command:
             - esimport sync conferences
           Essential: true
@@ -280,15 +360,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_conferences
           MemoryReservation: 400
 
         - Name: devices
+          Links:
+            - redis
           Command:
             - esimport sync devices
           Essential: true
@@ -308,15 +402,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_devices
           MemoryReservation: 400
 
         - Name: properties
+          Links:
+            - redis
           Command:
             - esimport sync properties
           Essential: true
@@ -336,15 +444,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_properties
           MemoryReservation: 400
 
         - Name: sessions
+          Links:
+            - redis
           Command:
             - esimport sync sessions
           Essential: true
@@ -364,15 +486,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions
           MemoryReservation: 400
 
         - Name: sessions-current
+          Links:
+            - redis
           Command:
             - esimport sync sessions_current
           Essential: false
@@ -392,15 +528,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions_current
           MemoryReservation: 400
 
         - Name: sessions-ppk
+          Links:
+            - redis
           Command:
             - esimport sync sessions_ppk
           Essential: false
@@ -420,17 +570,29 @@ Resources:
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
               Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
           LogConfiguration:
-            LogDriver: awslogs
+            LogDriver: journald
             Options:
-              awslogs-group: !Ref ESImportTaskLogGroup
-              awslogs-stream-prefix: ESImportTaskLogGroup
-              awslogs-region: !Ref AWS::Region
+              tag: esimport_sessions_ppk
           MemoryReservation: 400
 
       ExecutionRoleArn:
         Fn::GetAtt:
-          - TaskDefExecutionRole
+          - ExecutionRole
           - Arn
       Family: ESImportEcsStack
       NetworkMode: bridge
@@ -438,7 +600,7 @@ Resources:
         - EC2
       TaskRoleArn:
         Fn::GetAtt:
-          - TaskDefRole
+          - TaskRole
           - Arn
   ESImportTaskLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -446,7 +608,7 @@ Resources:
       RetentionInDays: 365
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
-  TaskDefExecutionRole:
+  ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -456,7 +618,7 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
         Version: 2012-10-17
-  TaskDefExecutionRoleDefaultPolicy:
+  ExecutionPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
       PolicyDocument:
@@ -466,7 +628,13 @@ Resources:
               - "ecr:BatchGetImage"
               - "ecr:GetDownloadUrlForLayer"
             Effect: Allow
-            Resource: !Sub 'arn:aws:ecr:*:${AWS::AccountId}:repository/esimport'
+            # The function bellow will generate a repository ARN based on the passed image value.
+            Resource:
+              - !Sub
+                - "arn:aws:ecr:*:${AWSAccountID}:repository/esimport"
+                - AWSAccountID: !Select [0, !Split [".", !Ref ESImportImage]]
+                # the string above will select account id from arn of image
+                # arn of image is look like this 615423619382.dkr.ecr.us-west-2.amazonaws.com/esimport:d0a...
           - Action: "ecr:GetAuthorizationToken"
             Effect: Allow
             Resource: "*"
@@ -474,13 +642,66 @@ Resources:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
             Effect: Allow
-            Resource: !GetAtt
-              - ESImportTaskLogGroup
-              - Arn
+            Resource: !GetAtt ESImportTaskLogGroup.Arn
         Version: 2012-10-17
-      PolicyName: TaskDefExecutionRoleDefaultPolicy
+      PolicyName: ExecutionPolicy
       Roles:
-        - !Ref TaskDefExecutionRole
+        - !Ref ExecutionRole
+  TaskRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              ArnLike:
+                "aws:SourceArn": !Sub "arn:aws:ecs:*:${AWS::AccountId}:*"
+              StringEquals:
+                "aws:SourceAccount": !Sub "${AWS::AccountId}"
+      Policies:
+        - PolicyName: ESImportTaskPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - dynamodb:BatchGet*
+                  - dynamodb:DescribeStream
+                  - dynamodb:DescribeTable
+                  - dynamodb:Get*
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWrite*
+                  - dynamodb:CreateTable
+                  - dynamodb:Delete*
+                  - dynamodb:Update*
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                Effect: Allow
+                Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DDBCursorTableName}"
+              - Action:
+                  - sns:ConfirmSubscription
+                  - sns:CreateTopic
+                  - sns:DeleteTopic
+                  - sns:Publish
+                  - sns:Subscribe
+                  - sns:Unsubscribe
+                Effect: Allow
+                Resource: !Ref SnsTopicArn
+              - Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:CreateQueue
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ReceiveMessage
+                  - sqs:SendMessage
+                Effect: Allow
+                Resource:
+                  - !Ref PpkSqsQueueArn
+                  - !Ref PpkDlqQueueArn
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
@@ -488,7 +709,8 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 100
         MinimumHealthyPercent: 0
-      EnableECSManagedTags: false
+      EnableECSManagedTags: true
+      PropagateTags: SERVICE
       LaunchType: EC2
       SchedulingStrategy: DAEMON
       TaskDefinition: !Ref ESImportTask

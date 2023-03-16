@@ -4,8 +4,6 @@ if [[ $# -ne 1 ]]; then
     echo "Usage: $0 <docker image name>"
 fi
 
-export PrivateSubnetIds=subnet-0fdff113201f6d53b,subnet-0670fa12cd2483df8
-export VpcId=vpc-008da50ebc5dc0871
 export STACK_NAME=esimport
 
 # disabling it to get stack status
@@ -22,32 +20,28 @@ fi
 
 set -e
 
-# export AWS_ACCOUNT_ID=684643752294
-# export AWS_REGION=us-west-2
 export ESImportImage=$1
-export KEY_NAME=eleven-deploy
-export MssqlHost=localhost
-export MssqlUser=sa
-export MssqlPassword=DistroDev@11
-export SnsTopicArn=
-export SentryDSN=
-export PpkSqsQueueURL=
-export PpkDlqQueueURL=
 
 set -x
 aws cloudformation deploy \
     --template-file ecs-template.yml \
     --stack-name $STACK_NAME \
     --parameter-overrides \
-    VpcId=$VpcId \
-    InstancesSbunet=$PrivateSubnetIds \
+    VpcId=$VPC_ID \
+    InstancesSbunet=$InstancesSbunet \
     ESImportImage=$ESImportImage \
     KeyName=$KEY_NAME \
-    MssqlHost=$MssqlHost \
-    MssqlUser=$MssqlUser \
-    MssqlPassword=$MssqlPassword \
-    SnsTopicArn=$SnsTopicArn \
-    SentryDSN=$SentryDSN \
-    PpkSqsQueueURL=$PpkSqsQueueURL \
-    PpkDlqQueueURL=$PpkDlqQueueURL \
+    MSSQLDSN=$MSSQL_DSN \
+    MssqlHost=$MSSQL_HOST \
+    MssqlUser=$MSSQL_USER \
+    MssqlPassword=$MSSQL_PASSWORD \
+    DatabaseCallsWaitInSeconds=$DATABASE_CALLS_WAIT_IN_SECONDS \
+    DatabaseQueryTimeout=$DATABASE_QUERY_TIMEOUT \
+    LogLevel=$LOG_LEVEL \
+    SnsTopicArn=$SNS_TOPIC_ARN \
+    SentryDSN=$SENTRY_DSN \
+    PpkSqsQueueURL=$PPK_SQS_QUEUE_URL \
+    PpkSqsQueueArn=$PPK_SQS_QUEUE_ARN \
+    PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \
+    PpkDlqQueueArn=$PPK_DLQ_QUEUE_ARN \
     --capabilities CAPABILITY_IAM

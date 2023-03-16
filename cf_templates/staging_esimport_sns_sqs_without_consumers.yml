@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Staging SQS resources without consumers
+# This is not full templated that will create all necessary resources.
+# It will just create resources necessary for ESImport to work but not real data will be connected to them.
+Parameters:
+  ExecutionTimeout:
+    Type: Number
+    Default: 60
+    Description: How long should the Lambda function run, consequently, the SQS VisibilityTimeout as well.
+
+
+Conditions:
+  IsUSWestRegion: !Equals [ !Ref AWS::Region, us-west-2 ]
+
+Resources:
+  ESRecordsSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "esimport-stream-staging"
+      TopicName: "esimport-stream"
+
+  ESRecordsSNSDynamoDBCursor:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "esimport_cursor"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: "doctype"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "doctype"
+          KeyType: "HASH"
+
+   # DPSK
+  DPSKMessagesQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsUSWestRegion
+    Properties:
+      QueueName: !Sub esimport-dpsk-queue-${AWS::Region}
+      VisibilityTimeout: !Ref ExecutionTimeout
+
+  DPSKMessagesDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsUSWestRegion
+    Properties:
+      QueueName: !Sub esimport-dpsk-dlq-${AWS::Region}
+
+  DPSKMessagesDeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Condition: IsUSWestRegion
+    Properties:
+      Queues:
+        - !Ref DPSKMessagesDeadLetterQueue
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal: "*"
+          Action: "sqs:*"
+          Resource: !GetAtt DPSKMessagesQueue.Arn
+
