@@ -60,7 +60,6 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         messages_delete_buffer = []
         for message in messages:
             records_str = message["Body"]
-            messages_delete_buffer.append({"Id":message["MessageId"],"ReceiptHandle":message["ReceiptHandle"]})
 
             try:
                 records = self.deserialize_message(records_str)
@@ -113,6 +112,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
 
                     self.add_record(session_record, update_cursor=False)
+                messages_delete_buffer.append({"Id":message["MessageId"],"ReceiptHandle":message["ReceiptHandle"]})
 
             except Exception as err:
                 self.log(f"err: {err}")
