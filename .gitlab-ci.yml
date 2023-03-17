@@ -58,7 +58,7 @@ build_ecs_image_dev:
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
-#  when: manual
+  when: manual
 
 build_ecs_image_staging:
   stage: build_ecs_image
@@ -81,6 +81,9 @@ build_ecs_image_staging:
       bash ./ecs_build_and_upload_ecr.sh
 
 #  when: manual
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
 
 
 build_ecs_image_production:
@@ -102,6 +105,9 @@ build_ecs_image_production:
       
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
 
 #  when: manual
 
