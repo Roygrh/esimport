@@ -230,13 +230,25 @@ Resources:
           iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
           echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
           echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
-         
+
           export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
           export ELEVEN_PRODUCT=ESImport
           export ELEVEN_COMPONENT="${ElevenComponent}"
           curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
           tar -xvf log_aggregator.tar.gz 
           bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+
+          # Install ClamAV, update signatures
+          yum install -y clamav-data \
+          	clamav-update \
+          	clamav-filesystem \
+          	clamav
+
+          # Configure Cron for ClamAV
+          (
+              crontab -l 2>/dev/null
+              echo '0 22 * * 0 /usr/bin/systemd-cat -t clamscan -p info  --level-prefix=true /usr/bin/clamscan --stdout -r -i -o --exclude-dir="^/sys|^/dev|^/proc" / '
+          ) | crontab -
 
     DependsOn:
       - EcsClusterDefaultAsgPolicy
