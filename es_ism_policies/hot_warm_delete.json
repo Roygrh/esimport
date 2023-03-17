@@ -1,7 +1,7 @@
 {
     "policy": {
         "policy_id": "hot_warm_delete",
-        "description": "Policy to migrate hot index to warm storage after 123 days and then delete it after 550 days",
+        "description": "Policy to migrate hot index to warm storage after 67 days and then delete it after 550 days",
         "default_state": "hot",
         "states": [
             {
@@ -11,7 +11,7 @@
                     {
                         "state_name": "warm",
                         "conditions": {
-                            "min_index_age": "123d"
+                            "min_index_age": "67d"
                         }
                     }
                 ]
