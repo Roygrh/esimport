@@ -246,7 +246,7 @@ Resources:
 
           # Configure Cron for ClamAV
           (
-              crontab -l 2>/dev/null
+              crontab -l 2>/dev/null || true
               echo '0 22 * * 0 /usr/bin/systemd-cat -t clamscan -p info  --level-prefix=true /usr/bin/clamscan --stdout -r -i -o --exclude-dir="^/sys|^/dev|^/proc" / '
           ) | crontab -
 
