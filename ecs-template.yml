@@ -226,8 +226,20 @@ Resources:
 
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
 
+          # firewall rules
           iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+
+          # allow all outgoing connections
+          iptables -A OUTPUT -j ACCEPT
+
+          # Allow only ssh from internal network
+          iptables -A INPUT -p tcp --dport ssh -s 10.0.0.0/8 -j ACCEPT
+          iptables -A INPUT -m conntrack -j ACCEPT  --ctstate RELATED,ESTABLISHED
+          iptables -A INPUT -j DROP
+
           iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
+
+
           echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
           echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
 
