@@ -230,6 +230,12 @@ Resources:
             # Allow only ssh from internal network
             iptables -A INPUT -p tcp --dport ssh -s 10.0.0.0/8 -j ACCEPT
             iptables -A INPUT -m conntrack -j ACCEPT  --ctstate RELATED,ESTABLISHED
+            
+            # next row necessary to provide acess for ecs agent from docker containers,
+            # containers will load from it metadata about tasks
+            iptables INPUT -d 127.0.0.0/8 -i docker0 -p tcp -m tcp --dport 51679 -j ACCEPT
+            
+            # drop everything else
             iptables -A INPUT -j DROP
 
             iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
