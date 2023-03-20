@@ -197,6 +197,10 @@ Resources:
       LaunchTemplateData:
         ImageId: !Ref ImageId
         InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !GetAtt
+            - EcsClusterDefaultAsgSG
+            - GroupId
         KeyName: !Ref KeyName
         IamInstanceProfile:
           Arn: !GetAtt EcsInstanceProfile.Arn
