@@ -213,17 +213,6 @@ Resources:
             Effect: Allow
             Resource: "*"
         Version: 2012-10-17
-      Tags:
-        - Key: contact
-          Value: reporting
-        - Key: product
-          Value: esimport
-        - Key: repo
-          Value: esimport
-        - Key: environment
-          Value: production
-        - Key: datadog
-          Value: true
       PolicyName: EcsClusterDefaultAsgPolicy
       Roles:
         - !Ref EcsClusterDefaultAsgRole
@@ -236,17 +225,19 @@ Resources:
   EcsClusterLaunchTemplate:
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
-      Tags:
-        - Key: contact
-          Value: reporting
-        - Key: product
-          Value: esimport
-        - Key: repo
-          Value: esimport
-        - Key: environment
-          Value: production
-        - Key: datadog
-          Value: true
+      LaunchTemplateTagSpecification:
+        ResourceType: instance
+        Tags:
+          - Key: contact
+            Value: reporting
+          - Key: product
+            Value: esimport
+          - Key: repo
+            Value: esimport
+          - Key: environment
+            Value: production
+          - Key: datadog
+            Value: true
       LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
       LaunchTemplateData:
         ImageId: !Ref ImageId
@@ -723,17 +714,6 @@ Resources:
   ExecutionPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
-      Tags:
-        - Key: contact
-          Value: reporting
-        - Key: product
-          Value: esimport
-        - Key: repo
-          Value: esimport
-        - Key: environment
-          Value: production
-        - Key: datadog
-          Value: true
       PolicyDocument:
         Statement:
           - Action:
