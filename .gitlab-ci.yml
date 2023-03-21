@@ -5,13 +5,14 @@ services:
 
 stages:
   # - esimport_retention
-  - build
+#  - build
   - testing
-  - staging_deploy
+#  - staging_deploy
   - production_deploy
   - build_ecs_image
   - deploy_ecs_image_staging
   - deploy_ecs_image_prod
+
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -29,13 +30,13 @@ before_script:
   - docker info
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
-build_base_image:
-  stage: build
-  script:
-    - docker build -t $IMAGE_TAG -f base.Dockerfile .
-    - docker push $IMAGE_TAG
-  only:
-    - base
+#build_base_image:
+#  stage: build
+#  script:
+#    - docker build -t $IMAGE_TAG -f base.Dockerfile .
+#    - docker push $IMAGE_TAG
+#  only:
+#    - base
 
 build_ecs_image_dev:
   stage: build_ecs_image
@@ -79,7 +80,10 @@ build_ecs_image_staging:
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
-  when: manual
+#  when: manual
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
 
 
 build_ecs_image_production:
@@ -101,44 +105,47 @@ build_ecs_image_production:
       
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
 
-  when: manual
+#  when: manual
 
-build_image:
-  stage: build
-  script:
-    - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
-    - docker build -t $IMAGE_TAG -f prod.Dockerfile .
-    - docker push $IMAGE_TAG
-  only:
-    - master
+#build_image:
+#  stage: build
+#  script:
+#    - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
+#    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+#    - aws s3 cp s3://dataservices.esimport.production/msodbc.ini.prod.west msodbc.ini
+#    - docker build -t $IMAGE_TAG -f prod.Dockerfile .
+#    - docker push $IMAGE_TAG
+#  only:
+#    - master
 
 
-staging_deploy:
-  stage: staging_deploy
-  script:
-    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git
-    - pip3 --no-cache-dir install awsebcli awscli
-    - mkdir ~/.aws/
-    - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
-    - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
-    - eb deploy $EB_STAGING_ENV_NAME --verbose
-  only:
-    - develop
-  when: manual
+#staging_deploy:
+#  stage: staging_deploy
+#  script:
+#    - apk add --update --no-cache gcc python3-dev musl-dev libffi-dev build-base openssl-dev git
+#    - pip3 --no-cache-dir install awsebcli awscli
+#    - mkdir ~/.aws/
+#    - aws s3 cp s3://dataservices.esimport/local_settings.py.stag local_settings.py
+#    - aws s3 cp s3://dataservices.esimport/msodbc.ini.stag msodbc.ini
+#    - eb deploy $EB_STAGING_ENV_NAME --verbose
+#  only:
+#    - develop
+#  when: manual
 
-production_deploy:
-  stage: production_deploy
-  script:
-    - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
-    - eb deploy $PROD_EB_ENV_NAME --verbose
-  only:
-    - master
-  when: manual
+#production_deploy:
+#  stage: production_deploy
+#  script:
+#    - mkdir .elasticbeanstalk && echo "$EB_PROD_WEST_CONFIG" > .elasticbeanstalk/config.yml
+#    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+#    - eb labs cleanup-versions --num-to-leave 50 --force # cleanup old versions
+#    - eb deploy $PROD_EB_ENV_NAME --verbose
+#  only:
+#    - master
+#  when: manual
 
 esimport_testing:
   stage: testing
@@ -221,8 +228,11 @@ deploy_esc_staging:
       export IMAGE_TO_DEPLOY=$esimport_docker_repo_url:$CI_COMMIT_SHA
 
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
 
-  when: manual
+
 
 deploy_esc_prod:
   stage: deploy_ecs_image_prod
@@ -325,7 +335,7 @@ deploy_esc_prod:
 #       tests
 #   coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
 
-esimport_datadog_deploy:
+#esimport_datadog_deploy:
   stage: production_deploy
   when: manual
   script:
