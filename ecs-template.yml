@@ -226,18 +226,18 @@ Resources:
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
       LaunchTemplateTagSpecification:
-        ResourceType: instance
-        Tags:
-          - Key: contact
-            Value: reporting
-          - Key: product
-            Value: esimport
-          - Key: repo
-            Value: esimport
-          - Key: environment
-            Value: production
-          - Key: datadog
-            Value: true
+        - ResourceType: instance
+          Tags:
+            - Key: contact
+              Value: reporting
+            - Key: product
+              Value: esimport
+            - Key: repo
+              Value: esimport
+            - Key: environment
+              Value: production
+            - Key: datadog
+              Value: true
       LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
       LaunchTemplateData:
         ImageId: !Ref ImageId
