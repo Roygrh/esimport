@@ -83,7 +83,7 @@ build_ecs_image_staging:
 #  when: manual
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
-    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
 
 
 build_ecs_image_production:
@@ -230,7 +230,7 @@ deploy_esc_staging:
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
-    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
 
 
 
@@ -296,8 +296,8 @@ deploy_esc_prod:
       
 
   when: manual
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 
 
@@ -335,7 +335,7 @@ deploy_esc_prod:
 #       tests
 #   coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
 
-#esimport_datadog_deploy:
+esimport_datadog_deploy:
   stage: production_deploy
   when: manual
   script:
