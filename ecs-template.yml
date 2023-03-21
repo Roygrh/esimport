@@ -132,6 +132,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       VpcId: !Ref VpcId
   EcsClusterDefaultAsgRole:
     Type: "AWS::IAM::Role"
@@ -162,6 +172,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -193,6 +213,17 @@ Resources:
             Effect: Allow
             Resource: "*"
         Version: 2012-10-17
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       PolicyName: EcsClusterDefaultAsgPolicy
       Roles:
         - !Ref EcsClusterDefaultAsgRole
@@ -202,6 +233,17 @@ Resources:
       # only 1 role can be assigined limitation by AWS
       Roles:
         - !Ref EcsClusterDefaultAsgRole
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterLaunchConfig:
     Type: "AWS::AutoScaling::LaunchConfiguration"
     #    Metadata:
@@ -249,6 +291,17 @@ Resources:
           curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
           tar -xvf log_aggregator.tar.gz 
           bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
 
     DependsOn:
       - EcsClusterDefaultAsgPolicy
@@ -264,6 +317,16 @@ Resources:
         - Key: Name
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       VPCZoneIdentifier: !Ref InstancesSbunet
     UpdatePolicy:
       # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
@@ -284,6 +347,17 @@ Resources:
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       ContainerDefinitions:
         - Name: redis
           Hostname: redis
@@ -612,6 +686,17 @@ Resources:
   ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
@@ -622,6 +707,17 @@ Resources:
   ExecutionPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       PolicyDocument:
         Statement:
           - Action:
@@ -651,6 +747,17 @@ Resources:
   TaskRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -706,6 +813,17 @@ Resources:
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       Cluster: !Ref ESImportEcsCluster
       DeploymentConfiguration:
         MaximumPercent: 100
