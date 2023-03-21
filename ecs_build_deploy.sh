@@ -1,14 +1,47 @@
-#!/bin/sh
+#!/bin/bash
 
-export PrivateSubnetIds=subnet-0a86b4a71bf21649c,subnet-060ed0e9a14a3461a
-export VpcId=vpc-04f1aecfcb3a4fe99
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <docker image name>"
+fi
+
 export STACK_NAME=esimport
-export ESImportImageTag=$CI_COMMIT_SHA
-export REPOSITORY_NAME=esimport
 
-# export AWS_ACCOUNT_ID=684643752294
-# export AWS_REGION=us-west-2
-export ESImportEcrRepositoryUri=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPOSITORY_NAME 
-echo $ESImportImageTag
+# disabling it to get stack status
+set +e
+aws cloudformation describe-stacks --stack-name $STACK_NAME
+
+if [[ $? == 0 ]]; then
+    command="update-stack"
+    command_wait="stack-update-complete"
+else
+    command="create-stack"
+    command_wait="stack-create-complete"
+fi
+
+set -e
+
+export ESImportImage=$1
+
 set -x
-aws cloudformation deploy --template-file ecs-template.yml --stack-name $STACK_NAME --parameter-overrides VpcId=$VpcId  PrivateSubnetIds=$PrivateSubnetIds ESImportImageTag=$ESImportImageTag ESImportEcrRepositoryUri=$ESImportEcrRepositoryUri --capabilities CAPABILITY_IAM --profile eleven_admin
+aws cloudformation deploy \
+    --template-file ecs-template.yml \
+    --stack-name $STACK_NAME \
+    --parameter-overrides \
+    VpcId=$VPC_ID \
+    InstancesSbunet=$InstancesSbunet \
+    ESImportImage=$ESImportImage \
+    KeyName=$KEY_NAME \
+    MSSQLDSN=$MSSQL_DSN \
+    MssqlHost=$MSSQL_HOST \
+    MssqlUser=$MSSQL_USER \
+    MssqlPassword=$MSSQL_PASSWORD \
+    DatabaseCallsWaitInSeconds=$DATABASE_CALLS_WAIT_IN_SECONDS \
+    DatabaseQueryTimeout=$DATABASE_QUERY_TIMEOUT \
+    LogLevel=$LOG_LEVEL \
+    SnsTopicArn=$SNS_TOPIC_ARN \
+    SentryDSN=$SENTRY_DSN \
+    PpkSqsQueueURL=$PPK_SQS_QUEUE_URL \
+    PpkSqsQueueArn=$PPK_SQS_QUEUE_ARN \
+    PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \
+    PpkDlqQueueArn=$PPK_DLQ_QUEUE_ARN \
+    --capabilities CAPABILITY_IAM

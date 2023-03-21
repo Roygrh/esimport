@@ -6,7 +6,7 @@ RUN pip3 install --upgrade pip \
     && pip install -e .
 
 # env variables for sql server host/ip in msodbc.ini
-ENV MSSQL_HOST=
-ENV DEV=
+ENV MSSQL_HOST=mssql
+ENV DEV=true
 
-ENTRYPOINT ["/esimport/docker-entrypoint.sh"]
+RUN /esimport/docker-entrypoint.sh

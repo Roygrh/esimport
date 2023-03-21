@@ -298,6 +298,7 @@ property_mapping = {
                         "HostType": {"type": "text"},
                         "NASID": {"type": "keyword"},
                         "NetIP": {"type": "keyword"},
+                        "NetHostname": {"type": "keyword"},
                         "RadiusNASID": {"type": "text"},
                         "VLANRangeEnd": {"type": "integer"},
                         "VLANRangeStart": {"type": "integer"},

@@ -9,7 +9,6 @@ from esimport.infra import CacheClient
 from esimport.tests.base_fixtures import sqs
 
 
-@pytest.mark.skip()
 def test_sessions_syncer(sqs):
     ss = SessionsSyncer()
     ss.setup()
