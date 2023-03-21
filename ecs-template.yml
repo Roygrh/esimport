@@ -225,19 +225,6 @@ Resources:
   EcsClusterLaunchTemplate:
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
-      TagSpecifications:
-        - ResourceType: instance
-          Tags:
-            - Key: contact
-              Value: reporting
-            - Key: product
-              Value: esimport
-            - Key: repo
-              Value: esimport
-            - Key: environment
-              Value: production
-            - Key: datadog
-              Value: true
       LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
       LaunchTemplateData:
         ImageId: !Ref ImageId
@@ -307,6 +294,19 @@ Resources:
                 crontab -l 2>/dev/null || true
                 echo '0 22 * * 0 /usr/bin/systemd-cat -t clamscan -p info  --level-prefix=true /usr/bin/clamscan --stdout -r -i -o --exclude-dir="^/sys|^/dev|^/proc" / '
             ) | crontab -
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: contact
+                Value: reporting
+              - Key: product
+                Value: esimport
+              - Key: repo
+                Value: esimport
+              - Key: environment
+                Value: production
+              - Key: datadog
+                Value: true
 
     DependsOn:
       - EcsClusterDefaultAsgPolicy
