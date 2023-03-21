@@ -225,7 +225,7 @@ Resources:
   EcsClusterLaunchTemplate:
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
-      LaunchTemplateTagSpecification:
+      TagSpecification:
         - ResourceType: instance
           Tags:
             - Key: contact
