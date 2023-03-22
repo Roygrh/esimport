@@ -53,7 +53,7 @@ Parameters:
     Type: String
     Description: PpkSqsQueueURL
   PpkDlqQueueURL:
-    Type: Stringx
+    Type: String
     Description: PpkDlqQueueURL
   FirehoseStream:
     Description: Delivery stream to send ESImport logs
