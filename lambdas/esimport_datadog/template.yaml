@@ -41,7 +41,7 @@ Resources:
       CodeUri: .
       Description: ESImport Datadog Lambda function.
       MemorySize: 128
-      Timeout: 10
+      Timeout: 30
       Role: !Ref RoleARN
       Environment:
         Variables:
