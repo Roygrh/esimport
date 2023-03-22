@@ -101,6 +101,18 @@ Parameters:
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
+    Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgSG:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -120,6 +132,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       VpcId: !Ref VpcId
   EcsClusterDefaultAsgRole:
     Type: "AWS::IAM::Role"
@@ -150,6 +172,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -285,6 +317,21 @@ Resources:
         - Key: Name
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          PropagateAtLaunch: true
+          Value: reporting
+        - Key: product
+          PropagateAtLaunch: true
+          Value: esimport
+        - Key: repo
+          PropagateAtLaunch: true
+          Value: esimport
+        - Key: environment
+          PropagateAtLaunch: true
+          Value: production
+        - Key: datadog
+          PropagateAtLaunch: true
+          Value: true
       VPCZoneIdentifier: !Ref InstancesSbunet
     CreationPolicy:
       ResourceSignal:
@@ -309,6 +356,17 @@ Resources:
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       ContainerDefinitions:
         - Name: redis
           Hostname: redis
@@ -637,6 +695,17 @@ Resources:
   ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
@@ -676,6 +745,17 @@ Resources:
   TaskRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -731,6 +811,17 @@ Resources:
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       Cluster: !Ref ESImportEcsCluster
       DeploymentConfiguration:
         MaximumPercent: 100
