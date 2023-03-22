@@ -1,35 +1,23 @@
-## Status
+# Pull Request
 
-Ready
+**Description (what/why):**  
 
-## Aha/Jira/Trello Reference
+**Ticket Reference:**  
 
-https://eleven.aha.io/features/DEOP-263
+## Test Plan
 
-## Description
-
-On origin response security headers for secure.guestinternet.com for Cloudfront Distribution ES0G8W1ZPTB5R secure.guestinternet.com.  Replacing arn:aws:lambda:us-east-1:615423619382:function:cloudfront-edge-OnOriginResponse-19X3WD0INPIOJ:2 Cloudfront Lambda@edge
-
+- [ ] Outline the steps to test or reproduce the PR here
 
 ## Risk
 
-medium
+- **Functionality:**  
+- **Performance (DB, etc):**  
+- **Security/Compliance:**  
 
-- Performance (DB, etc.)
-Saves money
+## Additional Notes
 
-- Security / Compliance
-Applies Security Headers
+- Related PRs
+- Todos (test in staging, documentation...)
+- Deployment notes, data migration...
 
-## Test plan:
-
-Verify headers match what is currently implemented by the Lambda@edge.
-Verify Securityheaders.com reports an A
-
-## Deployment Todos
-
-- Run 
-
-## Rollback plan
-- Revert changes
-- run 
+## Rollback Plan
