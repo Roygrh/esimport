@@ -312,14 +312,19 @@ Resources:
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
         - Key: contact
+          PropagateAtLaunch: true
           Value: reporting
         - Key: product
+          PropagateAtLaunch: true
           Value: esimport
         - Key: repo
+          PropagateAtLaunch: true
           Value: esimport
         - Key: environment
+          PropagateAtLaunch: true
           Value: production
         - Key: datadog
+          PropagateAtLaunch: true
           Value: true
       VPCZoneIdentifier: !Ref InstancesSbunet
     UpdatePolicy:
