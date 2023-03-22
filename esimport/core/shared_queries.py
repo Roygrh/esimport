@@ -75,7 +75,7 @@ SELECT NAS_Device.NAS_ID as NASID,
     NAS_Device_Type.Name as HostType,
     NAS_Device.VLAN_Range_Start as VLANRangeStart,
     NAS_Device.VLAN_Range_End as VLANRangeEnd,
-    NAS_Device.Net_IP as NetIP
+    NAS_Device.Net_Hostname as NetHostname
 FROM NAS_Device WITH (NOLOCK)
     LEFT JOIN NAS_Device_Type WITH (NOLOCK) ON NAS_Device_Type.ID = NAS_Device.NAS_Device_Type_ID
 WHERE Organization_ID = ?"""

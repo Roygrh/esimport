@@ -73,6 +73,7 @@ class SessionsCurrentSyncer(SyncBase, PropertiesMixin):
         for session_record in self.get_sessions(
             from_id, self.default_query_limit, start_date, use_historical
         ):
+            self.report_old_record(session_record)
             count += 1
             session_id = session_record.raw.get("ID")
             # Distinguish normal (DB originated) sessions from PPK sessions in Elasticsearch
@@ -137,6 +138,7 @@ class SessionsCurrentSyncer(SyncBase, PropertiesMixin):
 
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
+                self.update_current_date()
                 wait = self.db_wait
                 self.info(f"[Delay] Reset SQL connection and waiting {wait} seconds")
                 self.mssql.reset()

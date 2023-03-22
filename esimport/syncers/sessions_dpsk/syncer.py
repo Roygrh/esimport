@@ -56,15 +56,16 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             sqs_queue_url=self.config.ppk_sqs_queue_url
         )
         messages = response.get("Messages")
-        if messages:
-            self.debug(f"Got this message from SQS: {messages}")
+        self.debug(f"Got this message from SQS: {messages}")
 
-            records_str = response["Messages"][0]["Body"]
-            receipt_handle = response["Messages"][0]["ReceiptHandle"]
+        for message in messages:
+            records_str = message["Body"]
+            receipt_handle = message["ReceiptHandle"]
 
             try:
                 records = self.deserialize_message(records_str)
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as e:
+                self.warning(f"deserialize_message failed -> {e.msg}\n{records_str}")
                 # Malformed message, move to DLQ
                 records = []
                 self.aws.sqs_send_mesage(
@@ -104,6 +105,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                         _source=record,
                         _date=record_date,
                     )
+                    self.report_old_record(session_record)
 
                     self.append_site_values(
                         session_record, service_area, self.date_fields_to_localize,
@@ -117,7 +119,6 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                     sqs_queue_url=self.config.ppk_sqs_queue_url,
                     receipt_handle=receipt_handle,
                 )
-                return response["Messages"][0]["MessageId"]
 
             except Exception as err:
                 self.log(f"err: {err}")
@@ -129,6 +130,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         while True:
             message_id = self.receive()
             if not message_id:
+                self.update_current_date()
                 self.info(
                     f"[Delay] Waiting {self.config.sns_calls_wait_in_seconds} seconds"
                 )
