@@ -219,6 +219,12 @@ Resources:
               aws-cfn-bootstrap \
               iptables-services
 
+            # Add 1GiB swap file
+            sudo dd if=/dev/zero of=/swapfile bs=1M count=1024
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+            echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
 
             # firewall rules
@@ -280,6 +286,10 @@ Resources:
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
       VPCZoneIdentifier: !Ref InstancesSbunet
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT5M
     UpdatePolicy:
       # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
       AutoScalingRollingUpdate:
