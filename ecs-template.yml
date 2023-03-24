@@ -101,6 +101,18 @@ Parameters:
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
+    Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgSG:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -120,6 +132,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       VpcId: !Ref VpcId
   EcsClusterDefaultAsgRole:
     Type: "AWS::IAM::Role"
@@ -150,6 +172,16 @@ Resources:
       Tags:
         - Key: Name
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
   EcsClusterDefaultAsgPolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -190,53 +222,84 @@ Resources:
       # only 1 role can be assigined limitation by AWS
       Roles:
         - !Ref EcsClusterDefaultAsgRole
-  EcsClusterLaunchConfig:
-    Type: "AWS::AutoScaling::LaunchConfiguration"
-    #    Metadata:
-    #      'AWS::CloudFormation::Init':
-    #        config:
-    #          commands:
-    #            01_command: !join
-    #              - ''
-    #              - - 'chmod +x setup-logger.sh'
-    #                - !Sub ' && sh setup-logger.sh ${FirehoseStream} "${ElevenComponent}"'
+  EcsClusterLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
     Properties:
-      ImageId: !Ref ImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref EcsInstanceProfile
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            DeleteOnTermination: True
-            Encrypted: True
-            VolumeSize: 30
-            VolumeType: gp2
-      SecurityGroups:
-        - !GetAtt
-          - EcsClusterDefaultAsgSG
-          - GroupId
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
-          yum install -y \
-            aws-cfn-bootstrap \
-            iptables-services
+      LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
+      LaunchTemplateData:
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !GetAtt
+            - EcsClusterDefaultAsgSG
+            - GroupId
+        KeyName: !Ref KeyName
+        IamInstanceProfile:
+          Arn: !GetAtt EcsInstanceProfile.Arn
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              DeleteOnTermination: True
+              Encrypted: True
+              VolumeSize: 30
+              VolumeType: gp2
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            echo ECS_CLUSTER=${ESImportEcsCluster} >> /etc/ecs/ecs.config
+            yum install -y \
+              aws-cfn-bootstrap \
+              iptables-services
 
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
+            # Add 1GiB swap file
+            sudo dd if=/dev/zero of=/swapfile bs=1M count=1024
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+            echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
 
-          iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
-          iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
-          echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
-          echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
-         
-          export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
-          export ELEVEN_PRODUCT=ESImport
-          export ELEVEN_COMPONENT="${ElevenComponent}"
-          curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
-          tar -xvf log_aggregator.tar.gz 
-          bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+            # firewall rules
+            iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+
+            # allow all outgoing connections
+            iptables -A OUTPUT -j ACCEPT
+
+            # Allow only ssh from internal network
+            iptables -A INPUT -p tcp --dport ssh -s 10.0.0.0/8 -j ACCEPT
+            iptables -A INPUT -m conntrack -j ACCEPT  --ctstate RELATED,ESTABLISHED
+            
+            # next row necessary to provide acess for ecs agent from docker containers,
+            # containers will load from it metadata about tasks
+            iptables -A INPUT -d 127.0.0.0/8 -i docker0 -p tcp -m tcp --dport 51679 -j ACCEPT
+            
+            # drop everything else
+            iptables -A INPUT -j DROP
+
+            iptables-save | tee /etc/sysconfig/iptables && systemctl enable --now iptables
+
+
+            echo 'ECS_AWSVPC_BLOCK_IMDS=true' >> /etc/ecs/ecs.config
+            echo ECS_AVAILABLE_LOGGING_DRIVERS='["journald"]' >> /etc/ecs/ecs.config
+
+            export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
+            export ELEVEN_PRODUCT=ESImport
+            export ELEVEN_COMPONENT="${ElevenComponent}"
+            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
+            tar -xvf log_aggregator.tar.gz 
+            bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+
+            # Install ClamAV, update signatures
+            yum install -y clamav-data \
+            	clamav-update \
+            	clamav-filesystem \
+            	clamav
+
+            # Configure Cron for ClamAV
+            (
+                crontab -l 2>/dev/null || true
+                echo '0 22 * * 0 /usr/bin/systemd-cat -t clamscan -p info  --level-prefix=true /usr/bin/clamscan --stdout -r -i -o --exclude-dir="^/sys|^/dev|^/proc" / '
+            ) | crontab -
 
     DependsOn:
       - EcsClusterDefaultAsgPolicy
@@ -247,12 +310,33 @@ Resources:
       MinSize: "1"
       MaxSize: "1"
       DesiredCapacity: "1"
-      LaunchConfigurationName: !Ref EcsClusterLaunchConfig
+      LaunchTemplate:
+        LaunchTemplateId: !Ref EcsClusterLaunchTemplate
+        Version: !GetAtt EcsClusterLaunchTemplate.LatestVersionNumber
       Tags:
         - Key: Name
           PropagateAtLaunch: true
           Value: ESImportEcsStack/EcsCluster/DefaultAutoScalingGroup
+        - Key: contact
+          PropagateAtLaunch: true
+          Value: reporting
+        - Key: product
+          PropagateAtLaunch: true
+          Value: esimport
+        - Key: repo
+          PropagateAtLaunch: true
+          Value: esimport
+        - Key: environment
+          PropagateAtLaunch: true
+          Value: production
+        - Key: datadog
+          PropagateAtLaunch: true
+          Value: true
       VPCZoneIdentifier: !Ref InstancesSbunet
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT5M
     UpdatePolicy:
       # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
       AutoScalingRollingUpdate:
@@ -272,6 +356,17 @@ Resources:
   ESImportTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       ContainerDefinitions:
         - Name: redis
           Hostname: redis
@@ -600,6 +695,17 @@ Resources:
   ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Statement:
           - Action: "sts:AssumeRole"
@@ -639,6 +745,17 @@ Resources:
   TaskRole:
     Type: "AWS::IAM::Role"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -694,6 +811,17 @@ Resources:
   ESImportEcsService:
     Type: "AWS::ECS::Service"
     Properties:
+      Tags:
+        - Key: contact
+          Value: reporting
+        - Key: product
+          Value: esimport
+        - Key: repo
+          Value: esimport
+        - Key: environment
+          Value: production
+        - Key: datadog
+          Value: true
       Cluster: !Ref ESImportEcsCluster
       DeploymentConfiguration:
         MaximumPercent: 100
