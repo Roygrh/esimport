@@ -112,7 +112,9 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
 
                     self.add_record(session_record, update_cursor=False)
-                messages_delete_buffer.append({"Id":message["MessageId"],"ReceiptHandle":message["ReceiptHandle"]})
+
+                # Delete message from SQS in batch
+                messages_delete_buffer.append({"Id": message["MessageId"],"ReceiptHandle": message["ReceiptHandle"]})
 
             except Exception as err:
                 self.log(f"err: {err}")

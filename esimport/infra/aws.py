@@ -105,7 +105,7 @@ class AmazonWebServices(BaseInfra):
             QueueUrl=sqs_queue_url, ReceiptHandle=receipt_handle
         )
 
-    def sqs_delete_messages(self, sqs_queue_url: str, entries:list):
+    def sqs_delete_messages(self, sqs_queue_url: str, entries: list = None):
         return self.sqs_client.delete_message_batch(
             QueueUrl=sqs_queue_url, Entries=entries
         )
