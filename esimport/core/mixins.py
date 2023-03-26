@@ -178,7 +178,7 @@ class PropertiesMixin:
         if portal_url is not None:
             cached_portal_url_value = self.cache_client.raw_get(portal_url)
             if cached_portal_url_value is not None:
-                self.info(f"PortalTemplate for {portal_url} retreived from cache")
+                self.debug(f"PortalTemplate for {portal_url} retreived from cache")
                 return cached_portal_url_value
 
             try:
