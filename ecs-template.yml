@@ -63,6 +63,10 @@ Parameters:
     Description: Component type to specify in logger
     Type: String
     Default: "ESImport Sys"
+  TimeFormat:
+    Description: Format of timestamp sent from log-aggregator
+    Type: String
+    Default: '2006-01-02T15:04:05.000Z'
   DatabaseCallsWaitInSeconds:
     Description: DB calls wait in seconds
     Type: Number
@@ -285,9 +289,9 @@ Resources:
             export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
             export ELEVEN_PRODUCT=ESImport
             export ELEVEN_COMPONENT="${ElevenComponent}"
-            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
+            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.5/log_aggregator_1.5.tar.gz -o log_aggregator.tar.gz
             tar -xvf log_aggregator.tar.gz 
-            bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+            bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport" "${TimeFormat}"
 
             # Install ClamAV, update signatures
             yum install -y clamav-data \
