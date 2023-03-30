@@ -55,7 +55,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         response = self.aws.sqs_receive_messages(
             sqs_queue_url=self.config.ppk_sqs_queue_url
         )
-        messages = response.get("Messages")
+        messages = response.get("Messages",[])
         self.debug(f"Got this message from SQS: {messages}")
         messages_delete_buffer = []
         for message in messages:
@@ -119,7 +119,8 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             except Exception as err:
                 self.log(f"err: {err}")
                 traceback.print_exc()
-        self.aws.sqs_delete_messages(self.config.ppk_sqs_queue_url,messages_delete_buffer)
+        if messages_delete_buffer:
+            self.aws.sqs_delete_messages(self.config.ppk_sqs_queue_url,messages_delete_buffer)
         return ""
 
     def sync(self, start_date: datetime = None):
