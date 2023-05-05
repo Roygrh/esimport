@@ -289,10 +289,8 @@ Resources:
             # Install log aggregator
             curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.5/log_aggregator_1.5.tar.gz -o log_aggregator_1.5.tar.gz
             tar -xzf log_aggregator_1.5.tar.gz
-            pushd log_aggregator_1.5/
             chmod +x setup-logger.sh
             sh setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
-            popd
 
             # Install ClamAV, update signatures
             yum install -y clamav-data \
