@@ -287,8 +287,8 @@ Resources:
             export ELEVEN_COMPONENT="${ElevenComponent}"
 
             # Install log aggregator
-            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.5/log_aggregator_1.5.tar.gz -o log_aggregator_1.5.tar.gz
-            tar -xzf log_aggregator_1.5.tar.gz
+            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.6/log_aggregator_1.6.tar.gz -o log_aggregator_1.6.tar.gz
+            tar -xzf log_aggregator_1.6.tar.gz
             chmod +x setup-logger.sh
             sh setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
 
