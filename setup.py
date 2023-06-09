@@ -26,7 +26,7 @@ setup(
         "python-dateutil==2.8.1",
         "PyYAML==5.1",
         "raven==6.5.0",
-        "redis==3.3.11",
+        "redis==4.4.4",
         "requests==2.20.0",
         "urllib3==1.24.2",
         "boto3==1.10.28",

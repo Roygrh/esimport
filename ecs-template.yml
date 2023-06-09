@@ -637,7 +637,7 @@ Resources:
             - redis
           Command:
             - esimport sync sessions_ppk
-          Essential: false
+          Essential: true
           Image: !Ref ESImportImage
           Environment:
             - Name: MSSQL_HOST
