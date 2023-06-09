@@ -384,7 +384,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync accounts
+            - esimport
+            - sync
+            - accounts
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -426,7 +428,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync conferences
+            - esimport
+            - sync
+            - conferences
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -468,7 +472,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync devices
+            - esimport
+            - sync
+            - devices
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -510,7 +516,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync properties
+            - esimport
+            - sync
+            - properties
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -552,7 +560,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync sessions
+            - esimport
+            - sync
+            - sessions
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -594,7 +604,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync sessions_current
+            - esimport
+            - sync
+            - sessions_current
           Essential: false
           Image: !Ref ESImportImage
           Environment:
@@ -636,7 +648,9 @@ Resources:
           Links:
             - redis
           Command:
-            - esimport sync sessions_ppk
+            - esimport
+            - sync
+            - sessions_ppk
           Essential: true
           Image: !Ref ESImportImage
           Environment:
