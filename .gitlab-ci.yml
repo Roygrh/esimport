@@ -1,7 +1,7 @@
 image: ubuntu:20.04
 
 services:
-  - docker:19.03.0-dind
+  - docker:dind
 
 stages:
   # - esimport_retention
@@ -17,8 +17,8 @@ stages:
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
   DOCKER_DRIVER: overlay
-  DOCKER_TLS_CERTDIR: ""
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  DOCKER_HOST: "tcp://docker:2375"
 
 before_script:
   - mkdir ~/.aws/
