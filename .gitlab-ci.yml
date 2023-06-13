@@ -1,7 +1,7 @@
 image: ubuntu:20.04
 
 services:
-  - docker:19.03.0-dind
+  - docker:20.10.16-dind
 
 stages:
   # - esimport_retention
