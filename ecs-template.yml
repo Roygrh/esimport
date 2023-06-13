@@ -371,8 +371,7 @@ Resources:
         - Name: redis
           Hostname: redis
           Image: redis:5-alpine
-          EntryPoint: "/esimport/docker-entrypoint.sh"
-          Command: ]
+          Command:
             - --save "" --appendonly no
           Essential: true
           LogConfiguration:
