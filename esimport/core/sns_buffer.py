@@ -93,8 +93,8 @@ class SNSBuffer:
         message = self.orjson_dumps(self._records_list).decode("utf-8")
         message_length = len(message)
         list_length = len(self._records_list)
-        self.debug(
-            f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}"
+        self.log(
+            f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}",logging.DEBUG
         )
         if message_length > self.max_sns_bulk_send_size_in_bytes:
             self.log(
