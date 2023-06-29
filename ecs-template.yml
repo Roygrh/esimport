@@ -386,8 +386,9 @@ Resources:
         - Name: accounts
           Links:
             - redis
-          Command:
-            - esimport sync accounts
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "accounts" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -428,8 +429,9 @@ Resources:
         - Name: conferences
           Links:
             - redis
-          Command:
-            - esimport sync conferences
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "conferences" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -470,8 +472,9 @@ Resources:
         - Name: devices
           Links:
             - redis
-          Command:
-            - esimport sync devices
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "devices" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -512,8 +515,9 @@ Resources:
         - Name: properties
           Links:
             - redis
-          Command:
-            - esimport sync properties
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "properties" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -554,8 +558,9 @@ Resources:
         - Name: sessions
           Links:
             - redis
-          Command:
-            - esimport sync sessions
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "sessions" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -596,8 +601,9 @@ Resources:
         - Name: sessions-current
           Links:
             - redis
-          Command:
-            - esimport sync sessions_current
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "sessions_current" ]
           Essential: false
           Image: !Ref ESImportImage
           Environment:
@@ -638,8 +644,9 @@ Resources:
         - Name: sessions-ppk
           Links:
             - redis
-          Command:
-            - esimport sync sessions_ppk
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "sessions_ppk" ]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
