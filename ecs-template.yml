@@ -285,9 +285,12 @@ Resources:
             export FAIR_LOG_FIREHOSE_STREAM=${FirehoseStream}
             export ELEVEN_PRODUCT=ESImport
             export ELEVEN_COMPONENT="${ElevenComponent}"
-            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.4/log_aggergator_1.4.tar.gz -o log_aggregator.tar.gz
-            tar -xvf log_aggregator.tar.gz 
-            bash ./setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
+
+            # Install log aggregator
+            curl -SL https://github.com/eleven-software/log-aggregator/releases/download/1.6/log_aggregator_1.6.tar.gz -o log_aggregator_1.6.tar.gz
+            tar -xzf log_aggregator_1.6.tar.gz
+            chmod +x setup-logger.sh
+            sh setup-logger.sh $FAIR_LOG_FIREHOSE_STREAM "Reporting API" "Esimport"
 
             # Install ClamAV, update signatures
             yum install -y clamav-data \
