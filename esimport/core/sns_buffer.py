@@ -99,7 +99,7 @@ class SNSBuffer:
         if message_length > self.max_sns_bulk_send_size_in_bytes:
             self.log(
                 f"The sum of the following records ({message_length} bytes) exceed the SNS limits"
-                f" {self.max_sns_bulk_send_size_in_bytes} bytes, compressing:"
+                f" {self.max_sns_bulk_send_size_in_bytes} bytes, compressing:",logging.DEBUG
             )
             for _rec in self._records_list:
                 self.log(f"Record ID: {_rec.get('_id')}")
@@ -107,7 +107,7 @@ class SNSBuffer:
             message = self._compress_large_message(message)
             message_length = len(message)
             self.log(
-                f"New SNS message size after compression is: {message_length} bytes"
+                f"New SNS message size after compression is: {message_length} bytes",logging.DEBUG
             )
 
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)

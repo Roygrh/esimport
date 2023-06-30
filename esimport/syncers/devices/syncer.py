@@ -65,7 +65,7 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
                 self.update_current_date()
-                self.info(
+                self.debug(
                     f"[Delay] Reset SQL connection and waiting {self.db_wait} seconds"
                 )
                 self.mssql.reset()

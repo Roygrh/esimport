@@ -60,7 +60,7 @@ class PropertiesSyncer(SyncBase, PropertiesMixin):
             # habitually reset mssql connection.
             if count == 0 or elapsed_time >= self.database_connection_reset_limit:
                 wait = self.db_wait * 2
-                self.info(f"[Delay] Reset SQL connection and waiting {wait} seconds")
+                self.debug(f"[Delay] Reset SQL connection and waiting {wait} seconds")
                 self.mssql.reset()
                 time.sleep(wait)
                 timer_start = time.time()  # reset timer

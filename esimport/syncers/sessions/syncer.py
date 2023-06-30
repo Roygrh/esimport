@@ -159,7 +159,7 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
                         continue
 
                 wait = self.db_wait
-                self.info(f"[Delay] Reset SQL connection and waiting {wait} seconds")
+                self.debug(f"[Delay] Reset SQL connection and waiting {wait} seconds")
                 self.mssql.reset()
                 self.sleep(wait)
                 timer_start = time.time()  # reset timer
