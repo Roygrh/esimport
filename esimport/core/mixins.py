@@ -182,15 +182,15 @@ class PropertiesMixin:
                 return cached_portal_url_value
 
             try:
-                self.info(f"Fetching PortalTemplate for PortalURL: {portal_url}")
+                self.debug(f"Fetching PortalTemplate for PortalURL: {portal_url}")
                 portal_template_url = portal_url.partition("?")[0].split("/")[:-1]
                 portal_template_url = "/".join(portal_template_url)
                 portal_template_url += "/metadata/template.json"
-                self.info(f"Constructed PortalTemplateURL is: {portal_template_url}")
+                self.debug(f"Constructed PortalTemplateURL is: {portal_template_url}")
                 response = requests.get(portal_template_url).content
                 template = json.loads(response)
                 portal_template = template["displayName"]
-                self.info(f"Constructed DisplayName {portal_template} for Portal URL: {portal_template_url}")
+                self.debug(f"Constructed DisplayName {portal_template} for Portal URL: {portal_template_url}")
                 self.cache_client.raw_setex(
                     portal_url, portal_template, timedelta(days=5)
                 )
