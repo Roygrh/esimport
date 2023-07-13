@@ -59,7 +59,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
     def process_accounts_in_period(self, start_date, end_date):
         new_start_date = start_date
         count = 0
-        self.info(
+        self.debug(
             f"Checking for new/updated accounts between {start_date} and {end_date}"
         )
 
@@ -76,7 +76,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
 
             self.add_record(account)
 
-        self.info("Processed a total of {0} accounts".format(count))
+        self.debug("Processed a total of {0} accounts".format(count))
         return new_start_date
 
     def process_accounts_from_id(self, next_id_to_process: int, start_date) -> int:
@@ -95,7 +95,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
             next_id_to_process = account.raw.get("ID")
             created_date = account.raw.get("Created")
             self.add_record(account)
-            self.info(
+            self.debug(
                 f"Updating Account ID: {next_id_to_process} and Date_Created_UTC: {created_date}"
             )
 
@@ -122,7 +122,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
                 start_date, end_date
             )
 
-            self.info(
+            self.debug(
                 f"[Delay] Reset SQL connection and waiting {self.db_wait} seconds"
             )
             self.mssql.reset()

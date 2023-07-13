@@ -37,16 +37,16 @@ def index(event):
     try:
         records = json.loads(records_json_str)
     except json.decoder.JSONDecodeError:
-        log.info(
+        log.debug(
             "Failed to decode the records payload. Probably compressed, trying to decompress..."
         )
         records_json_str = b64decode(records_json_str)
         records_json_str = decompress(records_json_str).decode("utf-8")
         records = json.loads(records_json_str)
-        log.info("Records payload successfully decomprssed.")
+        log.debug("Records payload successfully decomprssed.")
 
     number_of_records = len(records)
-    log.info("About to index %d" % (number_of_records,))
+    log.debug("About to index %d" % (number_of_records,))
 
     try:
         es = get_es_instance()
