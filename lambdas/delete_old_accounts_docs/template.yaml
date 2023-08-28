@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: Lambda function to delete old docs
+
+Parameters:
+  EsUrl:
+    Description: list of URLs that point to ElasticSearch cluster
+    Type: String
+  LogLevel:
+    Description: Log level for lambda function
+    Type: String
+    Default: INFO
+
+Resources:
+  DeleteDocsLambda:
+    Type: "AWS::Serverless::Function"
+    Properties: &lambdaProperty
+      Handler: delete_old_docs.delete_docs_lambda_handler
+      Runtime: python3.8
+      CodeUri: .
+      Description: Start deletion task
+      MemorySize: 128
+      Timeout: 120
+      Role: !GetAtt StepMachineRole.Arn
+      Environment:
+        Variables:
+          ELASTICSEARCH_HOST: !Ref EsUrl
+          LOG_LEVEL: !Ref LogLevel
+
+  CheckTaskStatusLambda:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      << : *lambdaProperty
+      Handler: delete_old_docs.check_task_status_lambda_handler
+      Description: Check if delete is complete, if failed then throw error
+
+  ArchiveDocsStepMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: ArchiveDocsMachine
+      Definition:
+        StartAt: DeleteDocs
+        States:
+          DeleteDocs:
+            Type: Task
+            Resource: !GetAtt DeleteDocsLambda.Arn
+            Next: WaitForDelete
+          WaitForDelete:
+            Type: Wait
+            Seconds: 3600
+            Next: CheckDeleteStatus
+          CheckDeleteStatus:
+            Type: Task
+            Resource: !GetAtt CheckTaskStatusLambda.Arn
+            Next: DeleteStatusCondition
+          DeleteStatusCondition:
+            Type: Choice
+            Default: WaitForDelete
+            Choices:
+              - Variable: "$.error"
+                IsPresent: true
+                Next: FailMachine
+              - Variable: "$.response.failures[0]"
+                IsPresent: true
+                Next: FailMachine
+              - Variable: "$.completed"
+                BooleanEquals: false
+                Next: WaitForDelete
+              - Variable: "$.completed"
+                BooleanEquals: true
+                Next: SuccessMachine
+          SuccessMachine:
+            Type: Pass
+            End: True
+          FailMachine:
+            Type: Fail
+      Role: !GetAtt StepMachineRole.Arn
+      Events:
+        Type: ScheduleV2
+        Properties:
+           ScheduleExpression: cron(00 00 ? * MON *)
+
+
+  StepMachineRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: ESImportTaskPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - lambda:InvokeFunction
+                  - "logs:*"
+                  - "es:*"
+                Effect: Allow
+                Resource: "*"
+
+  ArchiveExpiredAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties: 
+      AlarmDescription: Archive Expired Failed Alarm
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Statistic: SampleCount
+      Period: 60
+      Threshold: 1
+      Namespace: AWS/States
+      MetricName: ExecutionsFailed
+      TreatMissingData: notBreaching
+      Dimensions:
+      - Name: "StateMachineArn"
+        Value: !Ref ArchiveDocsStepMachine
