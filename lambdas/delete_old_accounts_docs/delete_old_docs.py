@@ -1,4 +1,6 @@
-import requests, os, logging
+import requests
+import os
+import logging
 from datetime import datetime, timedelta
 from requests_aws_sign import AWSV4Sign
 from boto3 import session
@@ -6,8 +8,7 @@ from boto3 import session
 ES_HOST = os.environ.get("ELASTICSEARCH_HOST","http://localhost:9200")
 LOG_LEVEL = os.environ.get("LOG_LEVEL","DEBUG")
 
-IDX_NAME = "accounts-current"
-DELETE_DOCS_LT_DAYS=540
+IDX_NAME = "accounts"
 
 FORMAT = "[%(levelname)s]\t%(asctime)s.%(msecs)dZ\t%(aws_request_id)s\t%(lineno)s:\t%(message)s\n"
 logger = logging.getLogger('archive_expired_accounts')
@@ -18,25 +19,34 @@ for handler in logger.handlers:
 
 def delete_docs_lambda_handler(event, context):
     try:
-        delete_docs_lt = datetime.utcnow() - timedelta(days=DELETE_DOCS_LT_DAYS)
-        delete_docs_lt = delete_docs_lt.isoformat()
-        response = delete_docs(delete_docs_lt)
-        return response
+        return delete_docs()
     except Exception as err:
         logger.exception(err)
         raise
 
-def delete_docs(delete_docs_lt,index=IDX_NAME):
-    logger.info(f"Deleting for docs lt..{delete_docs_lt}")
+def delete_docs():
+    logger.info(f"Deleting old account docs")
     payload = {
-        "query":{
-        "bool":{
-            "filter":[
-                    {"range":{"Created":{"lte":delete_docs_lt}}}
-                ]
-                }}}
+        "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "bool": {
+                            "must_not": [
+                                {
+                                    "bool": {
+                                        "must": [
+                                            {"terms": {"Status": [
+                                                "Deleted", "Expired", "Removed"]}},
+                                            {"range": {"DateModifiedUTC": {
+                                                "lte": "now-18M"}}}
+                                        ]
+                                    }}]
+                        }}
+                ]}}
+    }
 
-    url = ES_HOST + f"/{index}/_delete_by_query"
+    url = ES_HOST + f"/{IDX_NAME}/_delete_by_query"
     params = {"wait_for_completion":"false"}
     response = requests.post(url, json=payload,params=params, auth=get_auth())
     response = response.json()
