@@ -21,7 +21,7 @@ Resources:
       Description: Start deletion task
       MemorySize: 128
       Timeout: 120
-      Role: !GetAtt StepMachineRole.Arn
+      Role: !GetAtt DeleteDocsLambdaRole.Arn
       Environment:
         Variables:
           ELASTICSEARCH_HOST: !Ref EsUrl
@@ -34,10 +34,10 @@ Resources:
       Handler: delete_old_docs.check_task_status_lambda_handler
       Description: Check if delete is complete, if failed then throw error
 
-  ArchiveDocsStepMachine:
+  DeleteDocsStepMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
-      Name: ArchiveDocsMachine
+      Name: DeleteDocsStepMachine
       Definition:
         StartAt: DeleteDocs
         States:
@@ -55,7 +55,7 @@ Resources:
             Next: DeleteStatusCondition
           DeleteStatusCondition:
             Type: Choice
-            Default: WaitForDelete
+            Default: FailMachine
             Choices:
               - Variable: "$.error"
                 IsPresent: true
@@ -76,9 +76,10 @@ Resources:
             Type: Fail
       Role: !GetAtt StepMachineRole.Arn
       Events:
-        Type: ScheduleV2
-        Properties:
-           ScheduleExpression: cron(00 00 ? * MON *)
+        ScheduleEvent:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(00 00 ? * MON *)
 
 
   StepMachineRole:
@@ -88,29 +89,51 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-          - Effect: Allow
-            Principal:
               Service: states.amazonaws.com
             Action: sts:AssumeRole
         Version: 2012-10-17
       Policies:
-        - PolicyName: ESImportTaskPolicy
+        - PolicyName: DeleteDocsStepFnPolicy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Action:
-                  - lambda:InvokeFunction
-                  - "logs:*"
-                  - "es:*"
+                  - "lambda:InvokeFunction"
+                Effect: Allow
+                Resource: !GetAtt DeleteDocsLambda.Arn
+
+  DeleteDocsLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: DeleteDocsLambdaFnPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "es:ESHttp*"
+                Effect: Allow
+                Resource:
+                  - "arn:aws:es:us-west-2:615423619382:domain/eleven-api-west"
+                  - "arn:aws:es:us-east-1:615423619382:domain/eleven-east-api"
+              - Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
                 Effect: Allow
                 Resource: "*"
 
-  ArchiveExpiredAlarm:
+  DeleteDocsFailedAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties: 
-      AlarmDescription: Archive Expired Failed Alarm
+      AlarmDescription: Delete Docs Expired Failed Alarm
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       Statistic: SampleCount
@@ -121,4 +144,4 @@ Resources:
       TreatMissingData: notBreaching
       Dimensions:
       - Name: "StateMachineArn"
-        Value: !Ref ArchiveDocsStepMachine
+        Value: !Ref DeleteDocsStepMachine
