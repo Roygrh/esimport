@@ -8,7 +8,7 @@ from boto3 import session
 ES_HOST = os.environ.get("ELASTICSEARCH_HOST", "http://localhost:9200")
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
 
-IDX_NAME = "accounts"
+IDX_NAME = os.environ.get("INDEX_NAME", None)
 
 FORMAT = "[%(levelname)s]\t%(asctime)s.%(msecs)dZ\t%(aws_request_id)s\t%(lineno)s:\t%(message)s\n"
 logger = logging.getLogger("archive_expired_accounts")
@@ -19,6 +19,10 @@ for handler in logger.handlers:
 
 
 def delete_docs_lambda_handler(event, context):
+
+    if IDX_NAME is None:
+        raise Exception('Specify index name with INDEX_NAME env variable')
+
     try:
         return delete_docs()
     except Exception as err:

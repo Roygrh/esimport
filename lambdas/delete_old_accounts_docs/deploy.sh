@@ -29,15 +29,16 @@ sam build -t template.yaml
 
 echo "Packaging artifact to ${deploy_s3_bucket}..."
 sam package --output-template-file $(pwd)/packaged.yaml \
-  --s3-bucket ${deploy_s3_bucket} \
-  --s3-prefix esimport/delete_old_account_docs
+      --s3-bucket ${deploy_s3_bucket} \
+      --s3-prefix esimport/delete_old_account_docs
 
 echo "Deploying to ${aws_region}..."
 sam deploy --template-file $(pwd)/packaged.yaml \
-  --region ${aws_region} \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --stack-name $cf_stack_name \
-  --parameter-overrides \
-      EsUrl=${es_url} \
-      LogLevel=${log_level} \
-  --debug 
+    --region ${aws_region} \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name $cf_stack_name \
+    --parameter-overrides \
+          EsUrl=${es_url} \
+          LogLevel=${log_level} \
+          LogLevel="accounts" \
+    --debug

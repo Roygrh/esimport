@@ -10,6 +10,10 @@ Parameters:
     Description: Log level for lambda function
     Type: String
     Default: INFO
+  IndexName:
+    Description: Index name that will be used
+    Type: String
+
 
 Resources:
   DeleteDocsLambda:
@@ -26,6 +30,8 @@ Resources:
         Variables:
           ELASTICSEARCH_HOST: !Ref EsUrl
           LOG_LEVEL: !Ref LogLevel
+          INDEX_NAME: !Ref IndexName
+
 
   CheckTaskStatusLambda:
     Type: "AWS::Serverless::Function"
@@ -79,7 +85,7 @@ Resources:
         ScheduleEvent:
           Type: ScheduleV2
           Properties:
-            ScheduleExpression: cron(00 00 ? * MON *)
+            ScheduleExpression: cron(00 00 ? * SAT *)
 
 
   StepMachineRole:
