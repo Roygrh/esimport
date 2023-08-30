@@ -27,24 +27,15 @@ def delete_docs_lambda_handler(event, context):
 def delete_docs():
     logger.info(f"Deleting old account docs")
     payload = {
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "bool": {
-                            "must_not": [
-                                {
-                                    "bool": {
-                                        "must": [
-                                            {"terms": {"Status": [
-                                                "Deleted", "Expired", "Removed"]}},
-                                            {"range": {"DateModifiedUTC": {
-                                                "lte": "now-18M"}}}
-                                        ]
-                                    }}]
-                        }}
-                ]}}
+  "query": {
+    "bool": {
+      "filter": [
+        {"terms": {"Status": ["Deleted", "Expired", "Removed"]}},
+        {"range": {"DateModifiedUTC": {"lt": "now-18M-1D"}}}
+      ]
     }
+  }
+}
 
     url = ES_HOST + f"/{IDX_NAME}/_delete_by_query"
     params = {"wait_for_completion":"false"}
