@@ -119,7 +119,7 @@ Resources:
             Action: sts:AssumeRole
         Version: 2012-10-17
       Policies:
-        - PolicyName: DeleteDocsLambdaFnPolicy
+        - PolicyName: !Sub "DeleteDocsLambdaFnPolicy-${AWS::Region}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
