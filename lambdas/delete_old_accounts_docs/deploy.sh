@@ -40,5 +40,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
     --parameter-overrides \
           EsUrl=${es_url} \
           LogLevel=${log_level} \
-          LogLevel="accounts" \
+          IndexName="accounts" \
     --debug
