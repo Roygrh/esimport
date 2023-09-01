@@ -13,6 +13,9 @@ Parameters:
   IndexName:
     Description: Index name that will be used
     Type: String
+  DatadogApiKey:
+    Description: Datadog api key
+    Type: String
 
 
 Resources:
@@ -31,7 +34,8 @@ Resources:
           ELASTICSEARCH_HOST: !Ref EsUrl
           LOG_LEVEL: !Ref LogLevel
           INDEX_NAME: !Ref IndexName
-
+          DD_API_KEY: !Ref DatadogApiKey
+          DD_SITE: "us1.datadoghq.com"
 
   CheckTaskStatusLambda:
     Type: "AWS::Serverless::Function"
@@ -63,12 +67,6 @@ Resources:
             Type: Choice
             Default: FailMachine
             Choices:
-              - Variable: "$.error"
-                IsPresent: true
-                Next: FailMachine
-              - Variable: "$.response.failures[0]"
-                IsPresent: true
-                Next: FailMachine
               - Variable: "$.completed"
                 BooleanEquals: false
                 Next: WaitForDelete
@@ -135,19 +133,3 @@ Resources:
                   - "logs:PutLogEvents"
                 Effect: Allow
                 Resource: "*"
-
-  DeleteDocsFailedAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties: 
-      AlarmDescription: Delete Docs Expired Failed Alarm
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      EvaluationPeriods: 1
-      Statistic: SampleCount
-      Period: 60
-      Threshold: 1
-      Namespace: AWS/States
-      MetricName: ExecutionsFailed
-      TreatMissingData: notBreaching
-      Dimensions:
-      - Name: "StateMachineArn"
-        Value: !Ref DeleteDocsStepMachine
