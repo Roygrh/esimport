@@ -120,7 +120,7 @@ def submit_step_machine_metric(value=1):
     body = MetricPayload(
         series=[
             MetricSeries(
-                metric="esimport.lambda.delete_docs_failed_step_machine",
+                metric="esimport.step_machine.delete_docs_failed_step_machine",
                 type=MetricIntakeType.COUNT,
                 unit="err",
                 points=[MetricPoint(timestamp=int(datetime.utcnow().timestamp()),value=value)],
