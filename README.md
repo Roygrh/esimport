@@ -82,3 +82,5 @@ run below command to see odbc config settings.
 
 ## The ECR repo for prod was created manually
 
+## Deploy user, access keys, roles etc..
+You can create user, policies & roles that is used for deployment using `deploy_cicd_permission_policy.sh` script.

@@ -177,6 +177,7 @@ deploy_esc_staging:
     - echo "export AWS_DEFAULT_REGION=us-east-1" > variables-staging
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" >> variables-staging
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
 
     - echo "export DATABASE_CALLS_WAIT_IN_SECONDS=$staging_DATABASE_CALLS_WAIT_IN_SECONDS" >> variables-staging
     - echo "export DATABASE_QUERY_TIMEOUT=$staging_DATABASE_QUERY_TIMEOUT" >> variables-staging
@@ -246,6 +247,7 @@ deploy_esc_prod:
     # account from Monolith Prod that has permission to deploy `distrodev-deployer`
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" >> variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
 
     - echo "export DATABASE_CALLS_WAIT_IN_SECONDS=$prod_DATABASE_CALLS_WAIT_IN_SECONDS" >> variables-prod
     - echo "export DATABASE_QUERY_TIMEOUT=$prod_DATABASE_QUERY_TIMEOUT" >> variables-prod
