@@ -423,7 +423,7 @@ lambda_delete_account_docs_staging:
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
     - echo "export TEMP_ARTIFACT_BUCKET=$staging_ARTIFACT_BUCKET" >> variables-staging
-    - echo "export ES_HOST=$staging_ES_HOST" >> variables-staging
+    - echo "export ES_HOST=$staging_ES_CLUSTER_WEST" >> variables-staging
     - echo "export DD_API_KEY=$staging_DD_API_KEY" >> variables-staging
   script:
     - |
@@ -447,15 +447,19 @@ lambda_delete_account_docs:
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
     - echo "export TEMP_ARTIFACT_BUCKET=$prod_ARTIFACT_BUCKET" >> variables-prod
-    - echo "export ES_HOST_EAST=$prod_ES_HOST_EAST" >> variables-prod
-    - echo "export ES_HOST_WEST=$prod_ES_HOST_WEST" >> variables-prod
+    - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
+    - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
     - echo "export DD_API_KEY=$prod_DD_API_KEY" >> variables-prod
   script:
     - |
       source ./variables-prod
 
       cd lambdas/delete_old_accounts_docs
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
+
+      export AWS_REGION=us-east-1
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST_EAST $DD_API_KEY
+      export AWS_REGION=us-west-2
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST_WEST $DD_API_KEY
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
