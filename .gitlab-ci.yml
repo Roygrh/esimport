@@ -411,3 +411,47 @@ esimport_datadog_deploy:
 #       <Indices prefixes, comma separated strings> \
 #       <Snapshot repo name>
 #       <Desired LOGLEVEl>
+
+lambda_delete_account_docs_staging:
+  # deploy 'lambdas/delete_old_accounts_docs'
+  # only deploy to one region on staging
+  stage: deploy_ecs_image_staging
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export TEMP_ARTIFACT_BUCKET=$staging_ARTIFACT_BUCKET" > variables-staging
+    - echo "export ES_HOST=$staging_ES_HOST" >> variables-staging
+    - echo "export DD_API_KEY=$staging_DD_API_KEY" >> variables-staging
+  script:
+    - |
+      source ./variables-staging
+
+      cd lambdas/delete_old_accounts_docs
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
+  when: manual
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
+
+lambda_delete_account_docs:
+  # deploy 'lambdas/delete_old_accounts_docs'
+  # deploy to two regions on prod, us-east-1 & us-west-2
+  stage: deploy_ecs_image_prod
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export TEMP_ARTIFACT_BUCKET=$prod_ARTIFACT_BUCKET" > variables-prod
+    - echo "export ES_HOST_EAST=$prod_ES_HOST_EAST" >> variables-prod
+    - echo "export ES_HOST_WEST=$prod_ES_HOST_WEST" >> variables-prod
+    - echo "export DD_API_KEY=$prod_DD_API_KEY" >> variables-prod
+  script:
+    - |
+      source ./variables-prod
+
+      cd lambdas/delete_old_accounts_docs
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"

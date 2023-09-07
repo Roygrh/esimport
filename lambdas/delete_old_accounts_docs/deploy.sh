@@ -9,23 +9,21 @@ if [[ $# -lt 2 ]]
     echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
     echo '$2 - ElasticSearch host'
     echo '$3 - Datadog API key'
-    echo '$4 - Stack name (for Cloudformation) (optional)'
-    echo '$5 - Log Level (optional)'
-    echo '$6 - Aws region (optional)'
     exit
 fi
 
 deploy_s3_bucket=$1
 es_url=$2
 datadog_api_key=$3
-cf_stack_name=$4
-log_level=$5
-aws_region=$6
+log_level=$LOG_LEVEL
+aws_region=$AWS_REGION
+cf_stack_name=$STACK_NAME
 
 # Set defaults
-log_level=${log_level:-INFO}
+log_level=${log_level:-DEBUG}
 aws_region=${aws_region:-us-west-2}
 cf_stack_name=${cf_stack_name:-esimport-delete-old-accounts-docs}
+index_name=${index_name:-accounts}
 
 echo "Building the template file"
 sam build -t template.yaml 
@@ -44,5 +42,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
           EsUrl=${es_url} \
           LogLevel=${log_level} \
           DatadogApiKey=${datadog_api_key} \
-          IndexName="accounts" \
+          IndexName=${index_name} \
     --debug
