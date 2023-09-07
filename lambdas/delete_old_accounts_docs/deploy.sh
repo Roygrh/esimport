@@ -31,7 +31,8 @@ sam build -t template.yaml
 echo "Packaging artifact to ${deploy_s3_bucket}..."
 sam package --output-template-file $(pwd)/packaged.yaml \
       --s3-bucket ${deploy_s3_bucket} \
-      --s3-prefix esimport/delete_old_account_docs
+      --s3-prefix esimport/delete_old_account_docs \
+      --region ${aws_region}
 
 echo "Deploying to ${aws_region}..."
 sam deploy --template-file $(pwd)/packaged.yaml \
