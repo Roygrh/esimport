@@ -54,7 +54,7 @@ def delete_docs():
             "bool": {
                 "filter": [
                     {"terms": {"Status": ["Deleted", "Expired", "Removed"]}},
-                    {"range": {"DateModifiedUTC": {"lt": "now-18M-1D"}}},
+                    {"range": {"DateModifiedUTC": {"lt": "now-18M-1d"}}},
                 ]
             }
         }

@@ -2,6 +2,7 @@
 
 # Disable AWS SAM Telemetry
 export SAM_CLI_TELEMETRY=0
+set -e
 
 if [[ $# -lt 2 ]]
   then
