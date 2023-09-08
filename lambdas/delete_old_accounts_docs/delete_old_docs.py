@@ -64,6 +64,7 @@ def delete_docs():
     params = {"wait_for_completion": "false"}
     response = requests.post(url, json=payload, params=params, auth=get_auth())
     response = response.json()
+    logger.debug(response)
     return response
 
 
@@ -89,7 +90,8 @@ def check_task_status(event, context):
     url = ES_HOST + "/_tasks/" + task
     response = requests.get(url, auth=get_auth())
     response = response.json()
-    if response['response']['failures'] or response['response']['error']:
+    logger.debug(response)
+    if response.get('failures') or response.get('error'):
         raise Exception(f"error in delete operation {response}")
     response["task"] = task
     return response
@@ -127,4 +129,6 @@ def submit_step_machine_metric(value=1):
                 resources=[MetricResource(name=AWS_REGION,type="host")],
             )
         ])
-    return instance.submit_metrics(body)
+    response = instance.submit_metrics(body)
+    logger.debug(response)
+    return response

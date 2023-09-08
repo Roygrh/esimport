@@ -35,7 +35,7 @@ Resources:
           LOG_LEVEL: !Ref LogLevel
           INDEX_NAME: !Ref IndexName
           DD_API_KEY: !Ref DatadogApiKey
-          DD_SITE: "us1.datadoghq.com"
+          DD_SITE: "datadoghq.com"
 
   CheckTaskStatusLambda:
     Type: "AWS::Serverless::Function"
@@ -57,7 +57,7 @@ Resources:
             Next: WaitForDelete
           WaitForDelete:
             Type: Wait
-            Seconds: 3600
+            Seconds: 1800
             Next: CheckDeleteStatus
           CheckDeleteStatus:
             Type: Task
@@ -104,7 +104,9 @@ Resources:
               - Action:
                   - "lambda:InvokeFunction"
                 Effect: Allow
-                Resource: !GetAtt DeleteDocsLambda.Arn
+                Resource: 
+                  - !GetAtt DeleteDocsLambda.Arn
+                  - !GetAtt CheckTaskStatusLambda.Arn
 
   DeleteDocsLambdaRole:
     Type: "AWS::IAM::Role"
@@ -125,8 +127,11 @@ Resources:
                   - "es:ESHttp*"
                 Effect: Allow
                 Resource:
+                  # Prod ES cluster
                   - "arn:aws:es:us-west-2:615423619382:domain/eleven-api-west"
                   - "arn:aws:es:us-east-1:615423619382:domain/eleven-east-api"
+                  # Staging ES cluster
+                  - "arn:aws:es:*:265848155493:domain/*"
               - Action:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
