@@ -138,3 +138,8 @@ Resources:
                   - "logs:PutLogEvents"
                 Effect: Allow
                 Resource: "*"
+
+Outputs:
+  DeleteDocsLambdaRoleArn:
+    Description: DeleteDocs lambda arn. Add this to the ES cluster's domain access policy allow list
+    Value: !GetAtt DeleteDocsLambdaRole.Arn
