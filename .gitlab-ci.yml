@@ -446,7 +446,8 @@ lambda_delete_account_docs:
 
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
-    - echo "export TEMP_ARTIFACT_BUCKET=$prod_ARTIFACT_BUCKET" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_EAST=$prod_ARTIFACT_BUCKET_EAST" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_WEST=$prod_ARTIFACT_BUCKET_WEST" >> variables-prod
     - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
     - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
     - echo "export DD_API_KEY=$prod_DD_API_KEY" >> variables-prod
@@ -457,9 +458,9 @@ lambda_delete_account_docs:
       cd lambdas/delete_old_accounts_docs
 
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST_EAST $DD_API_KEY
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
       export AWS_REGION=us-west-2
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST_WEST $DD_API_KEY
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $ES_HOST_WEST $DD_API_KEY
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
