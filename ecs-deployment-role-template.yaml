@@ -8,7 +8,6 @@ Resources:
   ESImportDeploymentPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      ManagedPolicyName: esimport-stack-deploy-policy
       PolicyDocument:
         Version: 2012-10-17
         Statement:
