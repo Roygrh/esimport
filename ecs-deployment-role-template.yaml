@@ -144,7 +144,7 @@ Resources:
                   - 'cloudformation:UpdateStackInstances'
                   - 'cloudformation:UpdateStackSet'
                   - 'cloudformation:ExecuteChangeSet'
-                Resource: !Sub "arn:aws:cloudformation:*:${AWS::AccountId}:stack/esimport"
+                Resource: !Sub "arn:aws:cloudformation:*:${AWS::AccountId}:stack/esimport*"
               - Effect: Allow
                 Action:
                   - "ecr:BatchGetImage"
