@@ -130,7 +130,7 @@ Resources:
               - 'events:RemovePermission'
               - 'events:RemoveTargets'
               - 'events:TestEventPattern'
-            Resource: 'arn:aws:events:*:${AWS::AccountId}:rule/esimport*'
+            Resource: !Sub 'arn:aws:events:*:${AWS::AccountId}:rule/esimport*'
 
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
@@ -200,7 +200,7 @@ Resources:
                   - "lambda:UpdateFunctionCode"
                   - "lambda:UpdateFunctionConfiguration"
                 Resource:
-                  - "arn:aws:lambda:*:${AWS::AccountId}:function:esimport*"
+                  - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:esimport*"
               - Effect: Allow
                 Action:
                   - "s3:CreateBucket"

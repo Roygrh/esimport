@@ -7,7 +7,8 @@
 # Use the access keys & service role arn in gitlab variables.
 
 
-STACK_NAME=RoleForGitlabCICD-ESImport-deploy
+STACK_NAME=reporting-esimport-gitlab-deploy
+PROFILE=monolith-prod-deploy
 
 SamArtifactBucketEast=$1
 SamArtifactBucketEast=${SamArtifactBucketEast:-lambda-artifacts-11}
@@ -26,8 +27,8 @@ aws cloudformation deploy \
 
 printf "***Use the below Service Role ARN for deployments***\n\n"
 
-aws cloudformation describe-stacks --stack-name $STACK_NAME \
-  --query 'Stacks[0].Outputs[?OutputKey==`ESImportDeployServiceRole`].OutputValue' --output text
+aws cloudformation describe-stacks --profile $PROFILE --stack-name $STACK_NAME \
+  --query 'Stacks[0].Outputs[?OutputKey==`ESImportDeployServiceRole`].OutputValue' --output text 
 
 # you can also use this cli command to create access keys for the user
 # set -x
