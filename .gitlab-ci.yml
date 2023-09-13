@@ -349,7 +349,7 @@ esimport_datadog_deploy_staging:
       ${STAGING_LAMBDA_S3_BUCKET_EAST}
       ${STAGING_DATADOG_LOOKBACK_X_MINUTES}
       ${STAGING_ES_CLUSTER_EAST}
-      ${staging_SENTRY_DSN }
+      ${staging_SENTRY_DSN}
       ${STAGING_DATADOG_API_KEY}
       us-east-1
       ${staging_DEPLOYMENT_SERVICE_ROLE_ARN}
