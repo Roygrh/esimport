@@ -70,6 +70,11 @@ Resources:
               - 'ec2:CreateSecurityGroup'
               - 'ec2:RunInstances'
               - 'autoscaling:SuspendProcesses'
+              - 'autoscaling:ResumeProcesses'
+              # TODO: audit & remove this asg wildcard
+              - 'autoscaling:*'
+              - 'autoscaling:Attach*'
+              - 'autoscaling:Detach*'
               - 'autoscaling:CreateLaunchConfiguration'
               - 'autoscaling:DeleteLaunchConfiguration'
               - 'autoscaling:Describe*'
