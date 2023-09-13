@@ -106,7 +106,7 @@ build_ecs_image_production:
       bash ./ecs_build_and_upload_ecr.sh
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
-    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "master"
 
 #  when: manual
 
@@ -336,6 +336,27 @@ deploy_esc_prod:
 #       tests
 #   coverage: '/esimport_datadog.py\s+\d+\s+\d+\s+(\d+%)/'
 
+esimport_datadog_deploy_staging:
+  stage: deploy_ecs_image_staging
+  script:
+    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$staging_AWS_ACCESS_KEY_ID" "$staging_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+    - cd lambdas/esimport_datadog
+    # EAST deploy
+    - bash ./deploy.sh
+      esimport-datadog-monitor-us-east-1
+      ${STAGING_LAMBDA_S3_BUCKET_EAST}
+      ${STAGING_DATADOG_LOOKBACK_X_MINUTES}
+      ${STAGING_ES_CLUSTER_EAST}
+      ${staging_SENTRY_DSN}
+      ${STAGING_DATADOG_API_KEY}
+      us-east-1
+      ${staging_DEPLOYMENT_SERVICE_ROLE_ARN}
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
+
 esimport_datadog_deploy:
   stage: production_deploy
   script:
@@ -352,7 +373,7 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-west-2
-      ${PROD_ROLE_ARN}
+      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
     # EAST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
@@ -362,7 +383,7 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-east-1
-      ${PROD_ROLE_ARN}
+      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
