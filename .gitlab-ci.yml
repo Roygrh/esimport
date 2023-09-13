@@ -340,6 +340,8 @@ esimport_datadog_deploy_staging:
   stage: deploy_ecs_image_staging
   image:
     name: docker:latest
+  before_script:
+    - echo "overide global script"
   script:
     - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$staging_AWS_ACCESS_KEY_ID" "$staging_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
