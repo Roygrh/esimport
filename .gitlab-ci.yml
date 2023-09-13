@@ -347,7 +347,7 @@ esimport_datadog_deploy_staging:
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
     - echo "export AWS_REGION=us-west-2" >> variables-staging
     - source ./variables-staging
-    - apk add --update --no-cache python3-pip python3
+    - apk add --update --no-cache python3
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - cd lambdas/esimport_datadog
     # EAST deploy
