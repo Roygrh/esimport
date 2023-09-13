@@ -352,7 +352,7 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-west-2
-      ${PROD_ROLE_ARN}
+      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
     # EAST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
@@ -362,7 +362,7 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-east-1
-      ${PROD_ROLE_ARN}
+      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
