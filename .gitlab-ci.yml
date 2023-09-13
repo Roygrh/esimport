@@ -343,8 +343,10 @@ esimport_datadog_deploy_staging:
   before_script:
     - echo "overide global script"
   script:
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$staging_AWS_ACCESS_KEY_ID" "$staging_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+    - echo "export AWS_REGION=us-west-2" >> variables-staging
+    - source ./variables-staging
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - cd lambdas/esimport_datadog
     # EAST deploy

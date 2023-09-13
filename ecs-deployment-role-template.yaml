@@ -69,6 +69,7 @@ Resources:
               - 'ec2:createTags'
               - 'ec2:CreateSecurityGroup'
               - 'ec2:RunInstances'
+              - 'autoscaling:SuspendProcesses'
               - 'autoscaling:CreateLaunchConfiguration'
               - 'autoscaling:DeleteLaunchConfiguration'
               - 'autoscaling:Describe*'
