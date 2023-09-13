@@ -9,10 +9,20 @@
 
 STACK_NAME=RoleForGitlabCICD-ESImport-deploy
 
+SamArtifactBucketEast=$1
+SamArtifactBucketEast=${SamArtifactBucketEast:-lambda-artifacts-11}
+
+SamArtifactBucketWest=$2
+SamArtifactBucketWest=${SamArtifactBucketWest:-eleven-prod-lambda-artifacts}
+
 aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --template-file ecs-deployment-role-template.yaml \
-  --stack-name $STACK_NAME
+  --stack-name $STACK_NAME \
+  --parameter-overrides \
+    SamArtifactBucketEast=$SamArtifactBucketEast \
+    SamArtifactBucketWest=$SamArtifactBucketWest
+
 
 printf "***Use the below Service Role ARN for deployments***\n\n"
 

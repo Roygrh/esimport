@@ -4,6 +4,12 @@ Parameters:
   UserName:
     Type: String
     Default: esimport-deploy-user
+  SamArtifactBucketEast:
+    Type: String
+    Default: lambda-artifacts-11
+  SamArtifactBucketWest:
+    Type: String
+    Default: eleven-prod-lambda-artifacts
 Resources:
   ESImportDeploymentPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
@@ -105,6 +111,26 @@ Resources:
               - 'ecs:DeleteService'
               - 'ecs:UpdateService'
             Resource: '*'
+          - Sid: EventsPerm
+            Effect: Allow
+            Action:
+              - 'events:DeleteRule'
+              - 'events:DescribeEventBus'
+              - 'events:DescribeRule'
+              - 'events:DisableRule'
+              - 'events:EnableRule'
+              - 'events:ListRuleNamesByTarget'
+              - 'events:ListRules'
+              - 'events:ListTagsForResource'
+              - 'events:ListTargetsByRule'
+              - 'events:PutEvents'
+              - 'events:PutPermission'
+              - 'events:PutRule'
+              - 'events:PutTargets'
+              - 'events:RemovePermission'
+              - 'events:RemoveTargets'
+              - 'events:TestEventPattern'
+            Resource: '*'
 
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
@@ -160,6 +186,29 @@ Resources:
                 Action:
                   - ssm:GetParameter
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "lambda:AddPermission"
+                  - "lambda:CreateFunction"
+                  - "lambda:DeleteFunction"
+                  - "lambda:GetFunction"
+                  - "lambda:GetFunctionConfiguration"
+                  - "lambda:ListTags"
+                  - "lambda:RemovePermission"
+                  - "lambda:TagResource"
+                  - "lambda:UntagResource"
+                  - "lambda:UpdateFunctionCode"
+                  - "lambda:UpdateFunctionConfiguration"
+                Resource:
+                  - "arn:aws:lambda:*:${AWS::AccountId}:function:esimport*"
+              - Effect: Allow
+                Action:
+                  - "s3:CreateBucket"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::${SamArtifactBucketEast}/*"
+                  - !Sub "arn:aws:s3:::${SamArtifactBucketWest}/*"
       UserName: !Ref UserName
 
 Outputs:
