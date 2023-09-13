@@ -130,7 +130,7 @@ Resources:
               - 'events:RemovePermission'
               - 'events:RemoveTargets'
               - 'events:TestEventPattern'
-            Resource: '*'
+            Resource: 'arn:aws:events:*:${AWS::AccountId}:rule/esimport*'
 
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
