@@ -2,6 +2,7 @@
 
 # Disable AWS SAM Telemetry
 export SAM_CLI_TELEMETRY=0
+set -e
 
 if [[ $# -lt 8 ]]
   then
@@ -13,7 +14,8 @@ if [[ $# -lt 8 ]]
     echo '$5 - Sentry DSN'
     echo '$6 - Datadog API Key'
     echo '$7 - AWS Region to deploy to. Will also be used as host_name param value in Datadog api call as well'
-    echo '$8 - RoleARN to be used'
+    echo '$8 - RoleARN to be assumed by lambda'
+    echo '$9 - Service role arn that cloudformation uses to perform deployment'
     exit
 fi
 
@@ -25,6 +27,7 @@ sentry_dsn=$5
 datadog_api_key=$6
 aws_region=$7
 role_arn=$8
+DEPLOYMENT_SERVICE_ROLE_ARN=$9
 
 echo "Building the template file"
 sam build -t template.yaml 
@@ -33,7 +36,8 @@ echo "Packaging artifact to ${deploy_s3_bucket}..."
 sam package \
    --output-template-file $(pwd)/packaged.yaml \
    --s3-bucket ${deploy_s3_bucket} \
-   --s3-prefix esimport/esimport_datadog
+   --s3-prefix esimport/esimport_datadog \
+   --region ${aws_region}
 
 echo "Deploying to ${aws_region}..."
 sam deploy --template-file $(pwd)/packaged.yaml \
@@ -47,4 +51,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       EsUrl=${es_url} \
       SentryDsn=${sentry_dsn} \
       LookBackForXMinutes=${lookback_x_minutes} \
-    --debug 
+    --debug  \
+    --role-arn $DEPLOYMENT_SERVICE_ROLE_ARN
