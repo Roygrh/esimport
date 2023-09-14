@@ -425,6 +425,8 @@ lambda_delete_account_docs_staging:
     - echo "export TEMP_ARTIFACT_BUCKET=$staging_ARTIFACT_BUCKET" >> variables-staging
     - echo "export ES_HOST=$staging_ES_CLUSTER_WEST" >> variables-staging
     - echo "export DD_API_KEY=$staging_DD_API_KEY" >> variables-staging
+    - echo "export ES_CLUSTER_EAST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
+    - echo "export ES_CLUSTER_WEST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
   script:
     - |
       source ./variables-staging
@@ -451,6 +453,9 @@ lambda_delete_account_docs:
     - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
     - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
     - echo "export DD_API_KEY=$prod_DD_API_KEY" >> variables-prod
+    - echo "export ES_CLUSTER_EAST_ARN=$prod_ES_CLUSTER_EAST_ARN" >> variables-prod
+    - echo "export ES_CLUSTER_WEST_ARN=$prod_ES_CLUSTER_WEST_ARN" >> variables-prod
+
   script:
     - |
       source ./variables-prod

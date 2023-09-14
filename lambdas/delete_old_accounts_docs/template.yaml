@@ -16,7 +16,10 @@ Parameters:
   DatadogApiKey:
     Description: Datadog api key
     Type: String
-
+  EsClusterEastArn:
+    Description: Arn of us-east-1 cluster to grant IAM permissions
+  EsClusterWestArn:
+    Description: Arn of us-west-2 cluster to grant IAM permissions
 
 Resources:
   DeleteDocsLambda:
@@ -127,11 +130,8 @@ Resources:
                   - "es:ESHttp*"
                 Effect: Allow
                 Resource:
-                  # Prod ES cluster
-                  - "arn:aws:es:us-west-2:615423619382:domain/eleven-api-west"
-                  - "arn:aws:es:us-east-1:615423619382:domain/eleven-east-api"
-                  # Staging ES cluster
-                  - "arn:aws:es:*:265848155493:domain/*"
+                  - !Ref EsClusterEastArn
+                  - !Ref EsClusterWestArn
               - Action:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
