@@ -344,7 +344,7 @@ esimport_datadog_deploy_staging:
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
     - echo "export AWS_REGION=us-west-2" >> variables-staging
-    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
   script:
     - source ./variables-staging
     - cd lambdas/esimport_datadog
@@ -370,7 +370,7 @@ esimport_datadog_deploy:
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
-    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
   script:
     - source ./variables-prod
     - cd lambdas/esimport_datadog

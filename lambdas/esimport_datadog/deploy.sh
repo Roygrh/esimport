@@ -51,5 +51,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       EsUrl=${es_url} \
       SentryDsn=${sentry_dsn} \
       LookBackForXMinutes=${lookback_x_minutes} \
-    --debug  \
-    --role-arn $DEPLOYMENT_SERVICE_ROLE_ARN
+    --debug \
+    --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN}
