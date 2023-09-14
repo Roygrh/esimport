@@ -244,6 +244,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::${SamArtifactBucketEast}/*"
                   - !Sub "arn:aws:s3:::${SamArtifactBucketWest}/*"
+                  - "arn:aws:s3:::esimport*"
       UserName: !Ref UserName
 
 Outputs:
