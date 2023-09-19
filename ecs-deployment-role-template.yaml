@@ -60,6 +60,7 @@ Resources:
               - 'ec2:Describe*'
               - 'ec2:CreateLaunchTemplate'
               - 'ec2:DeleteLaunchTemplate'
+              - 'ec2:CreateLaunchTemplateVersion'
               - 'ec2:DeleteSecurityGroup'
               - 'ec2:RevokeSecurityGroupIngress'
               - 'ec2:RevokeSecurityGroupEgress'
@@ -68,6 +69,12 @@ Resources:
               - 'ec2:createTags'
               - 'ec2:CreateSecurityGroup'
               - 'ec2:RunInstances'
+              - 'autoscaling:SuspendProcesses'
+              - 'autoscaling:ResumeProcesses'
+              # TODO: audit & remove this asg wildcard
+              - 'autoscaling:*'
+              - 'autoscaling:Attach*'
+              - 'autoscaling:Detach*'
               - 'autoscaling:CreateLaunchConfiguration'
               - 'autoscaling:DeleteLaunchConfiguration'
               - 'autoscaling:Describe*'
@@ -131,7 +138,50 @@ Resources:
               - 'events:RemoveTargets'
               - 'events:TestEventPattern'
             Resource: !Sub 'arn:aws:events:*:${AWS::AccountId}:rule/esimport*'
-
+          - Effect: Allow
+            Action:
+              - "lambda:AddPermission"
+              - "lambda:CreateFunction"
+              - "lambda:DeleteFunction"
+              - "lambda:GetFunction"
+              - "lambda:GetFunctionConfiguration"
+              - "lambda:ListTags"
+              - "lambda:RemovePermission"
+              - "lambda:TagResource"
+              - "lambda:UntagResource"
+              - "lambda:UpdateFunctionCode"
+              - "lambda:UpdateFunctionConfiguration"
+            Resource:
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:esimport*"
+          - Effect: Allow
+            Action:
+              - "events:PutRule"
+              - "events:EnableRule"
+              - "events:DeleteRule"
+              - "events:DescribeRule"
+              - "events:PutTargets"
+              - "events:RemoveTargets"
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - 'cloudformation:Describe*'
+              - 'cloudformation:List*'
+              - 'cloudformation:CreateChangeSet'
+              - 'cloudformation:CreateStack'
+              - 'cloudformation:GetTemplateSummary'
+              - 'cloudformation:UpdateStack'
+              - 'cloudformation:UpdateStackInstances'
+              - 'cloudformation:UpdateStackSet'
+              - 'cloudformation:ExecuteChangeSet'
+            Resource: "arn:aws:cloudformation:*:aws:transform/Serverless-2016-10-31"
+          - Effect: Allow
+            Action:
+              - "s3:CreateBucket"
+              - "s3:GetObject"
+              - "s3:PutObject"
+            Resource:
+              - !Sub "arn:aws:s3:::${SamArtifactBucketEast}/*"
+              - !Sub "arn:aws:s3:::${SamArtifactBucketWest}/*"
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
     Properties: 
@@ -188,27 +238,13 @@ Resources:
                 Resource: "*"
               - Effect: Allow
                 Action:
-                  - "lambda:AddPermission"
-                  - "lambda:CreateFunction"
-                  - "lambda:DeleteFunction"
-                  - "lambda:GetFunction"
-                  - "lambda:GetFunctionConfiguration"
-                  - "lambda:ListTags"
-                  - "lambda:RemovePermission"
-                  - "lambda:TagResource"
-                  - "lambda:UntagResource"
-                  - "lambda:UpdateFunctionCode"
-                  - "lambda:UpdateFunctionConfiguration"
-                Resource:
-                  - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:esimport*"
-              - Effect: Allow
-                Action:
                   - "s3:CreateBucket"
                   - "s3:GetObject"
                   - "s3:PutObject"
                 Resource:
                   - !Sub "arn:aws:s3:::${SamArtifactBucketEast}/*"
                   - !Sub "arn:aws:s3:::${SamArtifactBucketWest}/*"
+                  - "arn:aws:s3:::esimport*"
       UserName: !Ref UserName
 
 Outputs:

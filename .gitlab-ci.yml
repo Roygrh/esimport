@@ -338,10 +338,15 @@ deploy_esc_prod:
 
 esimport_datadog_deploy_staging:
   stage: deploy_ecs_image_staging
-  script:
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$staging_AWS_ACCESS_KEY_ID" "$staging_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+    - echo "export AWS_REGION=us-west-2" >> variables-staging
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+  script:
+    - source ./variables-staging
     - cd lambdas/esimport_datadog
     # EAST deploy
     - bash ./deploy.sh
@@ -352,17 +357,22 @@ esimport_datadog_deploy_staging:
       ${staging_SENTRY_DSN}
       ${STAGING_DATADOG_API_KEY}
       us-east-1
-      ${staging_DEPLOYMENT_SERVICE_ROLE_ARN}
+      ${STAGING_ROLE_ARN}
+      ${DEPLOYMENT_SERVICE_ROLE_ARN}
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "branch_for_staging"
 
 esimport_datadog_deploy:
   stage: production_deploy
-  script:
-    - printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$EB_PROD_ACCESS_KEY_ID" "$EB_PROD_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-    - printf "[default]\nregion=us-west-2\n" > ~/.aws/config
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+  script:
+    - source ./variables-prod
     - cd lambdas/esimport_datadog
     # WEST deploy
     - bash ./deploy.sh
@@ -373,7 +383,8 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-west-2
-      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
+      ${PROD_ROLE_ARN}
+      ${DEPLOYMENT_SERVICE_ROLE_ARN}
     # EAST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
@@ -383,7 +394,8 @@ esimport_datadog_deploy:
       ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-east-1
-      ${prod_DEPLOYMENT_SERVICE_ROLE_ARN}
+      ${PROD_ROLE_ARN}
+      ${DEPLOYMENT_SERVICE_ROLE_ARN}
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"

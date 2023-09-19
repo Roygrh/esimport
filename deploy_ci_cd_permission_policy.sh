@@ -8,7 +8,7 @@
 
 
 STACK_NAME=reporting-esimport-gitlab-deploy
-PROFILE=monolith-prod-deploy
+PROFILE=monolith-dev-admin
 
 SamArtifactBucketEast=$1
 SamArtifactBucketEast=${SamArtifactBucketEast:-lambda-artifacts-11}
@@ -20,6 +20,7 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --template-file ecs-deployment-role-template.yaml \
   --stack-name $STACK_NAME \
+  --profile $PROFILE \
   --parameter-overrides \
     SamArtifactBucketEast=$SamArtifactBucketEast \
     SamArtifactBucketWest=$SamArtifactBucketWest
