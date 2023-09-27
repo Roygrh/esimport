@@ -452,7 +452,7 @@ lambda_delete_account_docs:
     - echo "export TEMP_ARTIFACT_BUCKET_WEST=$PROD_LAMBDA_S3_BUCKET_WEST" >> variables-prod
     - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
     - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
-    - echo "export DD_API_KEY=$prod_DD_API_KEY" >> variables-prod
+    - echo "export DD_API_KEY=$PROD_DATADOG_API_KEY" >> variables-prod
     - echo "export ES_CLUSTER_EAST_ARN=$prod_ES_CLUSTER_EAST_ARN" >> variables-prod
     - echo "export ES_CLUSTER_WEST_ARN=$prod_ES_CLUSTER_WEST_ARN" >> variables-prod
 

@@ -21,12 +21,14 @@ aws_region=$AWS_REGION
 cf_stack_name=$STACK_NAME
 es_cluster_east_arn=$ES_CLUSTER_EAST_ARN
 es_cluster_west_arn=$ES_CLUSTER_WEST_ARN
+dd_site=$DATADOG_SITE
 
 # Set defaults
 log_level=${log_level:-DEBUG}
 aws_region=${aws_region:-us-west-2}
 cf_stack_name=${cf_stack_name:-esimport-delete-old-accounts-docs}
 index_name=${index_name:-accounts}
+dd_site=${dd_site:-datadoghq.com}
 # the default below is for reporting_staging ES cluster
 es_cluster_east_arn=${ES_CLUSTER_EAST_ARN:-arn:aws:es:*:265848155493:domain/*}
 es_cluster_west_arn=${ES_CLUSTER_WEST_ARN:-arn:aws:es:*:265848155493:domain/*}
@@ -49,6 +51,7 @@ sam deploy --template-file $(pwd)/packaged.yaml \
           EsUrl=${es_url} \
           LogLevel=${log_level} \
           DatadogApiKey=${datadog_api_key} \
+          DatadogSite=${dd_site} \
           IndexName=${index_name} \
           EsClusterEastArn=${es_cluster_east_arn} \
           EsClusterWestArn=${es_cluster_west_arn} \
