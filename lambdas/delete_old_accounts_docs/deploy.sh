@@ -47,6 +47,7 @@ sam deploy --template-file $(pwd)/packaged.yaml \
     --region ${aws_region} \
     --capabilities CAPABILITY_NAMED_IAM \
     --stack-name $cf_stack_name \
+    --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN} \
     --parameter-overrides \
           EsUrl=${es_url} \
           LogLevel=${log_level} \

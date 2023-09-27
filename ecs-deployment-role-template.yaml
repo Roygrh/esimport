@@ -182,6 +182,11 @@ Resources:
             Resource:
               - !Sub "arn:aws:s3:::${SamArtifactBucketEast}/*"
               - !Sub "arn:aws:s3:::${SamArtifactBucketWest}/*"
+          - Effect: Allow
+            Action:
+              - "states:*"
+              - "scheduler:*"
+            Resource: "*"
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
     Properties: 

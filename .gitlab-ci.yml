@@ -462,10 +462,12 @@ lambda_delete_account_docs_staging:
     - echo "export DD_API_KEY=$staging_DD_API_KEY" >> variables-staging
     - echo "export ES_CLUSTER_EAST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
     - echo "export ES_CLUSTER_WEST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
   script:
     - |
       source ./variables-staging
 
+      export AWS_REGION=us-east-1
       cd lambdas/delete_old_accounts_docs
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
   when: manual
@@ -490,6 +492,7 @@ lambda_delete_account_docs:
     - echo "export DD_API_KEY=$PROD_DATADOG_API_KEY" >> variables-prod
     - echo "export ES_CLUSTER_EAST_ARN=$prod_ES_CLUSTER_EAST_ARN" >> variables-prod
     - echo "export ES_CLUSTER_WEST_ARN=$prod_ES_CLUSTER_WEST_ARN" >> variables-prod
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
 
   script:
     - |
