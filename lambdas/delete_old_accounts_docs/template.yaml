@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: Lambda function to delete old docs
+
+Parameters:
+  EsUrl:
+    Description: list of URLs that point to ElasticSearch cluster
+    Type: String
+  LogLevel:
+    Description: Log level for lambda function
+    Type: String
+    Default: INFO
+  IndexName:
+    Description: Index name that will be used
+    Type: String
+  DatadogApiKey:
+    Description: Datadog api key
+    Type: String
+  DatadogSite:
+    Description: Datadog site host
+    Type: String
+    Default: "datadoghq.com"
+  EsClusterEastArn:
+    Description: Arn of us-east-1 cluster to grant IAM permissions
+  EsClusterWestArn:
+    Description: Arn of us-west-2 cluster to grant IAM permissions
+
+Resources:
+  DeleteDocsLambda:
+    Type: "AWS::Serverless::Function"
+    Properties: &lambdaProperty
+      Handler: delete_old_docs.delete_docs_lambda_handler
+      Runtime: python3.8
+      CodeUri: .
+      Description: Start deletion task
+      MemorySize: 128
+      Timeout: 120
+      Role: !GetAtt DeleteDocsLambdaRole.Arn
+      Environment:
+        Variables:
+          ELASTICSEARCH_HOST: !Ref EsUrl
+          LOG_LEVEL: !Ref LogLevel
+          INDEX_NAME: !Ref IndexName
+          DD_API_KEY: !Ref DatadogApiKey
+          DD_SITE: !Ref DatadogSite
+
+  CheckTaskStatusLambda:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      << : *lambdaProperty
+      Handler: delete_old_docs.check_task_status_lambda_handler
+      Description: Check if delete is complete, if failed then throw error
+
+  DeleteDocsStepMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Name: DeleteDocsStepMachine
+      Definition:
+        StartAt: DeleteDocs
+        States:
+          DeleteDocs:
+            Type: Task
+            Resource: !GetAtt DeleteDocsLambda.Arn
+            Next: WaitForDelete
+          WaitForDelete:
+            Type: Wait
+            Seconds: 1800
+            Next: CheckDeleteStatus
+          CheckDeleteStatus:
+            Type: Task
+            Resource: !GetAtt CheckTaskStatusLambda.Arn
+            Next: DeleteStatusCondition
+          DeleteStatusCondition:
+            Type: Choice
+            Default: FailMachine
+            Choices:
+              - Variable: "$.completed"
+                BooleanEquals: false
+                Next: WaitForDelete
+              - Variable: "$.completed"
+                BooleanEquals: true
+                Next: SuccessMachine
+          SuccessMachine:
+            Type: Pass
+            End: True
+          FailMachine:
+            Type: Fail
+      Role: !GetAtt StepMachineRole.Arn
+      Events:
+        ScheduleEvent:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(00 00 ? * SAT *)
+
+
+  StepMachineRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: DeleteDocsStepFnPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "lambda:InvokeFunction"
+                Effect: Allow
+                Resource: 
+                  - !GetAtt DeleteDocsLambda.Arn
+                  - !GetAtt CheckTaskStatusLambda.Arn
+
+  DeleteDocsLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: !Sub "DeleteDocsLambdaFnPolicy-${AWS::Region}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "es:ESHttp*"
+                Effect: Allow
+                Resource:
+                  - !Ref EsClusterEastArn
+                  - !Ref EsClusterWestArn
+              - Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Effect: Allow
+                Resource: "*"
+
+Outputs:
+  DeleteDocsLambdaRoleArn:
+    Description: DeleteDocs lambda arn. Add this to the ES cluster's domain access policy allow list
+    Value: !GetAtt DeleteDocsLambdaRole.Arn

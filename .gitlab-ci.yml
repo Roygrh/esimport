@@ -446,3 +446,61 @@ esimport_datadog_deploy:
 #       <Indices prefixes, comma separated strings> \
 #       <Snapshot repo name>
 #       <Desired LOGLEVEl>
+
+lambda_delete_account_docs_staging:
+  # deploy 'lambdas/delete_old_accounts_docs'
+  # only deploy to one region on staging
+  stage: deploy_ecs_image_staging
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+    - echo "export TEMP_ARTIFACT_BUCKET=$STAGING_LAMBDA_S3_BUCKET_EAST" >> variables-staging
+    - echo "export ES_HOST=$staging_ES_CLUSTER_WEST" >> variables-staging
+    - echo "export DD_API_KEY=$staging_DD_API_KEY" >> variables-staging
+    - echo "export ES_CLUSTER_EAST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
+    - echo "export ES_CLUSTER_WEST_ARN=$staging_ES_CLUSTER_WEST_ARN" >> variables-staging
+  script:
+    - |
+      source ./variables-staging
+
+      cd lambdas/delete_old_accounts_docs
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
+  when: manual
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
+
+lambda_delete_account_docs:
+  # deploy 'lambdas/delete_old_accounts_docs'
+  # deploy to two regions on prod, us-east-1 & us-west-2
+  stage: deploy_ecs_image_prod
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_EAST=$PROD_LAMBDA_S3_BUCKET_EAST" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_WEST=$PROD_LAMBDA_S3_BUCKET_WEST" >> variables-prod
+    - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
+    - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
+    - echo "export DD_API_KEY=$PROD_DATADOG_API_KEY" >> variables-prod
+    - echo "export ES_CLUSTER_EAST_ARN=$prod_ES_CLUSTER_EAST_ARN" >> variables-prod
+    - echo "export ES_CLUSTER_WEST_ARN=$prod_ES_CLUSTER_WEST_ARN" >> variables-prod
+
+  script:
+    - |
+      source ./variables-prod
+
+      cd lambdas/delete_old_accounts_docs
+
+      export AWS_REGION=us-east-1
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
+      export AWS_REGION=us-west-2
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $ES_HOST_WEST $DD_API_KEY
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
