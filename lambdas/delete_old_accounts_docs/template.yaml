@@ -21,8 +21,10 @@ Parameters:
     Type: String
     Default: "datadoghq.com"
   EsClusterEastArn:
+    Type: String
     Description: Arn of us-east-1 cluster to grant IAM permissions
   EsClusterWestArn:
+    Type: String
     Description: Arn of us-west-2 cluster to grant IAM permissions
 
 Resources:
