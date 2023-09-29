@@ -61,7 +61,7 @@ def delete_docs():
         }
     }
 
-    url = ES_HOST + f"/{IDX_NAME}/_delete_by_query"
+    url = ES_HOST + f"/{IDX_NAME}/_delete_by_query?conflicts=proceed"
     params = {"wait_for_completion": "false"}
     response = requests.post(url, json=payload, params=params, auth=get_auth())
     response = response.json()
