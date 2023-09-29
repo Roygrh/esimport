@@ -1,6 +1,9 @@
 """
     Usage: python encrypt_objects.py
     Set proper aws credentials first
+    this script was created for OS-2550
+    after ticket is shipped, evaluate weather we need this scriptt &
+    do cleanup
 """
 
 import boto3
