@@ -55,12 +55,13 @@ def delete_docs():
                 "filter": [
                     {"terms": {"Status": ["Deleted", "Expired", "Removed"]}},
                     {"range": {"DateModifiedUTC": {"lt": "now-18M-1d"}}},
-                ]
+                ],
+                "must_not": [{"term": {"_seq_no": -2}}]
             }
         }
     }
 
-    url = ES_HOST + f"/{IDX_NAME}/_delete_by_query"
+    url = ES_HOST + f"/{IDX_NAME}/_delete_by_query?conflicts=proceed"
     params = {"wait_for_completion": "false"}
     response = requests.post(url, json=payload, params=params, auth=get_auth())
     response = response.json()
