@@ -25,7 +25,7 @@ setup(
         "pyodbc==4.0.27",
         "python-dateutil==2.8.1",
         "PyYAML==5.1",
-        "raven==6.5.0",
+        "sentry-sdk==1.9.0",
         "redis==4.4.4",
         "requests==2.20.0",
         "urllib3==1.24.2",

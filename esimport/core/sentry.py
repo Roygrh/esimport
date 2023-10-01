@@ -1,4 +1,4 @@
-import raven
+import sentry_sdk
 from .config import Config
 
-SentryClient = raven.Client(Config().sentry_dsn)
+sentry_sdk.init(dsn=Config().sentry_dsn)
