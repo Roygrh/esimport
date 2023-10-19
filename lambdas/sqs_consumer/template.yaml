@@ -51,6 +51,7 @@ Resources:
           SQS_QUEUE_URL: !Ref MessagesQueue
           ES_URL: !Ref EsUrl
           SENTRY_DSN: !Ref SentryDsn
+          LOG_LEVEL: !Ref LogLevel
 
       Events:
         NewSQSMessage:

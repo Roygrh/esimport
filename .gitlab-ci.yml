@@ -507,3 +507,68 @@ lambda_delete_account_docs:
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
+
+sqs_consumer_staging:
+  # this is different from prod stack. it doesn't have the sqs consumber lambda
+  stage: deploy_ecs_image_staging
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
+    - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+  script:
+    - |
+      source ./variables-staging
+      cd cf_templates/
+      STACK_NAME=esimport-sns-sqs-staging
+
+      AWS_REGION=us-east-1
+      aws cloudformation deploy \
+          --template-file staging_esimport_sns_sqs_without_consumers.yml \
+          --stack-name ${STACK_NAME} \
+          --region ${AWS_REGION} \
+          --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN}
+
+      AWS_REGION=us-west-2
+      aws cloudformation deploy \
+          --template-file staging_esimport_sns_sqs_without_consumers.yml \
+          --stack-name ${STACK_NAME} \
+          --region ${AWS_REGION} \
+          --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN}
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "branch_for_staging"
+
+sqs_consumer_prod:
+  stage: deploy_ecs_image_prod
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - pip3 --no-cache-dir install awscli aws-sam-cli
+
+    - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
+    - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_EAST=$PROD_LAMBDA_S3_BUCKET_EAST" >> variables-prod
+    - echo "export TEMP_ARTIFACT_BUCKET_WEST=$PROD_LAMBDA_S3_BUCKET_WEST" >> variables-prod
+    - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
+    - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
+    - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+    - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
+    - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
+    - echo "export DPSK_SNS_TOPIC_ARN=$prod_DPSK_SNS_TOPIC_ARN" >> variables-prod
+  script:
+    - |
+      source ./variables-prod
+      cd lambdas/sqs_consumer
+
+      STACK_NAME=esimport-serverless-us-east-1
+      AWS_REGION=us-east-1
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $PROD_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN
+
+      STACK_NAME=esimport-serverless-us-west-2
+      AWS_REGION=us-west-2
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $PROD_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
