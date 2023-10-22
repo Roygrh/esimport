@@ -4,7 +4,7 @@
 export SAM_CLI_TELEMETRY=0
 set -e
 
-if [[ $# -lt 5 ]]
+if [[ $# -lt 6 ]]
   then
     echo "No enough arguments supplied"
     echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
