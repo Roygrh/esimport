@@ -524,6 +524,7 @@ sqs_consumer_staging:
     - echo "export SENTRY_DSN=$staging_SENTRY_DSN" >> variables-staging
     - echo "export SNS_TOPIC_ARN=$staging_SNS_TOPIC_ARN" >> variables-staging
     - echo "export DPSK_SNS_TOPIC_ARN=$staging_DPSK_SNS_TOPIC_ARN" >> variables-staging
+    - echo "export SNS_TOPIC_REGION=$staging_SNS_TOPIC_REGION" >> variables-staging
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
   script:
     - |
@@ -532,7 +533,7 @@ sqs_consumer_staging:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "branch_for_staging"
@@ -553,6 +554,7 @@ sqs_consumer_prod:
     - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
     - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
     - echo "export DPSK_SNS_TOPIC_ARN=$prod_DPSK_SNS_TOPIC_ARN" >> variables-prod
+    - echo "export SNS_TOPIC_REGION=$prod_SNS_TOPIC_REGION" >> variables-prod
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
   script:
     - |
@@ -561,11 +563,11 @@ sqs_consumer_prod:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
 
       export STACK_NAME=esimport-serverless-us-west-2
       export AWS_REGION=us-west-2
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"

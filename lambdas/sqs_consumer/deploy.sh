@@ -4,7 +4,7 @@
 export SAM_CLI_TELEMETRY=0
 set -e
 
-if [[ $# -lt 6 ]]
+if [[ $# -lt 7 ]]
   then
     echo "No enough arguments supplied"
     echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
@@ -13,6 +13,7 @@ if [[ $# -lt 6 ]]
     echo '$4 - dpsk sns topic arn'
     echo '$5 - es host'
     echo '$6 - sentry dsn'
+    echo '$7 - sns topic region'
     exit
 fi
 
@@ -22,6 +23,7 @@ sns_topic_arn=$3
 dpsk_sns_topic_arn=$4
 es_url=$5
 sentry_dsn=$6
+sns_topic_region=$7
 
 log_level=$LOG_LEVEL
 aws_region=$AWS_REGION
@@ -57,4 +59,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       SentryDsn=${sentry_dsn} \
       ExecutionTimeout=${execution_timeout} \
       LogLevel=${log_level} \
+      SNSTopicRegion=${sns_topic_region} \
     --debug

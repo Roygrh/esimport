@@ -15,6 +15,10 @@ Parameters:
   DPSKSNSTopicARN:
     Type: String
 
+  SNSTopicRegion:
+    Type: String
+    Default: us-west-2
+
   EsUrl:
     Description: The URL to the target ElasticSearch cluster
     Type: String
@@ -160,7 +164,7 @@ Resources:
       Protocol: sqs
       RawMessageDelivery: true
       TopicArn: !Ref SNSTopicARN
-      Region: "us-west-2"
+      Region: !Ref SNSTopicRegion
 
 
   # DPSK
@@ -224,4 +228,4 @@ Resources:
       Protocol: sqs
       RawMessageDelivery: true
       TopicArn: !Ref DPSKSNSTopicARN
-      Region: "us-west-2"
+      Region: !Ref SNSTopicRegion
