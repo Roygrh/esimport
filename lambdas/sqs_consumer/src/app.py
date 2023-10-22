@@ -13,6 +13,8 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger(__name__)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 sentry_sdk.init(SENTRY_DSN)
+sentry_sdk.set_tag("lambda_name","sqs_consumer")
+sentry_sdk.set_tag("AWS_LAMBDA_FUNCTION_NAME",os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 
 try:
     _log_level = os.environ.get("LOG_LEVEL")
