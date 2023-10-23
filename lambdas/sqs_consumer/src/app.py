@@ -85,11 +85,11 @@ def is_version_conflict_error(error):
 def get_es_instance():
     session = boto3.Session()
     credentials = session.get_credentials()
-
+    region = os.environ["ES_URL"].split(".")[-4]
     awsauth = AWS4Auth(
         credentials.access_key,
         credentials.secret_key,
-        session.region_name,
+        region,
         "es",
         session_token=credentials.token,
     )
