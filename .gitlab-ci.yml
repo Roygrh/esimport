@@ -564,9 +564,9 @@ sqs_consumer_prod:
       # commenting this out for 2 step deployment
       # first deploy us-west-2, check if everything is ok , then merge another pr that
       # uncomments the following lines & deploy
-      # export STACK_NAME=esimport-serverless-us-east-1
-      # export AWS_REGION=us-east-1
-      # bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
+      export STACK_NAME=esimport-serverless-us-east-1
+      export AWS_REGION=us-east-1
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
 
       export STACK_NAME=esimport-serverless-us-west-2
       export AWS_REGION=us-west-2
