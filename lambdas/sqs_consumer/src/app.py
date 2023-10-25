@@ -13,6 +13,8 @@ logging.basicConfig(format=FORMAT)
 log = logging.getLogger(__name__)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 sentry_sdk.init(SENTRY_DSN)
+sentry_sdk.set_tag("lambda_name","sqs_consumer")
+sentry_sdk.set_tag("AWS_LAMBDA_FUNCTION_NAME",os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 
 try:
     _log_level = os.environ.get("LOG_LEVEL")
@@ -83,11 +85,11 @@ def is_version_conflict_error(error):
 def get_es_instance():
     session = boto3.Session()
     credentials = session.get_credentials()
-
+    region = os.environ["ES_URL"].split(".")[-4]
     awsauth = AWS4Auth(
         credentials.access_key,
         credentials.secret_key,
-        session.region_name,
+        region,
         "es",
         session_token=credentials.token,
     )
