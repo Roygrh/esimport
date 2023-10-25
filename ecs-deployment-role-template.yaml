@@ -71,7 +71,6 @@ Resources:
               - 'ec2:RunInstances'
               - 'autoscaling:SuspendProcesses'
               - 'autoscaling:ResumeProcesses'
-              # TODO: audit & remove this asg wildcard
               - 'autoscaling:*'
               - 'autoscaling:Attach*'
               - 'autoscaling:Detach*'
@@ -187,6 +186,16 @@ Resources:
               - "states:*"
               - "scheduler:*"
             Resource: "*"
+          - Sid: SQSPerm
+            Effect: Allow
+            Action:
+              - 'sqs:*'
+            Resource: !Sub 'arn:aws:sqs:*:${AWS::AccountId}:*'
+          - Sid: SNSPerm
+            Effect: Allow
+            Action:
+              - 'sns:*'
+            Resource: !Sub 'arn:aws:sns:*:${AWS::AccountId}:*'
   ESImportDeployServiceRole:
     Type: AWS::IAM::Role
     Properties: 
