@@ -60,4 +60,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       ExecutionTimeout=${execution_timeout} \
       LogLevel=${log_level} \
       SNSTopicRegion=${sns_topic_region} \
-    --debug
+    --debug \
+    --no-fail-on-empty-changeset

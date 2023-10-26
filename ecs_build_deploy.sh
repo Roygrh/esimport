@@ -45,4 +45,5 @@ aws cloudformation deploy \
     PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \
     PpkDlqQueueArn=$PPK_DLQ_QUEUE_ARN \
     --capabilities CAPABILITY_IAM \
-    --role-arn $DEPLOYMENT_SERVICE_ROLE_ARN
+    --role-arn $DEPLOYMENT_SERVICE_ROLE_ARN \
+    --no-fail-on-empty-changeset

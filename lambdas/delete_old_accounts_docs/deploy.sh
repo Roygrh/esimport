@@ -56,4 +56,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
           IndexName=${index_name} \
           EsClusterEastArn=${es_cluster_east_arn} \
           EsClusterWestArn=${es_cluster_west_arn} \
-    --debug
+    --debug \
+    --no-fail-on-empty-changeset
