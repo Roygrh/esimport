@@ -534,7 +534,7 @@ sqs_consumer_staging:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "branch_for_staging"
@@ -566,12 +566,12 @@ sqs_consumer_prod:
       # deploy first region us-east-1
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
 
       # us-west-2 
       export STACK_NAME=esimport-serverless-us-west-2
       export AWS_REGION=us-west-2
-      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
