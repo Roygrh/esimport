@@ -512,8 +512,9 @@ sqs_consumer_staging:
   # Deploys 'lambdas/sqs_consumer'
   # on one region us-east-1 as its staging
   stage: deploy_ecs_image_staging
+  image: "python:3.10"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
@@ -533,15 +534,16 @@ sqs_consumer_staging:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "branch_for_staging"
 
 sqs_consumer_prod:
   stage: deploy_ecs_image_prod
+  image: "python:3.10"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
@@ -561,16 +563,15 @@ sqs_consumer_prod:
       source ./variables-prod
       cd lambdas/sqs_consumer
 
-      # commenting this out for 2 step deployment
-      # first deploy us-west-2, check if everything is ok , then merge another pr that
-      # uncomments the following lines & deploy
+      # deploy first region us-east-1
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
+      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
 
+      # us-west-2 
       export STACK_NAME=esimport-serverless-us-west-2
       export AWS_REGION=us-west-2
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+      sh ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
