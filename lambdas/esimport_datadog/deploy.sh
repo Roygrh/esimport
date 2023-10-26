@@ -52,4 +52,5 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       SentryDsn=${sentry_dsn} \
       LookBackForXMinutes=${lookback_x_minutes} \
     --debug \
-    --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN}
+    --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN} \
+    --no-fail-on-empty-changeset
