@@ -37,7 +37,7 @@ Resources:
     Type: "AWS::Serverless::Function"
     Properties:
       Handler: esimport_datadog.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       CodeUri: .
       Description: ESImport Datadog Lambda function.
       MemorySize: 128

@@ -338,8 +338,9 @@ deploy_esc_prod:
 
 esimport_datadog_deploy_staging:
   stage: deploy_ecs_image_staging
+  image: "python:3.11"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
@@ -365,8 +366,9 @@ esimport_datadog_deploy_staging:
 
 esimport_datadog_deploy:
   stage: production_deploy
+  image: "python:3.11"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
@@ -451,8 +453,9 @@ lambda_delete_account_docs_staging:
   # deploy 'lambdas/delete_old_accounts_docs'
   # only deploy to one region on staging
   stage: deploy_ecs_image_staging
+  image: "python:3.11"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
@@ -479,8 +482,9 @@ lambda_delete_account_docs:
   # deploy 'lambdas/delete_old_accounts_docs'
   # deploy to two regions on prod, us-east-1 & us-west-2
   stage: deploy_ecs_image_prod
+  image: "python:3.11"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
@@ -512,7 +516,7 @@ sqs_consumer_staging:
   # Deploys 'lambdas/sqs_consumer'
   # on one region us-east-1 as its staging
   stage: deploy_ecs_image_staging
-  image: "python:3.10"
+  image: "python:3.11"
   before_script:
     - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
@@ -541,7 +545,7 @@ sqs_consumer_staging:
 
 sqs_consumer_prod:
   stage: deploy_ecs_image_prod
-  image: "python:3.10"
+  image: "python:3.11"
   before_script:
     - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
