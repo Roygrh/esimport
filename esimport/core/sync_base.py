@@ -15,6 +15,8 @@ from .record import Record
 from .sns_buffer import SNSBuffer
 import sentry_sdk
 from dotenv import load_dotenv
+import datadog
+
 
 here_path = os.path.dirname(__file__)
 parent_path = os.path.dirname(here_path)
@@ -25,21 +27,22 @@ load_dotenv(dotenv_path, override=True)
 
 
 class SyncBase(abc.ABC):
-
     target_elasticsearch_index_prefix: str
     uses_date_partitioned_index: bool
     incoming_data_schema: BaseSchema
-    
+
     current_date: str = datetime.utcnow().strftime("%Y-%m")
     current_date_month_fixed: bool = False
     target_index_date: str
-    
+
     default_query_limit: int
 
     # the field to consider its value as the record version
     version_fieldname: str
 
     record_type: str = None
+
+    count_to_be_imported_from_sql: int
 
     def __init__(self):
         self.config = self.get_config()
@@ -98,6 +101,19 @@ class SyncBase(abc.ABC):
             topic_arn=self.config.sns_topic_arn,
             max_sns_bulk_send_size_in_bytes=self.config.max_sns_bulk_send_size_in_bytes,
             logger=self.logger,
+        )
+
+        self.sns_buffer.on_flushed = self.flushed
+
+        datadog.initialize(
+            api_key=self.config.datadog_api_key, host_name=self.config.datadog_env
+        )
+
+    def flushed(self, no_of_records):
+        # send to datadog
+        datadog.api.Metric.send(
+            metric=self.record_type + "CountToBeImportedFromSql",
+            points=no_of_records,
         )
 
     @abc.abstractmethod
@@ -232,43 +248,49 @@ class SyncBase(abc.ABC):
     def db_sessions_gap_in_seconds(self):
         return self.config.db_sessions_gap_in_seconds
 
-    def report_old_record(self, record:Record):
+    def report_old_record(self, record: Record):
         """
-            function to check if the es record being placed is of
-            the current month's index or not.
-            if it is not of the current month, report it via sentry
+        function to check if the es record being placed is of
+        the current month's index or not.
+        if it is not of the current month, report it via sentry
 
-            Returns 'True' if it is reported
+        Returns 'True' if it is reported
         """
 
         # check if current date and record's date are different
         if self.current_date != self.target_index_date:
             tags = {
-                        "current_date": self.current_date,
-                        "record_date": self.target_index_date,
-                        "index": record._index,
-                        "record_id": record.id
-                        }
+                "current_date": self.current_date,
+                "record_date": self.target_index_date,
+                "index": record._index,
+                "record_id": record.id,
+            }
             # check if record's date is first day of the month
             # if it is, update current date and check again for
             # out of date record
             if record._date.day == 1:
                 # the 'current_date_month_fixed' bool flag optimizes so
-                # that we have to update date here only once 
+                # that we have to update date here only once
                 if not self.current_date_month_fixed:
                     self.update_current_date()
                     self.current_date_month_fixed = True
                 if self.current_date != self.target_index_date:
-                    sentry_sdk.capture_message(f"Out of date record being put detected",level="info",tags=tags)
+                    sentry_sdk.capture_message(
+                        f"Out of date record being put detected",
+                        level="info",
+                        tags=tags,
+                    )
                     return True
             else:
                 self.current_date_month_fixed = False
-                sentry_sdk.capture_message(f"Out of date record being put detected",level="info",tags=tags)
+                sentry_sdk.capture_message(
+                    f"Out of date record being put detected", level="info", tags=tags
+                )
                 return True
 
     def update_current_date(self):
         """
-            updates the current date stored
-            is normally called when the sql connection is reset
+        updates the current date stored
+        is normally called when the sql connection is reset
         """
         self.current_date = datetime.utcnow().strftime("%Y-%m")
