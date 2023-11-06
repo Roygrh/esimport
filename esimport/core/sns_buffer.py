@@ -10,6 +10,7 @@ import orjson
 import time
 
 from .record import Record
+from .event import Event
 
 
 @dataclass
@@ -24,6 +25,7 @@ class SNSBuffer:
     _last_added_record: Union[Record, None] = None
     _current_bytes_size: int = 0
     last_flush_time: Union[datetime, None] = None
+    _flushed = Event()
 
     def add_record(
         self, record: Record, flush=False, update_cursor=True, cursor_name=None
@@ -76,7 +78,7 @@ class SNSBuffer:
     def _flush(self):
         self._send_to_sns()
         list_length = len(self._records_list)
-        self.on_flushed(list_length)
+        self._flushed(list_length)
         self._records_list = []
         self._current_bytes_size = 0
 
@@ -148,11 +150,8 @@ class SNSBuffer:
         # orjson.dumps returns bytes, to match standard json.dumps we need to call `.decode()`
         return orjson.dumps(v, default=default)  # .decode()
 
-    def on_flushed(self, no_of_records):
-        """Called when progress is made. no_of_records is the no_of_records sent to sns.
-        By default this does nothing. The user may override this method
-        or even just assign to it."""
-        pass
+    def on_flushed(self, callback):
+        self._flushed += callback
 
     def _compress_large_message(self, message):
         compressed_message = compress(message.encode("utf-8"))

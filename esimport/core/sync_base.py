@@ -103,7 +103,7 @@ class SyncBase(abc.ABC):
             logger=self.logger,
         )
 
-        self.sns_buffer.on_flushed = self.flushed
+        self.sns_buffer.on_flushed(self.flushed)
 
         datadog.initialize(
             api_key=self.config.datadog_api_key, host_name=self.config.datadog_env
@@ -112,7 +112,7 @@ class SyncBase(abc.ABC):
     def flushed(self, no_of_records):
         # send to datadog
         datadog.api.Metric.send(
-            metric=self.record_type + "CountToBeImportedFromSql",
+            metric=self.record_type.title() + "CountToBeImportedFromSql",
             points=no_of_records,
         )
 
