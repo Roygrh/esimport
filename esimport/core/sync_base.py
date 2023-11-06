@@ -42,8 +42,6 @@ class SyncBase(abc.ABC):
 
     record_type: str = None
 
-    count_to_be_imported_from_sql: int
-
     def __init__(self):
         self.config = self.get_config()
         self.logger = self.setup_logger(self.config.log_level)
