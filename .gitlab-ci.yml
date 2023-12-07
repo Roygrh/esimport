@@ -274,8 +274,8 @@ deploy_esc_prod:
     - echo "export InstancesSbunet=$prod_INSTANCES_SUBNET" >> variables-prod
     # VPC where DB instance staging-db04.11os.com located
     - echo "export VPC_ID=$prod_VPC" >> variables-prod
-    - echo "export DATADOG_API_KEY=$prod_DATADOG_API_KEY" >> variables-staging
-    - echo "export DATADOG_ENV=$prod_DATADOG_ENV" >> variables-staging
+    - echo "export DATADOG_API_KEY=$prod_DATADOG_API_KEY" >> variables-prod
+    - echo "export DATADOG_ENV=$prod_DATADOG_ENV" >> variables-prod
 
   script:
     - |
