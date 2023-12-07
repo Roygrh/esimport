@@ -97,7 +97,12 @@ Parameters:
   PpkDlqQueueArn:
     Description: SQS Arn
     Type: String
-
+  DatadogAPIKey:
+    Description: API key for Datadog service
+    Type: String
+  DataDogEnv:
+    Description: String that will be passed to  Datadog service as `host_name` param value
+    Type: String
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -268,11 +273,11 @@ Resources:
             # Allow only ssh from internal network
             iptables -A INPUT -p tcp --dport ssh -s 10.0.0.0/8 -j ACCEPT
             iptables -A INPUT -m conntrack -j ACCEPT  --ctstate RELATED,ESTABLISHED
-            
+
             # next row necessary to provide acess for ecs agent from docker containers,
             # containers will load from it metadata about tasks
             iptables -A INPUT -d 127.0.0.0/8 -i docker0 -p tcp -m tcp --dport 51679 -j ACCEPT
-            
+
             # drop everything else
             iptables -A INPUT -j DROP
 
@@ -338,7 +343,7 @@ Resources:
       VPCZoneIdentifier: !Ref InstancesSbunet
     CreationPolicy:
       ResourceSignal:
-        Count: '1'
+        Count: "1"
         Timeout: PT5M
     UpdatePolicy:
       # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/
@@ -388,7 +393,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "accounts" ]
+          Command: ["esimport", "sync", "accounts"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -420,6 +425,11 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
+
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -431,7 +441,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "conferences" ]
+          Command: ["esimport", "sync", "conferences"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -463,6 +473,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -474,7 +488,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "devices" ]
+          Command: ["esimport", "sync", "devices"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -506,6 +520,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -517,7 +535,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "properties" ]
+          Command: ["esimport", "sync", "properties"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -549,6 +567,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -560,7 +582,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "sessions" ]
+          Command: ["esimport", "sync", "sessions"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -592,6 +614,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -603,7 +629,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "sessions_current" ]
+          Command: ["esimport", "sync", "sessions_current"]
           Essential: false
           Image: !Ref ESImportImage
           Environment:
@@ -635,6 +661,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -646,7 +676,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "sessions_ppk" ]
+          Command: ["esimport", "sync", "sessions_ppk"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
@@ -678,6 +708,10 @@ Resources:
               Value: !Ref RedisPort
             - Name: AWS_DEFAULT_REGION
               Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref DataDogEnv
           LogConfiguration:
             LogDriver: journald
             Options:

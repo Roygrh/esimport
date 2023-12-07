@@ -10,6 +10,7 @@ import orjson
 import time
 
 from .record import Record
+from .event import Event
 
 
 @dataclass
@@ -24,12 +25,13 @@ class SNSBuffer:
     _last_added_record: Union[Record, None] = None
     _current_bytes_size: int = 0
     last_flush_time: Union[datetime, None] = None
+    _flushed = Event()
 
     def add_record(
         self, record: Record, flush=False, update_cursor=True, cursor_name=None
     ):
         """
-        This adds a record to an internal records list and auto decides whether it's time 
+        This adds a record to an internal records list and auto decides whether it's time
         to send to SNS or not. Depending if the records list's size in bytes reached the SNS
         max message size threshold or not.
         Once some records are sent to SNS, it resets the list and starts over.
@@ -47,10 +49,10 @@ class SNSBuffer:
 
     def _should_flush(self, new_record_size: int = 0) -> bool:
         """
-        Did we reachthe threshold of max allowed SNS message size ? 
-        As of writing this, it's 256 KB. 
+        Did we reachthe threshold of max allowed SNS message size ?
+        As of writing this, it's 256 KB.
         Which should be the same value of `self.max_sns_bulk_send_size_in_bytes` but in bytes.
-        For more info, have a look at: 
+        For more info, have a look at:
             https://aws.amazon.com/about-aws/whats-new/2013/06/18/amazon-sqs-announces-256KB-large-payloads/
         """
 
@@ -75,6 +77,8 @@ class SNSBuffer:
 
     def _flush(self):
         self._send_to_sns()
+        list_length = len(self._records_list)
+        self._flushed(list_length)
         self._records_list = []
         self._current_bytes_size = 0
 
@@ -94,12 +98,14 @@ class SNSBuffer:
         message_length = len(message)
         list_length = len(self._records_list)
         self.log(
-            f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}",logging.DEBUG
+            f"About to send {list_length} records. Size: {message_length} bytes. Max is: {self.max_sns_bulk_send_size_in_bytes}",
+            logging.DEBUG,
         )
         if message_length > self.max_sns_bulk_send_size_in_bytes:
             self.log(
                 f"The sum of the following records ({message_length} bytes) exceed the SNS limits"
-                f" {self.max_sns_bulk_send_size_in_bytes} bytes, compressing:",logging.DEBUG
+                f" {self.max_sns_bulk_send_size_in_bytes} bytes, compressing:",
+                logging.DEBUG,
             )
             for _rec in self._records_list:
                 self.log(f"Record ID: {_rec.get('_id')}")
@@ -107,7 +113,8 @@ class SNSBuffer:
             message = self._compress_large_message(message)
             message_length = len(message)
             self.log(
-                f"New SNS message size after compression is: {message_length} bytes",logging.DEBUG
+                f"New SNS message size after compression is: {message_length} bytes",
+                logging.DEBUG,
             )
 
         response = self.sns_client.publish(TopicArn=self.topic_arn, Message=message)
@@ -121,7 +128,7 @@ class SNSBuffer:
     @property
     def list_json_encoding_size_overhead(self):
         """
-        Account for the extra brackets `[`, `]` and extra commas `,`  when serializing a list 
+        Account for the extra brackets `[`, `]` and extra commas `,`  when serializing a list
         of dict to json, these shouldn't make the size of the mssage being sent to the SNS topic
         greater than `self.max_sns_bulk_send_size_in_bytes`.
         """
@@ -142,6 +149,9 @@ class SNSBuffer:
 
         # orjson.dumps returns bytes, to match standard json.dumps we need to call `.decode()`
         return orjson.dumps(v, default=default)  # .decode()
+
+    def on_flushed(self, callback):
+        self._flushed += callback
 
     def _compress_large_message(self, message):
         compressed_message = compress(message.encode("utf-8"))

@@ -5,14 +5,13 @@ services:
 
 stages:
   # - esimport_retention
-#  - build
+  #  - build
   - testing
-#  - staging_deploy
+  #  - staging_deploy
   - production_deploy
   - build_ecs_image
   - deploy_ecs_image_staging
   - deploy_ecs_image_prod
-
 
 # When using dind, it's wise to use the overlayfs driver for improved performance.
 variables:
@@ -51,9 +50,9 @@ build_ecs_image_dev:
   script:
     - |
       apk add --update --no-cache aws-cli bash
-      
+
       source ./variables-dev
-      
+
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
@@ -75,15 +74,14 @@ build_ecs_image_staging:
       apk add --update --no-cache aws-cli bash
       cat ./variables-staging
       source ./variables-staging
-      
+
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
 
-#  when: manual
+  #  when: manual
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
     - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
-
 
 build_ecs_image_production:
   stage: build_ecs_image
@@ -101,7 +99,7 @@ build_ecs_image_production:
       apk add --update --no-cache aws-cli bash
       cat ./variables-prod
       source ./variables-prod
-      
+
       docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
       bash ./ecs_build_and_upload_ecr.sh
   rules:
@@ -120,7 +118,6 @@ build_ecs_image_production:
 #    - docker push $IMAGE_TAG
 #  only:
 #    - master
-
 
 #staging_deploy:
 #  stage: staging_deploy
@@ -209,30 +206,30 @@ deploy_esc_staging:
     - echo "export InstancesSbunet=subnet-24220141" >> variables-staging
     # VPC where DB instance staging-db04.11os.com located
     - echo "export VPC_ID=vpc-88a043f1" >> variables-staging
+    - echo "export DATADOG_API_KEY=$staging_DATADOG_API_KEY" >> variables-staging
+    - echo "export DATADOG_ENV=$staging_DATADOG_ENV" >> variables-staging
 
   script:
     - |
-      
+
       source ./variables-staging
-      
+
       if [ -z "$CI_COMMIT_SHA" ]; then
           export CI_COMMIT_SHA=$(git rev-parse HEAD)
       fi
-      
+
       repo_region="us-west-2"
       export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-      
+
       export esimport_docker_repo_url=$AWS_ACCOUNT_ID.dkr.ecr.$repo_region.amazonaws.com/$REPOSITORY_NAME
       export IMAGE_TAG=$esimport_docker_repo_url:$CI_COMMIT_SHA
-      
+
       export IMAGE_TO_DEPLOY=$esimport_docker_repo_url:$CI_COMMIT_SHA
 
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
     - if: $CI_COMMIT_BRANCH == "branch_for_staging" || $CI_COMMIT_BRANCH == "master"
-
-
 
 deploy_esc_prod:
   stage: deploy_ecs_image_prod
@@ -279,10 +276,12 @@ deploy_esc_prod:
     - echo "export InstancesSbunet=$prod_INSTANCES_SUBNET" >> variables-prod
     # VPC where DB instance staging-db04.11os.com located
     - echo "export VPC_ID=$prod_VPC" >> variables-prod
+    - echo "export DATADOG_API_KEY=$prod_DATADOG_API_KEY" >> variables-prod
+    - echo "export DATADOG_ENV=$prod_DATADOG_ENV" >> variables-prod
 
   script:
     - |
-      
+
       source ./variables-prod
       export VENDOR_DEFAULT_REGION="us-west-2"
       export VENDOR_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
@@ -294,14 +293,10 @@ deploy_esc_prod:
       export ElevenApiEcrRepositoryUri=$VENDOR_ACCOUNT_ID.dkr.ecr.$VENDOR_DEFAULT_REGION.amazonaws.com/$REPOSITORY_NAME
       export IMAGE_TO_DEPLOY=$ElevenApiEcrRepositoryUri:$CI_COMMIT_SHA
       bash ./ecs_build_deploy.sh $IMAGE_TO_DEPLOY
-      
 
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-
-
-
 
 # TODO: Activate the following stages when esimport is deployed as a serverless app
 # esimport_datadog_integration_test:
@@ -399,9 +394,6 @@ esimport_datadog_deploy:
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-
-
-
 
 # esimport_retention_unit_test:
 #   stage: esimport_retention

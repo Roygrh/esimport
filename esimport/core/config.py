@@ -102,6 +102,10 @@ class Config(BaseSettings):
     # Are we inside a docker container?
     inside_docker: bool = False
 
+    # DATADOG
+    datadog_api_key: str
+    datadog_env: str
+
     @property
     def database_info(self):
         return {

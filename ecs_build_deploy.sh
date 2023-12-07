@@ -44,6 +44,8 @@ aws cloudformation deploy \
     PpkSqsQueueArn=$PPK_SQS_QUEUE_ARN \
     PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \
     PpkDlqQueueArn=$PPK_DLQ_QUEUE_ARN \
-    --capabilities CAPABILITY_IAM \
+    DataDogEnv=$DATADOG_ENV \
+    DatadogAPIKey=$DATADOG_API_KEY \ 
+--capabilities CAPABILITY_IAM \
     --role-arn $DEPLOYMENT_SERVICE_ROLE_ARN \
     --no-fail-on-empty-changeset
