@@ -206,8 +206,7 @@ deploy_esc_staging:
     - echo "export InstancesSbunet=subnet-24220141" >> variables-staging
     # VPC where DB instance staging-db04.11os.com located
     - echo "export VPC_ID=vpc-88a043f1" >> variables-staging
-    - echo "export DATADOG_API_KEY=$staging_DATADOG_API_KEY" >> variables-staging
-    - echo "export DATADOG_ENV=$staging_DATADOG_ENV" >> variables-staging
+    - echo "export DATADOG_API_KEY=$STAGING_DATADOG_API_KEY" >> variables-staging
 
   script:
     - |

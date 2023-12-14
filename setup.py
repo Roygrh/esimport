@@ -33,6 +33,7 @@ setup(
         "orjson==2.1.1",
         "pydantic==1.0",
         "python-dotenv==0.10.3",
+        "datadog==0.47.0"
     ],
     entry_points={"console_scripts": ["esimport = esimport:cli"]},
 )

@@ -100,9 +100,6 @@ Parameters:
   DatadogAPIKey:
     Description: API key for Datadog service
     Type: String
-  DataDogEnv:
-    Description: String that will be passed to  Datadog service as `host_name` param value
-    Type: String
 Resources:
   ESImportEcsCluster:
     Type: "AWS::ECS::Cluster"
@@ -428,7 +425,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
 
           LogConfiguration:
             LogDriver: journald
@@ -476,7 +473,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -523,7 +520,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -570,7 +567,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -617,7 +614,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -664,7 +661,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -711,7 +708,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
