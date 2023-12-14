@@ -425,7 +425,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
 
           LogConfiguration:
             LogDriver: journald
@@ -473,7 +473,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -567,7 +567,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -614,7 +614,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -661,7 +661,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
@@ -708,7 +708,7 @@ Resources:
             - Name: DATADOG_API_KEY
               Value: !Ref DatadogAPIKey
             - Name: DATADOG_ENV
-              Value: !Ref DataDogEnv
+              Value: !Ref "AWS::Region"
           LogConfiguration:
             LogDriver: journald
             Options:
