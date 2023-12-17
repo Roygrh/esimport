@@ -3,7 +3,6 @@ import json
 import logging
 from base64 import b64decode
 from bz2 import decompress
-import sentry_sdk
 import boto3
 from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -11,10 +10,7 @@ from requests_aws4auth import AWS4Auth
 FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
 logging.basicConfig(format=FORMAT)
 log = logging.getLogger(__name__)
-SENTRY_DSN = os.environ.get("SENTRY_DSN")
-sentry_sdk.init(SENTRY_DSN)
-sentry_sdk.set_tag("lambda_name","sqs_consumer")
-sentry_sdk.set_tag("AWS_LAMBDA_FUNCTION_NAME",os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+
 
 try:
     _log_level = os.environ.get("LOG_LEVEL")
@@ -29,7 +25,6 @@ def lambda_handler(event, context):
         index(event)
     except Exception as err:
         log.exception(err)
-        sentry_sdk.capture_exception(err)
         raise err
 
 

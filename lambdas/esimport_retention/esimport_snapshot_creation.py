@@ -3,8 +3,6 @@ from datetime import datetime
 from datetime import timezone
 from os import environ
 
-import sentry_sdk
-from sentry_sdk import capture_exception
 
 from esimport_retention_core import gen_previous_month_indices_name
 from esimport_retention_core import get_awsauth
@@ -29,14 +27,11 @@ except ValueError as _err:
 SNAPSHOT_REPO_NAME = environ.get("SNAPSHOT_REPO_NAME")
 ES_URLS = environ.get("ES_URLS")
 ES_RETENTION_INDICES_PREFIXES = environ.get("ES_RETENTION_INDICES_PREFIXES")
-SENTRY_DSN = environ.get("SENTRY_DSN")
-
-sentry_sdk.init(SENTRY_DSN)
 
 
 def handler():
     try:
-        for (region, host) in parse_es_urls(ES_URLS):
+        for region, host in parse_es_urls(ES_URLS):
             awsauth = get_awsauth(region, temporary_creds=True)
             es = get_signed_es(host=host, awsauth=awsauth)
             for index_name in gen_previous_month_indices_name(
@@ -56,7 +51,6 @@ def handler():
             return
 
         logger.exception(err)
-        capture_exception(err)
         raise err
 
 

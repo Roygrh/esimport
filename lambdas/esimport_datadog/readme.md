@@ -3,7 +3,7 @@
 `standard-deploy.yaml` CloudFormation template that will deploy 1 lambda functions, that will try to find the latest document indexed by ElasticSearch, and will report the latest timestamp to Datadog service.
 
 Function will be triggered by CloudWatch rule. Default time interval - 3 minutes
-Exception that will may happens during lambda function execution will be recorded in Sentry service
+
 
 For more information read `standard-deploy.yaml` template
 
@@ -43,7 +43,6 @@ bash ./deploy.sh \
 	<S3 bucket to store lambda function deploy archive> \
 	<Number in minutes, that will be used to in queries to search last inserted doc > \
 	<ElasticsSearch server/cluser url> \
-	<DSN for Sentry> \
 	<Datadog API key> \
 	<Datadog host_name \
 	<Desired LOGLEVEL>

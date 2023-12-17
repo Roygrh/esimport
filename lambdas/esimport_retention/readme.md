@@ -10,7 +10,6 @@ Each functions will be triggered by cron defined schedule
 2. Snapshot verifier on the 6th day in each month
 3. Old indices deletion on 15th day in each month
 
-Exception that will may happens during lambda function execution will be recorded in Sentry service
 
 For more information read `standard-deploy.yaml` template
 
@@ -85,7 +84,6 @@ bash ./deploy.sh \
     <S3 Bucket Name, to store lambda function code> \
     <Retention policy in months> \
     <ES endpoints/urls, comma separated strings> \
-    <Sentry dsn> \
     <Indices prefixes, comma separated strings> \
     <Snapshot repo name>
     <Desired LOGLEVE>

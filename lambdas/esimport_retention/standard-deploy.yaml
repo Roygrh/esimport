@@ -16,24 +16,20 @@ Parameters:
   IndicesPrefixes:
     Description: Indices prefixes that will be processed
     Type: String
-  SentryDsn:
-    Description: DSN for Sentry service
-    Type: String
   RepoName:
     Description: Snapshot repository name
     Type: String
   LogLevel:
     Description: Log level for lambda function
     Type: String
-    Default: 'INFO'
-
+    Default: "INFO"
 
 Resources:
   LambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Sub 'esimport-retention-${AWS::StackName}'
-      Action: 'lambda:InvokeFunction'
+      FunctionName: !Sub "esimport-retention-${AWS::StackName}"
+      Action: "lambda:InvokeFunction"
       Principal: events.amazonaws.com
       SourceArn: !GetAtt
         - EsimportRetentionTrigger
@@ -41,7 +37,7 @@ Resources:
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub 'lambda-role-${AWS::StackName}'
+      RoleName: !Sub "lambda-role-${AWS::StackName}"
       Path: /
       AssumeRolePolicyDocument:
         Statement:
@@ -55,11 +51,10 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
 
-
   LambdaEsimportRetention:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub 'esimport-retention-${AWS::StackName}'
+      FunctionName: !Sub "esimport-retention-${AWS::StackName}"
       Description: esimport retention
       Runtime: python3.8
       Code:
@@ -76,7 +71,6 @@ Resources:
         Variables:
           ES_RETENTION_POLICY_MONTHS: !Ref EsRetentionPolicyMonths
           ES_URLS: !Ref EsUrls
-          SENTRY_DSN: !Ref SentryDsn
           ES_RETENTION_INDICES_PREFIXES: !Ref IndicesPrefixes
           SNAPSHOT_REPO_NAME: !Ref RepoName
           LOG_LEVEL: !Ref LogLevel
@@ -84,7 +78,7 @@ Resources:
   LambdaEsimportSnapshotCreation:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub 'snapshot-maker-${AWS::StackName}'
+      FunctionName: !Sub "snapshot-maker-${AWS::StackName}"
       Description: Create snapshot for specified indexes
       Runtime: python3.8
       Code:
@@ -101,14 +95,13 @@ Resources:
         Variables:
           ES_URLS: !Ref EsUrls
           ES_RETENTION_INDICES_PREFIXES: !Ref IndicesPrefixes
-          SENTRY_DSN: !Ref SentryDsn
           SNAPSHOT_REPO_NAME: !Ref RepoName
           LOG_LEVEL: !Ref LogLevel
 
   LambdaEsimportSnapshotVerifier:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub 'snapshot-verifier-${AWS::StackName}'
+      FunctionName: !Sub "snapshot-verifier-${AWS::StackName}"
       Description: Verify that snapshot in repository is ok
       Runtime: python3.8
       Code:
@@ -126,7 +119,6 @@ Resources:
           ES_URLS: !Ref EsUrls
           ES_RETENTION_INDICES_PREFIXES: !Ref IndicesPrefixes
           SNAPSHOT_REPO_NAME: !Ref RepoName
-          SENTRY_DSN: !Ref SentryDsn
           LOG_LEVEL: !Ref LogLevel
 
   EsimportRetentionTrigger:
@@ -134,13 +126,13 @@ Resources:
     DependsOn: LambdaEsimportRetention
     Properties:
       Description: Trigger esimport-retention function
-      Name: !Sub 'RetentionTrigger-${AWS::StackName}'
+      Name: !Sub "RetentionTrigger-${AWS::StackName}"
       ScheduleExpression: cron(1 0-7/1 15 * ? *)
-      State: 'ENABLED'
+      State: "ENABLED"
       Targets:
         - Arn: !GetAtt
-          - LambdaEsimportRetention
-          - Arn
+            - LambdaEsimportRetention
+            - Arn
           Id: esimport_retention_trigger
 
   EsimportSnapshotCreationTrigger:
@@ -148,13 +140,13 @@ Resources:
     DependsOn: LambdaEsimportSnapshotCreation
     Properties:
       Description: Trigger esimport_snapshot_creation function
-      Name: !Sub 'NewSnapshotTrigger-${AWS::StackName}'
+      Name: !Sub "NewSnapshotTrigger-${AWS::StackName}"
       ScheduleExpression: cron(1 0-3/1 5 * ? *)
-      State: 'ENABLED'
+      State: "ENABLED"
       Targets:
         - Arn: !GetAtt
-          - LambdaEsimportSnapshotCreation
-          - Arn
+            - LambdaEsimportSnapshotCreation
+            - Arn
           Id: esimport_snapshot_creation_trigger
 
   EsimportSnapshotVerifierTrigger:
@@ -162,15 +154,14 @@ Resources:
     DependsOn: LambdaEsimportSnapshotVerifier
     Properties:
       Description: Trigger esimport_snapshot_verifier function
-      Name: !Sub 'SnapshotVerifierTrigger-${AWS::StackName}'
+      Name: !Sub "SnapshotVerifierTrigger-${AWS::StackName}"
       ScheduleExpression: cron(1 0-3/1 6 * ? *)
-      State: 'ENABLED'
+      State: "ENABLED"
       Targets:
         - Arn: !GetAtt
-          - LambdaEsimportSnapshotVerifier
-          - Arn
+            - LambdaEsimportSnapshotVerifier
+            - Arn
           Id: esimport_snapshot_verifier_trigger
-
 
 Outputs:
   LambdaRoleARN:

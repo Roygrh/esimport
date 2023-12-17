@@ -39,7 +39,6 @@ aws cloudformation deploy \
     DatabaseQueryTimeout=$DATABASE_QUERY_TIMEOUT \
     LogLevel=$LOG_LEVEL \
     SnsTopicArn=$SNS_TOPIC_ARN \
-    SentryDSN=$SENTRY_DSN \
     PpkSqsQueueURL=$PPK_SQS_QUEUE_URL \
     PpkSqsQueueArn=$PPK_SQS_QUEUE_ARN \
     PpkDlqQueueURL=$PPK_DLQ_QUEUE_URL \

@@ -1,4 +1,3 @@
 boto3
 elasticsearch>=5.0.0,<6.0.0
-sentry_sdk
 requests_aws4auth

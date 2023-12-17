@@ -27,7 +27,6 @@ from esimport_retention_core import take_snapshot
 ES_URLS = environ.get("ES_URLS")
 SNAPSHOT_REPO_NAME = environ.get("SNAPSHOT_REPO_NAME")
 ES_RETENTION_INDICES_PREFIXES = environ.get("ES_RETENTION_INDICES_PREFIXES")
-SENTRY_DSN = environ.get("SENTRY_DSN")
 ES_RETENTION_POLICY_MONTHS = int(environ.get("ES_RETENTION_POLICY_MONTHS"))
 S3_BUCKET_NAME = environ.get("S3_BUCKET_NAME")
 S3_BUCKET_REGION = environ.get("S3_BUCKET_REGION")
@@ -126,7 +125,6 @@ class TestSnapshotCreation:
 class TestLambdaHandlers:
     @pytest.mark.usefixtures("register_repository", "clean_snapshots", "clean_indices")
     def test_esimport_snapshot_creation(self, es):
-
         # --- indices prefixes not configured
         esimport_snapshot_creation.ES_RETENTION_INDICES_PREFIXES = ""
         try:
@@ -175,7 +173,6 @@ class TestLambdaHandlers:
 
     @pytest.mark.usefixtures("register_repository", "clean_snapshots", "clean_indices")
     def test_esimport_snapshot_verifier(self, es):
-
         # --- indices prefixes not configured
         esimport_snapshot_verifier.ES_RETENTION_INDICES_PREFIXES = ""
         try:
@@ -209,7 +206,6 @@ class TestLambdaHandlers:
 
     @pytest.mark.usefixtures("register_repository", "clean_snapshots", "clean_indices")
     def test_esimport_retention(self, es):
-
         # --- indices prefixes not configured
         esimport_snapshot_creation.ES_RETENTION_INDICES_PREFIXES = ""
         try:

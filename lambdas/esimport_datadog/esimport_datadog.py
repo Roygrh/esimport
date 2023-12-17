@@ -8,7 +8,6 @@ from os import environ
 
 import boto3
 import datadog
-import sentry_sdk
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from urllib3.util import parse_url
@@ -20,7 +19,6 @@ logger = logging.getLogger(__name__)
 DATADOG_API_KEY = environ.get("DATADOG_API_KEY")
 ENVIRONMENT = environ.get("DATADOG_ENV")
 ES_URL = environ.get("ES_URL")
-SENTRY_DSN = environ.get("SENTRY_DSN")
 
 
 doc_types = {
@@ -38,7 +36,6 @@ doc_types = {
 
 # how far back to look, in minutes
 LOOK_BACK_FOR_X_MINUTES = int(environ.get("LOOK_BACK_FOR_X_MINUTES"))
-sentry_sdk.init(SENTRY_DSN)
 
 
 try:
@@ -109,7 +106,6 @@ class EsimportDatadogLogger:
                 self.put_metric(metric_name, minutes_behind, now)
         except Exception as err:
             logger.exception(err)
-            sentry_sdk.capture_exception(err)
             raise err
 
     @staticmethod
