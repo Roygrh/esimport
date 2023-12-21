@@ -272,17 +272,9 @@ class SyncBase(abc.ABC):
                     self.update_current_date()
                     self.current_date_month_fixed = True
                 if self.current_date != self.target_index_date:
-                    # sentry_sdk.capture_message(
-                    #     f"Out of date record being put detected",
-                    #     level="info",
-                    #     tags=tags,
-                    # )
                     return True
             else:
                 self.current_date_month_fixed = False
-                # sentry_sdk.capture_message(
-                #     f"Out of date record being put detected", level="info", tags=tags
-                # )
                 return True
 
     def update_current_date(self):
