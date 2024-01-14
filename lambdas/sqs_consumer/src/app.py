@@ -3,33 +3,21 @@ import json
 import logging
 from base64 import b64decode
 from bz2 import decompress
-import sentry_sdk
 import boto3
 from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+from eleven_logging import ElevenFormatter, FirehoseHandler,ExecutorLambdaFormat
+import eleven_logging
 
-FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
-logging.basicConfig(format=FORMAT)
-log = logging.getLogger(__name__)
-SENTRY_DSN = os.environ.get("SENTRY_DSN")
-sentry_sdk.init(SENTRY_DSN)
-sentry_sdk.set_tag("lambda_name","sqs_consumer")
-sentry_sdk.set_tag("AWS_LAMBDA_FUNCTION_NAME",os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
-
-try:
-    _log_level = os.environ.get("LOG_LEVEL")
-    LOG_LEVEL = logging.getLevelName(_log_level)
-    log.setLevel(LOG_LEVEL)
-except ValueError as _err:
-    log.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
+    global log
+    log = configure_logging(context)
     try:
         index(event)
     except Exception as err:
         log.exception(err)
-        sentry_sdk.capture_exception(err)
         raise err
 
 
@@ -101,3 +89,16 @@ def get_es_instance():
         verify_certs=True,
         connection_class=RequestsHttpConnection,
     )
+
+# configure logging
+def configure_logging(context):
+    logger = eleven_logging.getLogger(__name__)
+    _log_level = os.environ.get("LOG_LEVEL","INFO").upper()
+    LOG_LEVEL = logging.getLevelName(_log_level)
+    logger.setLevel(LOG_LEVEL)
+    eleven_formatter = ElevenFormatter(product="reporting",component="sqs_consumer")
+    eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
+    fh_handler = FirehoseHandler("syslog-stream",os.environ.get("AWS_DEFAULT_REGION"))
+    fh_handler.setFormatter(eleven_formatter)
+    logger.addHandler(fh_handler)
+    return logger

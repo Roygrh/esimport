@@ -36,6 +36,10 @@ aws_region=${aws_region:-us-west-2}
 cf_stack_name=${cf_stack_name:-esimport-serverless-us-west-2}
 execution_timeout=${execution_timeout:-60}
 
+aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1-4.tar.gz eleven-logging-python-1-4.tar.gz
+tar -xzvf eleven-logging-python-1-4.tar.gz
+rm -rf eleven-logging-python-1-4.tar.gz
+
 echo "Building the template file"
 sam build -t template.yaml
 
