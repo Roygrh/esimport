@@ -33,6 +33,10 @@ dd_site=${dd_site:-datadoghq.com}
 es_cluster_east_arn=${ES_CLUSTER_EAST_ARN:-arn:aws:es:*:265848155493:domain/*}
 es_cluster_west_arn=${ES_CLUSTER_WEST_ARN:-arn:aws:es:*:265848155493:domain/*}
 
+aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1-4.tar.gz eleven-logging-python-1-4.tar.gz
+tar -xzvf eleven-logging-python-1-4.tar.gz
+rm -rf eleven-logging-python-1-4.tar.gz
+
 echo "Building the template file"
 sam build -t template.yaml 
 
