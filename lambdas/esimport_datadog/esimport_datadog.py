@@ -13,14 +13,15 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from urllib3.util import parse_url
 
-FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger(__name__)
+from eleven_logging import ElevenFormatter, ExecutorLambdaFormat, FirehoseHandler
+import eleven_logging
 
 DATADOG_API_KEY = environ.get("DATADOG_API_KEY")
 ENVIRONMENT = environ.get("DATADOG_ENV")
 ES_URL = environ.get("ES_URL")
 SENTRY_DSN = environ.get("SENTRY_DSN")
+AWS_REGION = environ.get("AWS_DEFAULT_REGION")
+LOG_LEVEL = environ.get("LOG_LEVEL")
 
 
 doc_types = {
@@ -39,15 +40,6 @@ doc_types = {
 # how far back to look, in minutes
 LOOK_BACK_FOR_X_MINUTES = int(environ.get("LOOK_BACK_FOR_X_MINUTES"))
 sentry_sdk.init(SENTRY_DSN)
-
-
-try:
-    _log_level = environ.get("LOG_LEVEL")
-    LOG_LEVEL = logging.getLevelName(_log_level)
-    logger.setLevel(LOG_LEVEL)
-except ValueError as _err:
-    logger.setLevel(logging.INFO)
-
 
 def get_awsauth(region: str, temporary_creds: bool = False) -> AWS4Auth:
     credentials = boto3.Session().get_credentials()
@@ -170,8 +162,21 @@ class EsimportDatadogLogger:
         return now - doc_datetime
 
 
+def configure_logger(context):
+    logger = eleven_logging.getLogger(__name__)
+    logger.setLevel(LOG_LEVEL)
+    eleven_formatter = ElevenFormatter(product="reporting",component="esimport_datadog")
+    eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
+    fh_handler = FirehoseHandler("syslog-stream",AWS_REGION)
+
+    fh_handler.setFormatter(eleven_formatter)
+    logger.addHandler(fh_handler)
+    return logger
+
 esimport_datadog_logger = EsimportDatadogLogger()
 
 
 def lambda_handler(event, context):
+    global logger
+    logger = configure_logger(context)
     esimport_datadog_logger.process()

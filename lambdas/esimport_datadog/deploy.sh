@@ -29,6 +29,11 @@ aws_region=$7
 role_arn=$8
 DEPLOYMENT_SERVICE_ROLE_ARN=$9
 
+aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1-4.tar.gz eleven-logging-python-1-4.tar.gz
+tar -xzvf eleven-logging-python-1-4.tar.gz
+rm -rf eleven-logging-python-1-4.tar.gz
+
+
 echo "Building the template file"
 sam build -t template.yaml 
 

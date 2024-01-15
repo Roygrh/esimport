@@ -6,3 +6,4 @@ elasticsearch>=6.0.0,<7.0.0
 boto3
 sentry_sdk
 urllib3==1.26.6
+./eleven-logging-python
