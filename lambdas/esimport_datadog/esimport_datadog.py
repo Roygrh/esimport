@@ -167,7 +167,7 @@ def configure_logger(context):
     logger.setLevel(LOG_LEVEL)
     eleven_formatter = ElevenFormatter(product="reporting",component="esimport_datadog")
     eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
-    fh_handler = FirehoseHandler("syslog-stream",AWS_REGION)
+    fh_handler = FirehoseHandler("applog-stream",AWS_REGION)
 
     fh_handler.setFormatter(eleven_formatter)
     logger.addHandler(fh_handler)

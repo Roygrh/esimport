@@ -98,7 +98,7 @@ def configure_logging(context):
     logger.setLevel(LOG_LEVEL)
     eleven_formatter = ElevenFormatter(product="reporting",component="sqs_consumer")
     eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
-    fh_handler = FirehoseHandler("syslog-stream",os.environ.get("AWS_DEFAULT_REGION"))
+    fh_handler = FirehoseHandler("applog-stream",os.environ.get("AWS_DEFAULT_REGION"))
     fh_handler.setFormatter(eleven_formatter)
     logger.addHandler(fh_handler)
     return logger
