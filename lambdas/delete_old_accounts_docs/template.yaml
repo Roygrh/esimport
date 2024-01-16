@@ -146,7 +146,7 @@ Resources:
                 Resource: "*"
               - Effect: Allow
                 Action: firehose:PutRecord
-                Resource: arn:aws:firehose:us-east-1:489354756207:deliverystream/syslog-stream
+                Resource: !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/applog-stream"
 
 
 Outputs:
