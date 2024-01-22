@@ -51,16 +51,19 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
 
     def receive(self) -> str:
-        self.info("Checking for new ppk messages..")
-        response = self.aws.sqs_receive_messages(
-            sqs_queue_url=self.config.ppk_sqs_queue_url
-        )
-        messages = response.get("Messages",[])
-        self.debug(f"Got this message from SQS: {messages}")
-        messages_delete_buffer = []
+        try:
+            self.info("Checking for new ppk messages..")
+            response = self.aws.sqs_receive_messages(
+                sqs_queue_url=self.config.ppk_sqs_queue_url
+            )
+            messages = response.get("Messages",[])
+            self.debug(f"Got this message from SQS: {messages}")
+            messages_delete_buffer = []
+        except Exception as err:
+            self.warning(f"err: {err}")
+            traceback.print_exc()
         for message in messages:
             records_str = message["Body"]
-
             try:
                 records = self.deserialize_message(records_str)
             except json.decoder.JSONDecodeError as e:
