@@ -54,7 +54,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
         try:
             self.info("Checking for new ppk messages..")
             response = self.aws.sqs_receive_messages(
-                sqs_queue_url=self.config.ppk_sqs_queue_url, max_number_of_messages=15
+                sqs_queue_url=self.config.ppk_sqs_queue_url
             )
             messages = response.get("Messages",[])
             self.debug(f"Got this message from SQS: {messages}")
