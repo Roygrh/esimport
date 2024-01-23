@@ -431,7 +431,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_accounts
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: conferences
           Links:
@@ -478,7 +478,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_conferences
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: devices
           Links:
@@ -525,7 +525,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_devices
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: properties
           Links:
@@ -572,7 +572,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_properties
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: sessions
           Links:
@@ -619,7 +619,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_sessions
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: sessions-current
           Links:
@@ -666,7 +666,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_sessions_current
-          MemoryReservation: 600
+          MemoryReservation: 1024
 
         - Name: sessions-ppk
           Links:
@@ -713,7 +713,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_sessions_ppk
-          MemoryReservation: 1200
+          MemoryReservation: 1024
 
       ExecutionRoleArn:
         Fn::GetAtt:
