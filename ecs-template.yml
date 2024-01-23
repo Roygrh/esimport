@@ -713,7 +713,7 @@ Resources:
             LogDriver: journald
             Options:
               tag: esimport_sessions_ppk
-          MemoryReservation: 600
+          MemoryReservation: 1200
 
       ExecutionRoleArn:
         Fn::GetAtt:
