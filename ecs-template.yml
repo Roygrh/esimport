@@ -715,6 +715,53 @@ Resources:
               tag: esimport_sessions_ppk
           MemoryReservation: 1024
 
+        - Name: sessions-ppk-2
+          Links:
+            - redis
+          EntryPoint:
+            - "/esimport/docker-entrypoint.sh"
+          Command: ["esimport", "sync", "sessions_ppk-2"]
+          Essential: true
+          Image: !Ref ESImportImage
+          Environment:
+            - Name: MSSQL_HOST
+              Value: !Ref MssqlHost
+            - Name: MSSQL_USER
+              Value: !Ref MssqlUser
+            - Name: MSSQL_PASSWORD
+              Value: !Ref MssqlPassword
+            - Name: SNS_TOPIC_ARN
+              Value: !Ref SnsTopicArn
+            - Name: SENTRY_DSN
+              Value: !Ref SentryDSN
+            - Name: PPK_SQS_QUEUE_URL
+              Value: !Ref PpkSqsQueueURL
+            - Name: PPK_DLQ_QUEUE_URL
+              Value: !Ref PpkDlqQueueURL
+            - Name: DATABASE_CALLS_WAIT_IN_SECONDS
+              Value: !Ref DatabaseCallsWaitInSeconds
+            - Name: DATABASE_QUERY_TIMEOUT
+              Value: !Ref DatabaseQueryTimeout
+            - Name: LOG_LEVEL
+              Value: !Ref LogLevel
+            - Name: MSSQL_DSN
+              Value: !Ref MSSQLDSN
+            - Name: REDIS_HOST
+              Value: !Ref RedisHost
+            - Name: REDIS_PORT
+              Value: !Ref RedisPort
+            - Name: AWS_DEFAULT_REGION
+              Value: !Ref "AWS::Region"
+            - Name: DATADOG_API_KEY
+              Value: !Ref DatadogAPIKey
+            - Name: DATADOG_ENV
+              Value: !Ref "AWS::Region"
+          LogConfiguration:
+            LogDriver: journald
+            Options:
+              tag: esimport_sessions_ppk
+          MemoryReservation: 1024
+
       ExecutionRoleArn:
         Fn::GetAtt:
           - ExecutionRole
