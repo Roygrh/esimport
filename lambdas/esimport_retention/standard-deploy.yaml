@@ -86,7 +86,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'snapshot-maker-${AWS::StackName}'
       Description: Create snapshot for specified indexes
-      Runtime: python3.11
+      Runtime: python3.12
       Code:
         S3Bucket: !Ref DeployS3Bucket
         S3Key: !Ref LambdaS3Key
@@ -110,7 +110,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'snapshot-verifier-${AWS::StackName}'
       Description: Verify that snapshot in repository is ok
-      Runtime: python3.11
+      Runtime: python3.12
       Code:
         S3Bucket: !Ref DeployS3Bucket
         S3Key: !Ref LambdaS3Key
