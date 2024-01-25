@@ -43,7 +43,7 @@ def delete_docs():
         Start the delete docs operation. We use task api so we don't wait for
         delete operation to complete.
     """
-    logger.info(f"Deleting old account docs")
+    logger.debug(f"Deleting old account docs")
     payload = {
         "query": {
             "bool": {
@@ -133,7 +133,7 @@ def submit_step_machine_metric(value=1):
 def configure_logger(context):
     logger = eleven_logging.getLogger("delete_old_docs")
     logger.setLevel(LOG_LEVEL)
-    eleven_formatter = ElevenFormatter(product="reporting",component="delete_old_docs")
+    eleven_formatter = ElevenFormatter(product="esimport",component="delete_old_docs")
     eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
     fh_handler = FirehoseHandler("applog-stream",AWS_REGION)
 

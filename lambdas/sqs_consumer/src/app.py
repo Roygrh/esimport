@@ -49,7 +49,7 @@ def index(event):
             if is_version_conflict_error(error):
                 conflict_errors += 1
 
-        log.warning(
+        log.debug(
             "Got %.2d errors, %.2d of which are IGNORED conflict errors."
             % (number_of_errors, conflict_errors)
         )
@@ -58,7 +58,7 @@ def index(event):
             raise
 
     success_message = "Successfully indexed %.2d document(s)" % (number_of_records,)
-    log.info(success_message)
+    log.debug(success_message)
 
     return {"message": success_message}
 
@@ -96,7 +96,7 @@ def configure_logging(context):
     _log_level = os.environ.get("LOG_LEVEL","INFO").upper()
     LOG_LEVEL = logging.getLevelName(_log_level)
     logger.setLevel(LOG_LEVEL)
-    eleven_formatter = ElevenFormatter(product="reporting",component="sqs_consumer")
+    eleven_formatter = ElevenFormatter(product="esimport",component="sqs_consumer")
     eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
     fh_handler = FirehoseHandler("applog-stream",os.environ.get("AWS_DEFAULT_REGION"))
     fh_handler.setFormatter(eleven_formatter)
