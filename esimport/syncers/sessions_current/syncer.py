@@ -108,12 +108,12 @@ class SessionsCurrentSyncer(SyncBase, PropertiesMixin):
         switch_to_historical = minutes_behind >= 60
 
         if switch_to_historical and not was_historical:
-            self.info(
+            self.debug(
                 f"Switching to use the historical session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
             )
 
         if not switch_to_historical and was_historical:
-            self.info(
+            self.debug(
                 f"Switching to use the real-time session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
             )
 

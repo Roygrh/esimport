@@ -8,6 +8,7 @@ from esimport.core import SyncBase, PropertiesMixin, Record
 
 from ._schema import DPSKSessionSchema
 import traceback
+import logging
 
 # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
 MAX_SAFE_JSON_INT = 9007199254740992
@@ -52,7 +53,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
 
     def receive(self) -> str:
         try:
-            self.info("Checking for new ppk messages..")
+            self.debug("Checking for new ppk messages..")
             response = self.aws.sqs_receive_messages(
                 sqs_queue_url=self.config.ppk_sqs_queue_url
             )
@@ -120,7 +121,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 messages_delete_buffer.append({"Id": message["MessageId"],"ReceiptHandle": message["ReceiptHandle"]})
 
             except Exception as err:
-                self.log(f"err: {err}")
+                self.log(f"err: {err}",logging.WARNING)
                 traceback.print_exc()
         if messages_delete_buffer:
             self.aws.sqs_delete_messages(self.config.ppk_sqs_queue_url,messages_delete_buffer)
@@ -131,7 +132,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
             message_id = self.receive()
             if not message_id:
                 self.update_current_date()
-                self.info(
+                self.debug(
                     f"[Delay] Waiting {self.config.sns_calls_wait_in_seconds} seconds"
                 )
                 self.sleep(self.config.sns_calls_wait_in_seconds)

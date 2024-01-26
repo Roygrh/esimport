@@ -37,7 +37,7 @@ class AccountsSyncer(SyncBase, PropertiesMixin):
             # Get the most recent starting point from data in DynamoDB
             # using the same date field that is used fro versioning
             start_date = self.latest_date()
-            self.info("Data Check - Created: {0}".format(start_date))
+            self.debug("Data Check - Created: {0}".format(start_date))
 
         assert start_date is not None, "Start Date is null.  Unable to sync accounts."
 
