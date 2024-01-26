@@ -531,6 +531,7 @@ sqs_consumer_staging:
     - echo "export DPSK_SNS_TOPIC_ARN=$staging_DPSK_SNS_TOPIC_ARN" >> variables-staging
     - echo "export SNS_TOPIC_REGION=$staging_SNS_TOPIC_REGION" >> variables-staging
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+    - echo "export LOG_LEVEL=$staging_LOG_LEVEL" >> variables-staging
   script:
     - |
       source ./variables-staging
@@ -566,6 +567,7 @@ sqs_consumer_prod:
     - echo "export DPSK_SNS_TOPIC_ARN=$prod_DPSK_SNS_TOPIC_ARN" >> variables-prod
     - echo "export SNS_TOPIC_REGION=$prod_SNS_TOPIC_REGION" >> variables-prod
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+    - echo "export LOG_LEVEL=$prod_LOG_LEVEL" >> variables-prod
   script:
     - |
       source ./variables-prod
