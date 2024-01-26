@@ -14,7 +14,7 @@ from datadog_api_client.v2.model.metric_payload import MetricPayload
 from datadog_api_client.v2.model.metric_intake_type import MetricIntakeType
 
 ES_HOST = os.environ.get("ELASTICSEARCH_HOST", "http://localhost:9200")
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
 DD_API_KEY = os.environ.get("DD_API_KEY",None)
 IDX_NAME = os.environ.get("INDEX_NAME", None)
 AWS_REGION = os.environ.get("AWS_REGION",None)

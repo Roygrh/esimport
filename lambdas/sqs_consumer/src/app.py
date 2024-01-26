@@ -93,7 +93,7 @@ def get_es_instance():
 # configure logging
 def configure_logging(context):
     logger = eleven_logging.getLogger(__name__)
-    _log_level = os.environ.get("LOG_LEVEL","INFO").upper()
+    _log_level = os.environ.get("LOG_LEVEL","WARNING").upper()
     LOG_LEVEL = logging.getLevelName(_log_level)
     logger.setLevel(LOG_LEVEL)
     eleven_formatter = ElevenFormatter(product="esimport",component="sqs_consumer")

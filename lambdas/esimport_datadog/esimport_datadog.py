@@ -19,7 +19,7 @@ DATADOG_API_KEY = environ.get("DATADOG_API_KEY")
 ENVIRONMENT = environ.get("DATADOG_ENV")
 ES_URL = environ.get("ES_URL")
 AWS_REGION = environ.get("AWS_DEFAULT_REGION")
-LOG_LEVEL = environ.get("LOG_LEVEL")
+LOG_LEVEL = environ.get("LOG_LEVEL","WARNING")
 
 
 doc_types = {
