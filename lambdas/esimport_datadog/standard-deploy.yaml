@@ -61,7 +61,7 @@ Resources:
     Properties:
       FunctionName: !Sub 'esimport-datadog-${AWS::StackName}'
       Description: esimport logger to Datadog
-      Runtime: python3.8
+      Runtime: python3.12
       Code:
         S3Bucket: !Ref DeployS3Bucket
         S3Key: !Ref LambdaS3Key
