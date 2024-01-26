@@ -11,11 +11,10 @@ if [[ $# -lt 8 ]]
     echo '$2 - S3 bucket name to store the artifact file'
     echo '$3 - Number in minutes, for how long this Lambda function will be looking back to find latest document'
     echo '$4 - Url to ElasticSearch cluster/server'
-    echo '$5 - Sentry DSN'
-    echo '$6 - Datadog API Key'
-    echo '$7 - AWS Region to deploy to. Will also be used as host_name param value in Datadog api call as well'
-    echo '$8 - RoleARN to be assumed by lambda'
-    echo '$9 - Service role arn that cloudformation uses to perform deployment'
+    echo '$5 - Datadog API Key'
+    echo '$6 - AWS Region to deploy to. Will also be used as host_name param value in Datadog api call as well'
+    echo '$7 - RoleARN to be assumed by lambda'
+    echo '$8 - Service role arn that cloudformation uses to perform deployment'
     exit
 fi
 
@@ -23,15 +22,10 @@ cf_stack_name=$1
 deploy_s3_bucket=$2 
 lookback_x_minutes=$3
 es_url=$4
-sentry_dsn=$5
-datadog_api_key=$6
-aws_region=$7
-role_arn=$8
-DEPLOYMENT_SERVICE_ROLE_ARN=$9
-
-aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1-4.tar.gz eleven-logging-python-1-4.tar.gz
-tar -xzvf eleven-logging-python-1-4.tar.gz
-rm -rf eleven-logging-python-1-4.tar.gz
+datadog_api_key=$5
+aws_region=$6
+role_arn=$7
+DEPLOYMENT_SERVICE_ROLE_ARN=$8
 
 
 echo "Building the template file"
@@ -54,7 +48,6 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       DatadogAPIKey=${datadog_api_key} \
       RoleARN=${role_arn} \
       EsUrl=${es_url} \
-      SentryDsn=${sentry_dsn} \
       LookBackForXMinutes=${lookback_x_minutes} \
     --debug \
     --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN} \
