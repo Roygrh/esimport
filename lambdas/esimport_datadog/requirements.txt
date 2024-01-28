@@ -5,4 +5,4 @@ elasticsearch>=6.0.0,<7.0.0
 # urllib3 # - boto3 has this dependency
 boto3
 urllib3==1.26.6
-./eleven-logging-python
+./eleven-logging-python-1.4.1
