@@ -720,7 +720,7 @@ Resources:
             - redis
           EntryPoint:
             - "/esimport/docker-entrypoint.sh"
-          Command: ["esimport", "sync", "sessions_ppk-2"]
+          Command: ["esimport", "sync", "sessions_ppk_2"]
           Essential: true
           Image: !Ref ESImportImage
           Environment:
