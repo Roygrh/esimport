@@ -59,6 +59,7 @@ def cli():
             "properties",
             "sessions",
             "sessions_ppk",
+            "sessions_ppk_2",
             "sessions_current",
         ],
         case_sensitive=False,
