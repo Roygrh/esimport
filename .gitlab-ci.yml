@@ -342,13 +342,17 @@ esimport_datadog_deploy_staging:
   script:
     - source ./variables-staging
     - cd lambdas/esimport_datadog
+
+    - aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+    - tar -xzvf eleven-logging-python-1.4.1.tar.gz
+    - rm -rf eleven-logging-python-1.4.1.tar.gz
+
     # EAST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
       ${STAGING_LAMBDA_S3_BUCKET_EAST}
       ${STAGING_DATADOG_LOOKBACK_X_MINUTES}
       ${STAGING_ES_CLUSTER_EAST}
-      ${staging_SENTRY_DSN}
       ${STAGING_DATADOG_API_KEY}
       us-east-1
       ${STAGING_ROLE_ARN}
@@ -369,13 +373,16 @@ esimport_datadog_deploy:
   script:
     - source ./variables-prod
     - cd lambdas/esimport_datadog
+    # get eleven-logging-python package
+    - aws s3 cp s3://${PROD_LAMBDA_S3_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+    - tar -xzvf eleven-logging-python-1.4.1.tar.gz
+    - rm -rf eleven-logging-python-1.4.1.tar.gz
     # WEST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-west-2
       ${PROD_LAMBDA_S3_BUCKET_WEST}
       ${PROD_DATADOG_LOOKBACK_X_MINUTES}
       ${PROD_ES_CLUSTER_WEST}
-      ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-west-2
       ${PROD_ROLE_ARN}
@@ -386,7 +393,6 @@ esimport_datadog_deploy:
       ${PROD_LAMBDA_S3_BUCKET_EAST}
       ${PROD_DATADOG_LOOKBACK_X_MINUTES}
       ${PROD_ES_CLUSTER_EAST}
-      ${SENTRY_DSN}
       ${PROD_DATADOG_API_KEY}
       us-east-1
       ${PROD_ROLE_ARN}
@@ -462,6 +468,11 @@ lambda_delete_account_docs_staging:
 
       export AWS_REGION=us-east-1
       cd lambdas/delete_old_accounts_docs
+
+      aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
+      
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
   when: manual
   rules:
@@ -493,6 +504,10 @@ lambda_delete_account_docs:
       source ./variables-prod
 
       cd lambdas/delete_old_accounts_docs
+      # get eleven-logging-python package
+      aws s3 cp s3://${TEMP_ARTIFACT_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
 
       export AWS_REGION=us-east-1
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
@@ -516,11 +531,11 @@ sqs_consumer_staging:
     - echo "export TEMP_ARTIFACT_BUCKET_EAST=$STAGING_LAMBDA_S3_BUCKET_EAST" >> variables-staging
     - echo "export ES_HOST_WEST=$staging_ES_CLUSTER_WEST" >> variables-staging
     - echo "export LAMDA_ROLE_ARN=$STAGING_ROLE_ARN" >> variables-staging
-    - echo "export SENTRY_DSN=$staging_SENTRY_DSN" >> variables-staging
     - echo "export SNS_TOPIC_ARN=$staging_SNS_TOPIC_ARN" >> variables-staging
     - echo "export DPSK_SNS_TOPIC_ARN=$staging_DPSK_SNS_TOPIC_ARN" >> variables-staging
     - echo "export SNS_TOPIC_REGION=$staging_SNS_TOPIC_REGION" >> variables-staging
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+    - echo "export LOG_LEVEL=$staging_LOG_LEVEL" >> variables-staging
   script:
     - |
       source ./variables-staging
@@ -528,7 +543,12 @@ sqs_consumer_staging:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+
+      aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
+
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "branch_for_staging"
@@ -547,25 +567,30 @@ sqs_consumer_prod:
     - echo "export ES_HOST_EAST=$PROD_ES_CLUSTER_EAST" >> variables-prod
     - echo "export ES_HOST_WEST=$PROD_ES_CLUSTER_WEST" >> variables-prod
     - echo "export LAMBDA_ROLE_ARN=$PROD_ROLE_ARN" >> variables-prod
-    - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
     - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
     - echo "export DPSK_SNS_TOPIC_ARN=$prod_DPSK_SNS_TOPIC_ARN" >> variables-prod
     - echo "export SNS_TOPIC_REGION=$prod_SNS_TOPIC_REGION" >> variables-prod
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+    - echo "export LOG_LEVEL=$prod_LOG_LEVEL" >> variables-prod
   script:
     - |
       source ./variables-prod
       cd lambdas/sqs_consumer
 
+      # get eleven-logging-python package
+      aws s3 cp s3://${TEMP_ARTIFACT_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
+
       # deploy first region us-east-1
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SENTRY_DSN $SNS_TOPIC_REGION
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SNS_TOPIC_REGION
 
       # us-west-2 
       export STACK_NAME=esimport-serverless-us-west-2
       export AWS_REGION=us-west-2
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SENTRY_DSN $SNS_TOPIC_REGION
+      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SNS_TOPIC_REGION
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"

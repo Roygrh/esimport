@@ -23,10 +23,6 @@ Parameters:
     Description: The URL to the target ElasticSearch cluster
     Type: String
 
-  SentryDsn:
-    Description: DSN for Sentry alerting
-    Type: String
-
   ExecutionTimeout:
     Type: Number
     Default: 60
@@ -54,7 +50,6 @@ Resources:
           SNS_TOPIC_ARN: !Ref SNSTopicARN
           SQS_QUEUE_URL: !Ref MessagesQueue
           ES_URL: !Ref EsUrl
-          SENTRY_DSN: !Ref SentryDsn
           LOG_LEVEL: !Ref LogLevel
 
       Events:

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# bash deploy.sh cdk-hnb659fds-assets-884031308615-us-west-2 arn:aws:iam::884031308615:role/service-role/method_saml-role-lv757ro9 arn:aws:sns:us-west-2:884031308615:my-test-topic arn:aws:sns:us-west-2:884031308615:my-test-topic http://example.com https://public@sentry.example.com/1
+# bash deploy.sh cdk-hnb659fds-assets-884031308615-us-west-2 arn:aws:iam::884031308615:role/service-role/method_saml-role-lv757ro9 arn:aws:sns:us-west-2:884031308615:my-test-topic arn:aws:sns:us-west-2:884031308615:my-test-topic http://example.com
 # Disable AWS SAM Telemetry
 export SAM_CLI_TELEMETRY=0
 set -e
 
-if [[ $# -lt 7 ]]
+if [[ $# -lt 6 ]]
   then
     echo "No enough arguments supplied"
     echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
@@ -12,8 +12,7 @@ if [[ $# -lt 7 ]]
     echo '$3 - sns topic arn'
     echo '$4 - dpsk sns topic arn'
     echo '$5 - es host'
-    echo '$6 - sentry dsn'
-    echo '$7 - sns topic region'
+    echo '$6 - sns topic region'
     exit
 fi
 
@@ -22,8 +21,7 @@ lambda_role_arn=$2
 sns_topic_arn=$3
 dpsk_sns_topic_arn=$4
 es_url=$5
-sentry_dsn=$6
-sns_topic_region=$7
+sns_topic_region=$6
 
 log_level=$LOG_LEVEL
 aws_region=$AWS_REGION
@@ -56,7 +54,6 @@ sam deploy --template-file $(pwd)/packaged.yaml \
       SNSTopicARN=${sns_topic_arn} \
       DPSKSNSTopicARN=${dpsk_sns_topic_arn} \
       EsUrl=${es_url} \
-      SentryDsn=${sentry_dsn} \
       ExecutionTimeout=${execution_timeout} \
       LogLevel=${log_level} \
       SNSTopicRegion=${sns_topic_region} \

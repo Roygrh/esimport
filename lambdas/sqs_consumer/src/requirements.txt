@@ -1,3 +1,4 @@
 elasticsearch==5.2.0
 requests_aws4auth
-sentry_sdk
+./eleven-logging-python-1.4.1
+boto3

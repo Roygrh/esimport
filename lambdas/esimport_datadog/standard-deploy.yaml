@@ -13,9 +13,6 @@ Parameters:
   LookBackForXMinutes:
     Description: For how much minutes function will be looking back to find latest document
     Type: Number
-  SentryDsn:
-    Description: DSN for Sentry service
-    Type: String
   DatadogAPIKey:
     Description: API key for Datadog service
     Type: String
@@ -75,7 +72,6 @@ Resources:
       Environment:
         Variables:
           ES_URL: !Ref EsUrl
-          SENTRY_DSN: !Ref SentryDsn
           DATADOG_API_KEY: !Ref DatadogAPIKey
           DATADOG_ENV: !Ref DataDogEnv
           LOOK_BACK_FOR_X_MINUTES: !Ref LookBackForXMinutes
