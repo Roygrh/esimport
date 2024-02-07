@@ -4,15 +4,16 @@
 export SAM_CLI_TELEMETRY=0
 set -e
 
-if [[ $# -lt 7 ]]; then
-  echo "No enough arguments supplied"
-  echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
-  echo '$2 - lambda role arn'
-  echo '$3 - sns topic arn'
-  echo '$4 - dpsk sns topic arn'
-  echo '$5 - es host'
-  echo '$6 - sns topic region'
-  exit
+if [[ $# -lt 6 ]]
+  then
+    echo "No enough arguments supplied"
+    echo '$1 - Deploy Asset Bucket Name (temporary place to store deploy asset)'
+    echo '$2 - lambda role arn'
+    echo '$3 - sns topic arn'
+    echo '$4 - dpsk sns topic arn'
+    echo '$5 - es host'
+    echo '$6 - sns topic region'
+    exit
 fi
 
 deploy_s3_bucket=$1
@@ -44,17 +45,17 @@ sam package --output-template-file $(pwd)/packaged.yaml \
 
 echo "Deploying to ${aws_region}..."
 sam deploy --template-file $(pwd)/packaged.yaml \
-  --region ${aws_region} \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --stack-name $cf_stack_name \
-  --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN} \
-  --parameter-overrides \
-  RoleARN=${lambda_role_arn} \
-  SNSTopicARN=${sns_topic_arn} \
-  DPSKSNSTopicARN=${dpsk_sns_topic_arn} \
-  EsUrl=${es_url} \
-  ExecutionTimeout=${execution_timeout} \
-  LogLevel=${log_level} \
-  SNSTopicRegion=${sns_topic_region} \
-  --debug \
-  --no-fail-on-empty-changeset
+    --region ${aws_region} \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --stack-name $cf_stack_name \
+    --role-arn ${DEPLOYMENT_SERVICE_ROLE_ARN} \
+    --parameter-overrides \
+      RoleARN=${lambda_role_arn} \
+      SNSTopicARN=${sns_topic_arn} \
+      DPSKSNSTopicARN=${dpsk_sns_topic_arn} \
+      EsUrl=${es_url} \
+      ExecutionTimeout=${execution_timeout} \
+      LogLevel=${log_level} \
+      SNSTopicRegion=${sns_topic_region} \
+    --debug \
+    --no-fail-on-empty-changeset

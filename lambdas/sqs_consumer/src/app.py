@@ -6,21 +6,14 @@ from bz2 import decompress
 import boto3
 from elasticsearch import Elasticsearch, helpers, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+from eleven_logging import ElevenFormatter, FirehoseHandler,ExecutorLambdaFormat
+import eleven_logging
 
-FORMAT = "%(asctime)-15s %(filename)s %(lineno)d %(message)s"
-logging.basicConfig(format=FORMAT)
-log = logging.getLogger(__name__)
-
-
-try:
-    _log_level = os.environ.get("LOG_LEVEL")
-    LOG_LEVEL = logging.getLevelName(_log_level)
-    log.setLevel(LOG_LEVEL)
-except ValueError as _err:
-    log.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
+    global log
+    log = configure_logging(context)
     try:
         index(event)
     except Exception as err:
@@ -56,7 +49,7 @@ def index(event):
             if is_version_conflict_error(error):
                 conflict_errors += 1
 
-        log.warning(
+        log.debug(
             "Got %.2d errors, %.2d of which are IGNORED conflict errors."
             % (number_of_errors, conflict_errors)
         )
@@ -65,7 +58,7 @@ def index(event):
             raise
 
     success_message = "Successfully indexed %.2d document(s)" % (number_of_records,)
-    log.info(success_message)
+    log.debug(success_message)
 
     return {"message": success_message}
 
@@ -96,3 +89,16 @@ def get_es_instance():
         verify_certs=True,
         connection_class=RequestsHttpConnection,
     )
+
+# configure logging
+def configure_logging(context):
+    logger = eleven_logging.getLogger(__name__)
+    _log_level = os.environ.get("LOG_LEVEL","WARNING").upper()
+    LOG_LEVEL = logging.getLevelName(_log_level)
+    logger.setLevel(LOG_LEVEL)
+    eleven_formatter = ElevenFormatter(product="esimport",component="sqs_consumer")
+    eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
+    fh_handler = FirehoseHandler("applog-stream",os.environ.get("AWS_DEFAULT_REGION"))
+    fh_handler.setFormatter(eleven_formatter)
+    logger.addHandler(fh_handler)
+    return logger

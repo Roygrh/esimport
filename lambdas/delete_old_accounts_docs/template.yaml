@@ -32,7 +32,7 @@ Resources:
     Type: "AWS::Serverless::Function"
     Properties: &lambdaProperty
       Handler: delete_old_docs.delete_docs_lambda_handler
-      Runtime: python3.8
+      Runtime: python3.12
       CodeUri: .
       Description: Start deletion task
       MemorySize: 128
@@ -144,6 +144,10 @@ Resources:
                   - "logs:PutLogEvents"
                 Effect: Allow
                 Resource: "*"
+              - Effect: Allow
+                Action: firehose:PutRecord
+                Resource: !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/applog-stream"
+
 
 Outputs:
   DeleteDocsLambdaRoleArn:

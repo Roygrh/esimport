@@ -33,6 +33,7 @@ dd_site=${dd_site:-datadoghq.com}
 es_cluster_east_arn=${ES_CLUSTER_EAST_ARN:-arn:aws:es:*:265848155493:domain/*}
 es_cluster_west_arn=${ES_CLUSTER_WEST_ARN:-arn:aws:es:*:265848155493:domain/*}
 
+
 echo "Building the template file"
 sam build -t template.yaml 
 

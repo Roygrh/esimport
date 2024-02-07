@@ -38,6 +38,7 @@ syncer_classes = {
     "properties": PropertiesSyncer,
     "sessions": SessionsSyncer,
     "sessions_ppk": DPSKSessionSyncer,
+    "sessions_ppk_2": DPSKSessionSyncer,
     "sessions_current": SessionsCurrentSyncer,
 }
 
@@ -58,6 +59,7 @@ def cli():
             "properties",
             "sessions",
             "sessions_ppk",
+            "sessions_ppk_2",
             "sessions_current",
         ],
         case_sensitive=False,

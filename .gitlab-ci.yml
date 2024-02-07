@@ -329,8 +329,9 @@ deploy_esc_prod:
 
 esimport_datadog_deploy_staging:
   stage: deploy_ecs_image_staging
+  image: "python:3.12"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
     - echo "export AWS_SECRET_ACCESS_KEY=$staging_AWS_SECRET_ACCESS_KEY" >> variables-staging
@@ -339,6 +340,11 @@ esimport_datadog_deploy_staging:
   script:
     - source ./variables-staging
     - cd lambdas/esimport_datadog
+
+    - aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+    - tar -xzvf eleven-logging-python-1.4.1.tar.gz
+    - rm -rf eleven-logging-python-1.4.1.tar.gz
+
     # EAST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-east-1
@@ -355,8 +361,9 @@ esimport_datadog_deploy_staging:
 
 esimport_datadog_deploy:
   stage: production_deploy
+  image: "python:3.12"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
     - echo "export AWS_SECRET_ACCESS_KEY=$prod_AWS_SECRET_ACCESS_KEY" >> variables-prod
@@ -364,6 +371,10 @@ esimport_datadog_deploy:
   script:
     - source ./variables-prod
     - cd lambdas/esimport_datadog
+    # get eleven-logging-python package
+    - aws s3 cp s3://${PROD_LAMBDA_S3_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+    - tar -xzvf eleven-logging-python-1.4.1.tar.gz
+    - rm -rf eleven-logging-python-1.4.1.tar.gz
     # WEST deploy
     - bash ./deploy.sh
       esimport-datadog-monitor-us-west-2
@@ -435,8 +446,9 @@ lambda_delete_account_docs_staging:
   # deploy 'lambdas/delete_old_accounts_docs'
   # only deploy to one region on staging
   stage: deploy_ecs_image_staging
+  image: "python:3.12"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$staging_AWS_ACCESS_KEY_ID" > variables-staging
@@ -453,6 +465,11 @@ lambda_delete_account_docs_staging:
 
       export AWS_REGION=us-east-1
       cd lambdas/delete_old_accounts_docs
+
+      aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
+      
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET $ES_HOST $DD_API_KEY
   when: manual
   rules:
@@ -463,8 +480,9 @@ lambda_delete_account_docs:
   # deploy 'lambdas/delete_old_accounts_docs'
   # deploy to two regions on prod, us-east-1 & us-west-2
   stage: deploy_ecs_image_prod
+  image: "python:3.12"
   before_script:
-    - apt-get update && apt-get install --no-install-recommends --yes python3-pip curl git
+    - apt-get update && apt-get install --no-install-recommends --yes curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
 
     - echo "export AWS_ACCESS_KEY_ID=$prod_AWS_ACCESS_KEY_ID" > variables-prod
@@ -483,6 +501,10 @@ lambda_delete_account_docs:
       source ./variables-prod
 
       cd lambdas/delete_old_accounts_docs
+      # get eleven-logging-python package
+      aws s3 cp s3://${TEMP_ARTIFACT_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
 
       export AWS_REGION=us-east-1
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
@@ -496,7 +518,7 @@ sqs_consumer_staging:
   # Deploys 'lambdas/sqs_consumer'
   # on one region us-east-1 as its staging
   stage: deploy_ecs_image_staging
-  image: "python:3.10"
+  image: "python:3.12"
   before_script:
     - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
@@ -510,6 +532,7 @@ sqs_consumer_staging:
     - echo "export DPSK_SNS_TOPIC_ARN=$staging_DPSK_SNS_TOPIC_ARN" >> variables-staging
     - echo "export SNS_TOPIC_REGION=$staging_SNS_TOPIC_REGION" >> variables-staging
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$staging_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-staging
+    - echo "export LOG_LEVEL=$staging_LOG_LEVEL" >> variables-staging
   script:
     - |
       source ./variables-staging
@@ -517,6 +540,11 @@ sqs_consumer_staging:
 
       export STACK_NAME=esimport-serverless-us-east-1
       export AWS_REGION=us-east-1
+
+      aws s3 cp s3://esimport-datadog-artifact/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
+
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_WEST $SNS_TOPIC_REGION
   when: manual
   rules:
@@ -524,7 +552,7 @@ sqs_consumer_staging:
 
 sqs_consumer_prod:
   stage: deploy_ecs_image_prod
-  image: "python:3.10"
+  image: "python:3.12"
   before_script:
     - apt-get -y apt-get update && apt-get -y install curl git
     - pip3 --no-cache-dir install awscli aws-sam-cli
@@ -540,10 +568,16 @@ sqs_consumer_prod:
     - echo "export DPSK_SNS_TOPIC_ARN=$prod_DPSK_SNS_TOPIC_ARN" >> variables-prod
     - echo "export SNS_TOPIC_REGION=$prod_SNS_TOPIC_REGION" >> variables-prod
     - echo "export DEPLOYMENT_SERVICE_ROLE_ARN=$prod_DEPLOYMENT_SERVICE_ROLE_ARN" >> variables-prod
+    - echo "export LOG_LEVEL=$prod_LOG_LEVEL" >> variables-prod
   script:
     - |
       source ./variables-prod
       cd lambdas/sqs_consumer
+
+      # get eleven-logging-python package
+      aws s3 cp s3://${TEMP_ARTIFACT_BUCKET_WEST}/eleven-logging-python-1.4.1.tar.gz eleven-logging-python-1.4.1.tar.gz
+      tar -xzvf eleven-logging-python-1.4.1.tar.gz
+      rm -rf eleven-logging-python-1.4.1.tar.gz
 
       # deploy first region us-east-1
       export STACK_NAME=esimport-serverless-us-east-1

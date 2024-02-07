@@ -1,6 +1,7 @@
 import requests
 import os
-import logging
+from eleven_logging import ElevenFormatter, FirehoseHandler, ExecutorLambdaFormat
+import eleven_logging
 from datetime import datetime
 from requests_aws_sign import AWSV4Sign
 from boto3 import session
@@ -13,23 +14,17 @@ from datadog_api_client.v2.model.metric_payload import MetricPayload
 from datadog_api_client.v2.model.metric_intake_type import MetricIntakeType
 
 ES_HOST = os.environ.get("ELASTICSEARCH_HOST", "http://localhost:9200")
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
 DD_API_KEY = os.environ.get("DD_API_KEY",None)
 IDX_NAME = os.environ.get("INDEX_NAME", None)
 AWS_REGION = os.environ.get("AWS_REGION",None)
-
-FORMAT = "[%(levelname)s]\t%(asctime)s.%(msecs)dZ\t%(aws_request_id)s\t%(lineno)s:\t%(message)s\n"
-logger = logging.getLogger("archive_expired_accounts")
-logger.setLevel(LOG_LEVEL)
-
-for handler in logger.handlers:
-    handler.setFormatter(logging.Formatter(FORMAT))
-
 
 def delete_docs_lambda_handler(event, context):
     """
         Lambda handler to start delete operation
     """
+    global logger
+    logger = configure_logger(context)
     if IDX_NAME is None:
         raise Exception('Specify index name with INDEX_NAME env variable')
 
@@ -48,7 +43,7 @@ def delete_docs():
         Start the delete docs operation. We use task api so we don't wait for
         delete operation to complete.
     """
-    logger.info(f"Deleting old account docs")
+    logger.debug(f"Deleting old account docs")
     payload = {
         "query": {
             "bool": {
@@ -133,3 +128,15 @@ def submit_step_machine_metric(value=1):
     response = instance.submit_metrics(body)
     logger.debug(response)
     return response
+
+
+def configure_logger(context):
+    logger = eleven_logging.getLogger("delete_old_docs")
+    logger.setLevel(LOG_LEVEL)
+    eleven_formatter = ElevenFormatter(product="esimport",component="delete_old_docs")
+    eleven_formatter.set_executor_id_generator(ExecutorLambdaFormat(context=context))
+    fh_handler = FirehoseHandler("applog-stream",AWS_REGION)
+
+    fh_handler.setFormatter(eleven_formatter)
+    logger.addHandler(fh_handler)
+    return logger
