@@ -121,7 +121,7 @@ class DPSKSessionSyncer(SyncBase, PropertiesMixin):
                 messages_delete_buffer.append({"Id": message["MessageId"],"ReceiptHandle": message["ReceiptHandle"]})
 
             except Exception as err:
-                self.log(f"err: {err}",logging.WARNING)
+                self.logger.exception(err)
                 traceback.print_exc()
         if messages_delete_buffer:
             self.aws.sqs_delete_messages(self.config.ppk_sqs_queue_url,messages_delete_buffer)
