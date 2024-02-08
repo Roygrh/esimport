@@ -3,11 +3,8 @@ from datetime import datetime
 from os import environ
 from typing import List
 
-import sentry_sdk
-
 # botocore install dateutil as dependency
 from elasticsearch import Elasticsearch
-from sentry_sdk import capture_exception
 
 from esimport_retention_core import get_awsauth, get_old_indices, gen_indices_wildcard
 from esimport_retention_core import get_signed_es
@@ -21,7 +18,6 @@ logger = logging.getLogger(__name__)
 # in months
 ES_RETENTION_POLICY_MONTHS = environ.get("ES_RETENTION_POLICY_MONTHS")
 ES_URLS = environ.get("ES_URLS")
-SENTRY_DSN = environ.get("SENTRY_DSN")
 ES_RETENTION_INDICES_PREFIXES = environ.get("ES_RETENTION_INDICES_PREFIXES")
 SNAPSHOT_REPO_NAME = environ.get("SNAPSHOT_REPO_NAME")
 
@@ -31,9 +27,6 @@ try:
     logger.setLevel(LOG_LEVEL)
 except ValueError as _err:
     logger.setLevel(logging.INFO)
-
-
-sentry_sdk.init(SENTRY_DSN)
 
 
 def remove_old_indices(es: Elasticsearch, old_indices: List[str], repo_name: str):
@@ -52,7 +45,7 @@ def remove_old_indices(es: Elasticsearch, old_indices: List[str], repo_name: str
 def handler():
     try:
         max_age = int(ES_RETENTION_POLICY_MONTHS)
-        for (region, host) in parse_es_urls(ES_URLS):
+        for region, host in parse_es_urls(ES_URLS):
             awsauth = get_awsauth(region, temporary_creds=True)
             es = get_signed_es(host=host, awsauth=awsauth)
 
@@ -64,7 +57,6 @@ def handler():
 
     except Exception as err:
         logger.exception(err)
-        capture_exception(err)
         raise err
 
 

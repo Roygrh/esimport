@@ -8,34 +8,29 @@
 #	<S3 Bucket Name> \
 #	18 \
 #	http://admin:asdf@localhost:9200,http://admin:asdf@localhost:92001 \
-#	<Sentry dsn> \
 #	devices,accounts,sessions \
 #	<Snapshot repo name>
 #	DEBUG
 
-
-if [[ $# -lt 6 ]]
-  then
-    echo "No enough arguments supplied"
-    echo '$1 - CloudFormation stack name'
-    echo '$2 - S3 bucket name to stored deploy file'
-    echo '$3 - Number in months, that represent retention policy'
-    echo '$4 - Urls to ElasticSearch clusters/servers, delimited by commas'
-    echo '$5 - Sentry DSN'
-    echo '$6 - Indices prefixes that will be processed, strings delimited by commas'
-    echo '$7 - Repo name'
-    echo '$7 - Optional, log level'
-    exit
+if [[ $# -lt 6 ]]; then
+  echo "No enough arguments supplied"
+  echo '$1 - CloudFormation stack name'
+  echo '$2 - S3 bucket name to stored deploy file'
+  echo '$3 - Number in months, that represent retention policy'
+  echo '$4 - Urls to ElasticSearch clusters/servers, delimited by commas'
+  echo '$5 - Indices prefixes that will be processed, strings delimited by commas'
+  echo '$6 - Repo name'
+  echo '$7 - Optional, log level'
+  exit
 fi
 
 cf_stack_name=$1
 deploy_s3_bucket=$2 # bucket where archive with lambda code will be uploaded
 retention_policy=$3 # number in months
-es_urls=$4 # ElasticSearch urls delimited by comma
-sentry_dsn=$5
-indices_prefixes=$6
-repo_name=$7
-log_level=$8
+es_urls=$4          # ElasticSearch urls delimited by comma
+indices_prefixes=$5
+repo_name=$6
+log_level=$7
 
 base_package='esimport_retention'
 
@@ -61,12 +56,11 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --stack-name ${cf_stack_name} \
   --template-file $(pwd)/standard-deploy.yaml \
-  --parameter-overrides  \
-    DeployS3Bucket=${deploy_s3_bucket} \
-    LambdaS3Key=${hash}-${base_package}.zip \
-    EsRetentionPolicyMonths=${retention_policy} \
-    EsUrls="${es_urls}" \
-    SentryDsn=${sentry_dsn} \
-    IndicesPrefixes=${indices_prefixes} \
-    RepoName=${repo_name} \
-    LogLevel=${log_level}
+  --parameter-overrides \
+  DeployS3Bucket=${deploy_s3_bucket} \
+  LambdaS3Key=${hash}-${base_package}.zip \
+  EsRetentionPolicyMonths=${retention_policy} \
+  EsUrls="${es_urls}" \
+  IndicesPrefixes=${indices_prefixes} \
+  RepoName=${repo_name} \
+  LogLevel=${log_level}

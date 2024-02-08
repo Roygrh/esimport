@@ -25,7 +25,6 @@ setup(
         "pyodbc==4.0.27",
         "python-dateutil==2.8.1",
         "PyYAML==5.1",
-        "sentry-sdk==1.9.0",
         "redis==4.4.4",
         "requests==2.20.0",
         "urllib3==1.24.2",
@@ -33,7 +32,7 @@ setup(
         "orjson==2.1.1",
         "pydantic==1.0",
         "python-dotenv==0.10.3",
-        "datadog==0.47.0"
+        "datadog==0.47.0",
     ],
     entry_points={"console_scripts": ["esimport = esimport:cli"]},
 )

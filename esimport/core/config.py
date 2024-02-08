@@ -87,9 +87,6 @@ class Config(BaseSettings):
     ppk_sqs_queue_url: str = None
     ppk_dlq_queue_url: str = None
 
-    # Sentry/Error Reporting
-    sentry_dsn: str = ""
-
     # Logging
     log_level: str = "INFO"
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

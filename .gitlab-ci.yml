@@ -194,7 +194,6 @@ deploy_esc_staging:
     - echo "export PPK_DLQ_QUEUE_ARN=$staging_PPK_DLQ_QUEUE_ARN" >> variables-staging
     - echo "export REDIS_HOST=$staging_REDIS_HOST" >> variables-staging
     - echo "export REDIS_PORT=$staging_REDIS_PORT" >> variables-staging
-    - echo "export SENTRY_DSN=$staging_SENTRY_DSN" >> variables-staging
     - echo "export SNS_TOPIC_ARN=$staging_SNS_TOPIC_ARN" >> variables-staging
 
     # ssh-key
@@ -263,7 +262,6 @@ deploy_esc_prod:
     - echo "export PPK_DLQ_QUEUE_ARN=$prod_PPK_DLQ_QUEUE_ARN" >> variables-prod
     - echo "export REDIS_HOST=$prod_REDIS_HOST" >> variables-prod
     - echo "export REDIS_PORT=$prod_REDIS_PORT" >> variables-prod
-    - echo "export SENTRY_DSN=$prod_SENTRY_DSN" >> variables-prod
     - echo "export SNS_TOPIC_ARN=$prod_SNS_TOPIC_ARN" >> variables-prod
 
     # ssh-key
@@ -440,7 +438,6 @@ esimport_datadog_deploy:
 #       <S3 Bucket Name, to store lambda function code> \
 #       <Retention policy in months> \
 #       <ES endpoints/urls, comma separated strings> \
-#       <Sentry dsn> \
 #       <Indices prefixes, comma separated strings> \
 #       <Snapshot repo name>
 #       <Desired LOGLEVEl>
