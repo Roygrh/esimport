@@ -714,8 +714,6 @@ Resources:
               Value: !Ref MssqlPassword
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
-            - Name: SENTRY_DSN
-              Value: !Ref SentryDSN
             - Name: PPK_SQS_QUEUE_URL
               Value: !Ref PpkSqsQueueURL
             - Name: PPK_DLQ_QUEUE_URL
