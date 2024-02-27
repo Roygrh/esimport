@@ -71,7 +71,7 @@ class PropertiesMixin:
             self.debug(f"Parent org key: {parent_org_key}")
             return self.cache_client.get(parent_org_key)
         else:
-            self.info(f"Fetching record from DB for Service Area: {service_area}.")
+            self.debug(f"Fetching record from DB for Service Area: {service_area}.")
             parent_org = self._get_property_by_service_area_org_number(service_area)
 
             # Set the property in the cache. If the object is null, then this will create a key

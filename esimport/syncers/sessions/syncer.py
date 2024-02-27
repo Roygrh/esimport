@@ -105,12 +105,12 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
         switch_to_historical = minutes_behind >= 60
 
         if switch_to_historical and not was_historical:
-            self.info(
+            self.debug(
                 f"Switching to use the historical session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
             )
 
         if not switch_to_historical and was_historical:
-            self.info(
+            self.debug(
                 f"Switching to use the real-time session data source. Record Count: {count}, Minutes Behind: {minutes_behind}"
             )
 
@@ -141,21 +141,21 @@ class SessionsSyncer(SyncBase, PropertiesMixin):
                 # Do something when nothing happens for more than `self.db_sessions_gap_in_seconds`
                 potential_gap_wait_time = int(time.time() - no_data_init_time)
                 if potential_gap_wait_time >= self.db_sessions_gap_in_seconds:
-                    self.info(
+                    self.debug(
                         f"No data received for more than {self.db_sessions_gap_in_seconds} seconds"
                     )
                     orig_max_id = self.max_id()
-                    self.info(f"Last known ID is: {orig_max_id}")
+                    self.debug(f"Last known ID is: {orig_max_id}")
                     new_max_id = self._get_db_max_id()
-                    self.info(f"DB max ID is now at: {new_max_id}")
+                    self.debug(f"DB max ID is now at: {new_max_id}")
                     if new_max_id > next_id_to_process:
                         gap = new_max_id - orig_max_id
-                        self.info(f"Detected a gap of {gap} records")
-                        self.info(
+                        self.debug(f"Detected a gap of {gap} records")
+                        self.debug(
                             f"Shifting next start ID by the gap value of {self.default_query_limit}"
                         )
                         next_id_to_process += self.default_query_limit
-                        self.info(f"Next start ID is {next_id_to_process}")
+                        self.debug(f"Next start ID is {next_id_to_process}")
                         continue
 
                 wait = self.db_wait
