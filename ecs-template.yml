@@ -881,7 +881,7 @@ Resources:
                 - ssm:GetParameter
                 - ssm:GetParameters
                 - ssm:GetParametersByPath
-                Resource: !Sub "arn:aws:ssm:region:account-id:parameter${MssqlParameterName}"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${MssqlParameterName}"
               - Effect: Allow
                 Action:
                 - kms:Decrypt
