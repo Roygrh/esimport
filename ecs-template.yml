@@ -42,6 +42,10 @@ Parameters:
     Type: String
     NoEcho: "true"
     Description: MssqlPassword
+  MssqlParameterName:
+    Type: String
+    NoEcho: "true"
+    Description: Name of SSM parameter that we fetch password
   SnsTopicArn:
     Type: String
     Description: SnsTopicArn
@@ -396,6 +400,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -442,6 +448,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -487,6 +495,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -532,6 +542,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -577,6 +589,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -622,6 +636,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -667,6 +683,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
@@ -712,6 +730,8 @@ Resources:
               Value: !Ref MssqlUser
             - Name: MSSQL_PASSWORD
               Value: !Ref MssqlPassword
+            - Name: MSSQL_PARAMETER_NAME
+              Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
               Value: !Ref SnsTopicArn
             - Name: PPK_SQS_QUEUE_URL
