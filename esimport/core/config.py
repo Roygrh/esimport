@@ -1,6 +1,5 @@
 import os
 from typing import Union
-from functools import cached_property
 
 from pydantic import BaseModel, BaseSettings, Field, Schema
 import boto3
@@ -104,7 +103,7 @@ class Config(BaseSettings):
     datadog_api_key: str
     datadog_env: str
 
-    @cached_property
+    @property
     def database_info(self):
         try:
             mssql_psswd = self.fetch_mssql_password()
