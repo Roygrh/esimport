@@ -131,9 +131,8 @@ class Config(BaseSettings):
         # param store has the whole connection string, so parse it
         # to get password. conn string example: "UserID=esimport;Password=REDACTED;"
         conn_str = response['Parameter']['Value'].split(";")
-        params_list = conn_str.split(";")
         parsed = {}
-        for param in params_list:
+        for param in conn_str:
             key, value = param.split("=", 1)
             parsed[key.strip()] = value.strip()
         return parsed["Password"]
