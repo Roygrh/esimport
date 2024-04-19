@@ -38,10 +38,6 @@ Parameters:
   MssqlUser:
     Type: String
     Description: MssqlUser
-  MssqlPassword:
-    Type: String
-    NoEcho: "true"
-    Description: MssqlPassword
   MssqlParameterName:
     Type: String
     NoEcho: "true"
@@ -398,8 +394,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -446,8 +440,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -493,8 +485,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -540,8 +530,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -587,8 +575,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -634,8 +620,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -681,8 +665,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN
@@ -728,8 +710,6 @@ Resources:
               Value: !Ref MssqlHost
             - Name: MSSQL_USER
               Value: !Ref MssqlUser
-            - Name: MSSQL_PASSWORD
-              Value: !Ref MssqlPassword
             - Name: MSSQL_PARAMETER_NAME
               Value: !Ref MssqlParameterName
             - Name: SNS_TOPIC_ARN

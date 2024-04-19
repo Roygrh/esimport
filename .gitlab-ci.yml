@@ -187,7 +187,6 @@ deploy_esc_staging:
     # is used in odbc.ini file
     - echo "export MSSQL_HOST=$staging_MSSQL_HOST" >> variables-staging
     - echo "export MSSQL_USER=$staging_MSSQL_USER" >> variables-staging
-    - echo "export MSSQL_PASSWORD=$staging_MSSQL_PASSWORD" >> variables-staging
     - echo "export MSSQL_PARAMETER_NAME=$staging_MSSQL_PARAMETER_NAME" >> variables-staging
     - echo "export PPK_SQS_QUEUE_URL=$staging_PPK_SQS_QUEUE_URL" >> variables-staging
     - echo "export PPK_SQS_QUEUE_ARN=$staging_PPK_SQS_QUEUE_ARN" >> variables-staging
@@ -256,7 +255,6 @@ deploy_esc_prod:
     # is used in odbc.ini file
     - echo "export MSSQL_HOST=$prod_MSSQL_HOST" >> variables-prod
     - echo "export MSSQL_USER=$prod_MSSQL_USER" >> variables-prod
-    - echo "export MSSQL_PASSWORD=$prod_MSSQL_PASSWORD" >> variables-prod
     - echo "export MSSQL_PARAMETER_NAME=$prod_MSSQL_PARAMETER_NAME" >> variables-prod
     - echo "export PPK_SQS_QUEUE_URL=$prod_PPK_SQS_QUEUE_URL" >> variables-prod
     - echo "export PPK_SQS_QUEUE_ARN=$prod_PPK_SQS_QUEUE_ARN" >> variables-prod
