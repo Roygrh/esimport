@@ -34,7 +34,7 @@ aws cloudformation deploy \
     MSSQLDSN=$MSSQL_DSN \
     MssqlHost=$MSSQL_HOST \
     MssqlUser=$MSSQL_USER \
-    MssqlPassword=$MSSQL_PASSWORD \
+    MssqlParameterName=$MSSQL_PARAMETER_NAME \
     DatabaseCallsWaitInSeconds=$DATABASE_CALLS_WAIT_IN_SECONDS \
     DatabaseQueryTimeout=$DATABASE_QUERY_TIMEOUT \
     LogLevel=$LOG_LEVEL \

@@ -2,7 +2,7 @@ import os
 from typing import Union
 
 from pydantic import BaseModel, BaseSettings, Field, Schema
-
+import boto3
 
 class Config(BaseSettings):
     """
@@ -15,7 +15,7 @@ class Config(BaseSettings):
     """
 
     # The MSSQL DB credentials, host, port ..etc as a dictionnary.
-
+    mssql_parameter_name: str
     mssql_host: str
     mssql_port: int = 1433
     mssql_password: str = ""
@@ -105,14 +105,37 @@ class Config(BaseSettings):
 
     @property
     def database_info(self):
+        try:
+            mssql_psswd = self.fetch_mssql_password()
+        except:
+            raise Exception("error fetching mssql password")
         return {
             "DSN": "Eleven_OS" if self.inside_docker else self.dsn,
             "HOST": self.mssql_host,
             "PORT": self.mssql_port,
             "NAME": self.mssql_db_mame,
             "USER": self.mssql_user,
-            "PASSWORD": self.mssql_password,
+            "PASSWORD": mssql_psswd,
         }
+    
+    def fetch_mssql_password(self):
+        # if this is local dev env
+        if self.mssql_password:
+            return self.mssql_password
+        # else fetch password from parameter store
+        client = boto3.client('ssm')
+        response = client.get_parameter(
+                    Name=self.mssql_parameter_name,
+                    WithDecryption=True
+                    )
+        # param store has the whole connection string, so parse it
+        # to get password. conn string example: "UserID=esimport;Password=REDACTED;"
+        conn_str = response['Parameter']['Value'].split(";")
+        parsed = {}
+        for param in conn_str:
+            key, value = param.split("=", 1)
+            parsed[key.strip()] = value.strip()
+        return parsed["Password"]
 
     class Config:
         case_sensitive = False
