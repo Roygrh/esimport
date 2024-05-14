@@ -108,10 +108,13 @@ class SyncBase(abc.ABC):
 
     def flushed(self, no_of_records):
         # send to datadog
-        datadog.api.Metric.send(
-            metric=self.record_type.title() + "CountToBeImportedFromSql",
-            points=no_of_records,
-        )
+        try:
+            datadog.api.Metric.send(
+                metric=self.record_type.title() + "CountToBeImportedFromSql",
+                points=no_of_records,
+            )
+        except Exception as e:
+            self.logger.error(e)
 
     @abc.abstractmethod
     def sync(self, star_date: datetime = None):
