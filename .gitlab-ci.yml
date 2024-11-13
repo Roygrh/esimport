@@ -28,13 +28,13 @@ before_script:
   - docker info
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
-build_base_image:
- stage: build
- script:
-   - docker build -t $IMAGE_TAG -f base.Dockerfile .
-   - docker push $IMAGE_TAG
- only:
-   - base
+#build_base_image:
+#  stage: build
+#  script:
+#    - docker build -t $IMAGE_TAG -f base.Dockerfile .
+#    - docker push $IMAGE_TAG
+#  only:
+#    - base
 
 build_ecs_image_dev:
   stage: build_ecs_image
