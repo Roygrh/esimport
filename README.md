@@ -68,7 +68,7 @@ $ esimport sync sessions --start-date 2020-01-01
 
 ## How to run tests?
 
-TODO
+After running make shell, run 'pytest'.
 
 
 ## Troubleshooting
