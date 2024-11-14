@@ -32,6 +32,7 @@ setup(
         "boto3==1.35.59",
         "orjson==3.10.11",
         "pydantic==2.9.2",
+        "pydantic-settings==2.6.1",
         "python-dotenv==1.0.1",
         "datadog==0.50.1",
     ],

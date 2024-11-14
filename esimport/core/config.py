@@ -1,7 +1,8 @@
 import os
 from typing import Union
 
-from pydantic import BaseModel, BaseSettings, Field, Schema
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings
 import boto3
 
 class Config(BaseSettings):
