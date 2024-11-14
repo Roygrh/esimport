@@ -68,7 +68,9 @@ $ esimport sync sessions --start-date 2020-01-01
 
 ## How to run tests?
 
-After running make shell, run 'pytest'.
+If you want to test against a local base.Dockerfile, build that, then update dev.Dockerfile to reference this instead of registry.gitlab.com/distrodev/esimport:base
+
+Run `make test`
 
 
 ## Troubleshooting
