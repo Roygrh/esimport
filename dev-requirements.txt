@@ -1,14 +1,14 @@
-click==7.0
+click==8.1.7
 chardet==5.2.0
 hiredis==3.0.0
 pyodbc==5.2.0
-python-dateutil==2.8.1
-redis==4.4.4
+python-dateutil==2.9.0.post0
+redis==5.2.0
 requests==2.32.3
 urllib3==2.2.3
 orjson==3.10.11
-pydantic==1.0
-python-dotenv==0.10.3
+pydantic==2.9.2
+python-dotenv==1.0.1
 # tests
 coverage==4.3.4
 mock==2.0.0
@@ -17,4 +17,4 @@ pytest-cov==2.4.0
 tox==4.23.2
 boto3==1.35.59
 # alerting
-datadog
+datadog==0.50.1
