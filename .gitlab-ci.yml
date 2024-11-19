@@ -30,13 +30,16 @@ before_script:
 
 build_base_image:
   stage: build_base_image
+  variables:
+    DOCKER_DRIVER: overlay
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:base
   image:
     name: docker:latest
   before_script:
     - echo "building base image"
   script:
     - echo $IMAGE_TAG
-    #- docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $IMAGE_TAG -f base.Dockerfile .
     - docker push $IMAGE_TAG
 
