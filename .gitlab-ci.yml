@@ -5,10 +5,10 @@ services:
 
 stages:
   # - esimport_retention
-  - build
   - testing
   #  - staging_deploy
   - production_deploy
+  - build_base_image
   - build_ecs_image
   - deploy_ecs_image_staging
   - deploy_ecs_image_prod
@@ -29,12 +29,13 @@ before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 build_base_image:
- stage: build
- script:
-   - docker build -t $IMAGE_TAG -f base.Dockerfile .
-   - docker push $IMAGE_TAG
- only:
-   - base
+  stage: build_base_image
+  script:
+    - docker build -t $IMAGE_TAG -f base.Dockerfile .
+    - docker push $IMAGE_TAG
+  only:
+    - base
+  when: manual
 
 build_ecs_image_dev:
   stage: build_ecs_image
