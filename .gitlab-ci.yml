@@ -30,6 +30,8 @@ before_script:
 
 build_base_image:
   stage: build_base_image
+  image:
+    name: docker:latest
   script:
     - docker build -t $IMAGE_TAG -f base.Dockerfile .
     - docker push $IMAGE_TAG
