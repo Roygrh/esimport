@@ -172,7 +172,10 @@ class SyncBase(abc.ABC):
         )
 
     def max_id(self):
-        return self.last_inserted_cursor_state["Item"].get("latest_id", 0)
+        item = self.last_inserted_cursor_state.get("Item")
+        if not item:
+            return 0
+        return item.get("latest_id", 0)
 
     def latest_date(self) -> datetime:
         dt_str = self.last_inserted_cursor_state["Item"].get(
