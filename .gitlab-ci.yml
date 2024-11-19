@@ -37,7 +37,6 @@ build_base_image:
   script:
     - docker build -t $IMAGE_TAG -f base.Dockerfile .
     - docker push $IMAGE_TAG
-  when: manual
 
 build_ecs_image_dev:
   stage: build_ecs_image
