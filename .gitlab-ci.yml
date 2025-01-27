@@ -385,16 +385,16 @@ esimport_datadog_deploy:
       us-west-2
       ${PROD_ROLE_ARN}
       ${DEPLOYMENT_SERVICE_ROLE_ARN}
-    # EAST deploy
-    - bash ./deploy.sh
-      esimport-datadog-monitor-us-east-1
-      ${PROD_LAMBDA_S3_BUCKET_EAST}
-      ${PROD_DATADOG_LOOKBACK_X_MINUTES}
-      ${PROD_ES_CLUSTER_EAST}
-      ${PROD_DATADOG_API_KEY}
-      us-east-1
-      ${PROD_ROLE_ARN}
-      ${DEPLOYMENT_SERVICE_ROLE_ARN}
+    # EAST deploy (JDC 1/7/25 - commented out as we are not deploying to east)
+    # - bash ./deploy.sh
+    #   esimport-datadog-monitor-us-east-1
+    #   ${PROD_LAMBDA_S3_BUCKET_EAST}
+    #   ${PROD_DATADOG_LOOKBACK_X_MINUTES}
+    #   ${PROD_ES_CLUSTER_EAST}
+    #   ${PROD_DATADOG_API_KEY}
+    #   us-east-1
+    #   ${PROD_ROLE_ARN}
+    #   ${DEPLOYMENT_SERVICE_ROLE_ARN}
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
@@ -506,8 +506,10 @@ lambda_delete_account_docs:
       tar -xzvf eleven-logging-python-1.4.1.tar.gz
       rm -rf eleven-logging-python-1.4.1.tar.gz
 
-      export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
+      # JDC 1/7/25 - commented out as we are not deploying to east
+      # export AWS_REGION=us-east-1
+      # bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $ES_HOST_EAST $DD_API_KEY
+
       export AWS_REGION=us-west-2
       bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_WEST $ES_HOST_WEST $DD_API_KEY
   when: manual
@@ -579,10 +581,10 @@ sqs_consumer_prod:
       tar -xzvf eleven-logging-python-1.4.1.tar.gz
       rm -rf eleven-logging-python-1.4.1.tar.gz
 
-      # deploy first region us-east-1
-      export STACK_NAME=esimport-serverless-us-east-1
-      export AWS_REGION=us-east-1
-      bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SNS_TOPIC_REGION
+      # deploy first region us-east-1 (JDC 1/7/25 - commented out as we are not deploying to east)
+      # export STACK_NAME=esimport-serverless-us-east-1
+      # export AWS_REGION=us-east-1
+      # bash ./deploy.sh $TEMP_ARTIFACT_BUCKET_EAST $LAMBDA_ROLE_ARN $SNS_TOPIC_ARN $DPSK_SNS_TOPIC_ARN $ES_HOST_EAST $SNS_TOPIC_REGION
 
       # us-west-2 
       export STACK_NAME=esimport-serverless-us-west-2

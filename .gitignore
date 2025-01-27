@@ -114,3 +114,6 @@ tempDSN
 
 # AWS SAM packaged.yaml files
 lambdas/*/packaged.yaml
+
+obj/
+.vs/
