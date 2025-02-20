@@ -17,8 +17,12 @@ class Record:
     def id(self) -> int:
         # The ID of the document for Elasticsearch (same as its MSSQL ID)
         # for DPSK (PPK) records, they have a non-integer ID, stored in RECORD_ID field instead.
+        # for RADIUS_EVENT_HISTORY records, the ID is stored in RADIUS_EVENT_ID field.
+        # for RADUIS_EVENT records, the ID is stored in ID field.
         if self._source.get("ID", None):
             return int(self._source["ID"])
+        if self._source.get("Radius_Event_ID")
+            return int(self._source["Radius_Event_ID"])
         return self._source.get("RECORD_ID")
 
     @property
