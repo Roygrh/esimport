@@ -24,16 +24,15 @@ class Record:
     @property
     def version(self) -> int:
         # The document version
-        # if `self._date` does not have timezone information then `timestamp()` method will treat datetime
-        # object as if it's in local timezone. If OS timezone will not be set to UTC it may lead to unexpected
-        # results. It is an edge case, but explicitly configuring timezone will give stable results.
-        # If timezone info does not get parsed then we assume date is in UTC.
-        if self._date.tzinfo is None:
-            self._date.replace(tzinfo=timezone.utc)
 
         # We need microsecond precision because documents can be changed many times during one second period
         # and for each change we need a new version number
-        return int(self._date.timestamp() * 1000000)
+        # document _date(LogoutTime) is DATETIME, so only has 3.33ms precision. microsecond will be 0 for most of the cases. 
+        # using the date timestamp will not give us the microsecond precision we need. So we need to use the current 
+        # timestamp instead. It has higher precision, and is  guaranteed to increase for each new record, as long as 
+        # the records are not created in the same microsecond.
+        #return int(self._date.timestamp() * 1000000)
+        return int(datetime.now(timezone.utc).timestamp() * 1000000)
 
     @property
     def raw(self):
