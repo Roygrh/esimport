@@ -40,7 +40,9 @@ def index(event):
 
     try:
         es = get_es_instance()
-        helpers.bulk(es, records, request_timeout=30, raise_on_error=False, ignore_status=[409])
+        #replace with the following line to enable the bulk indexing while ignoring the version conflicts
+        #helpers.bulk(es, records, request_timeout=30, raise_on_error=False, ignore_status=(409,))
+        helpers.bulk(es, records, request_timeout=30)
     except helpers.BulkIndexError as bie:
         number_of_errors = len(bie.errors)
         conflict_errors = 0
