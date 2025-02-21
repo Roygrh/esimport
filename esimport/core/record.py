@@ -21,7 +21,7 @@ class Record:
         # for RADUIS_EVENT records, the ID is stored in ID field.
         if self._source.get("ID", None):
             return int(self._source["ID"])
-        if self._source.get("Radius_Event_ID")
+        if self._source.get("Radius_Event_ID", None):
             return int(self._source["Radius_Event_ID"])
         return self._source.get("RECORD_ID")
 
