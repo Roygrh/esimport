@@ -313,11 +313,6 @@ Resources:
             echo "Updating dependencies"
             yum update -y python-jinja2 amazon-ssm-agent containerd bind-export-libs python3 python-libs python3-libs python-devel || echo "yum update failed, continuing"
 
-            # Explicitly restart services to ensure they are running the updated version
-            echo "Restarting services"
-            systemctl restart amazon-ssm-agent || echo "Failed to restart amazon-ssm-agent, continuing"
-            systemctl restart containerd || echo "Failed to restart containerd, continuing"
-
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EcsClusterDefaultASG --region ${AWS::Region}
 
     DependsOn:
