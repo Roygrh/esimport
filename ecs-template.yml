@@ -3,7 +3,7 @@ Description: ESImportECS
 Parameters:
   ImageId:
     Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
-    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/kernel-5.15/recommended/image_id
   ESImportImage:
     Type: String
     Description: Full docker container image name
