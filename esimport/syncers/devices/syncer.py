@@ -1,8 +1,11 @@
+import os
 import time
 from datetime import datetime, timezone
 from typing import Generator
 
 from esimport.core import PropertiesMixin, Record, SyncBase
+
+from esimport.es_client import to_bulk_action, send_to_es
 
 from ._queries import GET_DEVICES_ANCESTOR_ORG_NUMBER_TREE_QUERY, GET_DEVICES_QUERY
 from ._schema import DeviceSchema
@@ -30,6 +33,14 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
     dates_from_pacific = {"Date": "DateUTC"}
 
     dates_to_localize = (("DateUTC", "DateLocal"),)
+
+    # Feature flag to switch between SQL and DynamoDB sources
+    USE_DDB_DEVICES = os.getenv("USE_DDB_DEVICES", "false").lower() == "true"
+
+    if USE_DDB_DEVICES:
+        from .ddb_syncer import DeviceDdbSyncer as Syncer
+    else:
+        from .sql_syncer import DeviceSqlSyncer as Syncer
 
     def process_devices_from_id(self, next_id: int, start_date: datetime) -> (int, int):
         count = 0
@@ -106,3 +117,19 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
                 _source=device,
                 _date=record_date,
             )
+
+    def run_device_sync(start_dt: str, end_dt: str, limit: int = 1000):
+        """
+        Main entry point for device sync:
+        chooses SQL or DynamoDB syncer based on environment flag,
+        collects records, and sends them to Elasticsearch.
+        """
+        syncer = Syncer()
+        bulk_actions = []
+
+        for record in syncer.fetch(start_dt, end_dt, limit):
+            action, doc = to_bulk_action(record)
+            bulk_actions.extend([action, doc])
+
+        if bulk_actions:
+            send_to_es(bulk_actions)
