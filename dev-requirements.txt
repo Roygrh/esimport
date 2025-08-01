@@ -17,5 +17,6 @@ pytest==8.3.3
 pytest-cov==2.4.0
 tox==4.23.2
 boto3==1.35.59
+moto>=4.0.0
 # alerting
 datadog==0.50.1
