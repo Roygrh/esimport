@@ -1,18 +1,17 @@
 import os
 import boto3
 from boto3.dynamodb.conditions import Attr
+from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION
 from ._schema import Device
 
-# DynamoDB table name from environment
-TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME", "client-tracking-data")
 
 class DeviceDdbSyncer:
     """
     Fetch device records from DynamoDB by scanning and filtering on DateUTC.
     """
     def __init__(self):
-        dynamodb = boto3.resource("dynamodb")
-        self.table = dynamodb.Table(TABLE_NAME)
+        dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+        self.table = dynamodb.Table(DYNAMODB_TABLE_NAME)
 
     def fetch(self, start_dt: str, end_dt: str, limit: int = 1000):
         """
