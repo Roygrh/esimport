@@ -1,6 +1,7 @@
 import os
 import boto3
 import pytest
+
 from moto import mock_dynamodb2
 
 from esimport.syncers.devices.ddb_syncer import DeviceDdbSyncer, TABLE_NAME
@@ -8,10 +9,10 @@ from esimport.syncers.devices._schema import Device
 
 @mock_dynamodb2
 def test_fetch_single_item(monkeypatch):
-    # 1) Preparar tabla mock
+    # 1) Prepare mock table
     region = "us-east-1"
     os.environ["DYNAMODB_TABLE_NAME"] = "client-tracking-data"
-    # Crear tabla con solo HASH key "ID"
+    # Create table with only HASH key "ID"
     ddb = boto3.resource("dynamodb", region_name=region)
     ddb.create_table(
         TableName=TABLE_NAME,
@@ -21,7 +22,7 @@ def test_fetch_single_item(monkeypatch):
     )
     table = ddb.Table(TABLE_NAME)
 
-    # 2) Insertar un ítem dentro del rango
+    # 2) Insert an item within the range
     item = {
         "ID": "abc123",
         "DateUTC": "2025-07-01T12:00:00Z",
@@ -31,7 +32,7 @@ def test_fetch_single_item(monkeypatch):
     }
     table.put_item(Item=item)
 
-    # 3) Ejecutar fetch y comprobar
+    # 3) Run fetch and check
     syncer = DeviceDdbSyncer()
     results = list(syncer.fetch("2025-07-01T00:00:00Z", "2025-07-02T00:00:00Z", limit=10))
 
@@ -40,7 +41,7 @@ def test_fetch_single_item(monkeypatch):
     assert isinstance(device, Device)
     assert device.MAC == "AA:BB:CC:DD"
     assert device.Date == "2025-07-01T12:00:00Z"
-    assert device.id is None  # debe ser None para dejar que ES genere el _id
+    assert device.id is None  # should be None to let ES generate the _id
 
 @mock_dynamodb2
 def test_fetch_pagination(monkeypatch):
@@ -55,7 +56,7 @@ def test_fetch_pagination(monkeypatch):
         BillingMode="PAY_PER_REQUEST"
     )
 
-    # Insertar varios ítems (> limit)
+    # Insert multiple items (> limit)
     for i in range(15):
         table.put_item(Item={
             "ID": f"id-{i}",
@@ -64,9 +65,9 @@ def test_fetch_pagination(monkeypatch):
             "MAC": f"AA:BB:CC:{i:02X}"
         })
 
-    # Monkeypatch para forzar limit=5
+    # Monkeypatch to force limit=5
     syncer = DeviceDdbSyncer()
     results = list(syncer.fetch("2025-07-01T00:00:00Z", "2025-07-02T00:00:00Z", limit=5))
-    # Debería devolver 15 items en total, a pesar del limit interno por página
+    # Should return 15 items in total, despite the internal limit per page
     assert len(results) == 15
 

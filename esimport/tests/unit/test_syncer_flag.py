@@ -10,7 +10,7 @@ class DummySyncer:
 
 @pytest.fixture(autouse=True)
 def patch_sql_and_ddb(monkeypatch):
-    # Placeholder syncers para detectar cuál se invoca
+    # Placeholder syncers to detect which one is invoked
     monkeypatch.setenv("USE_DDB_DEVICES", "false")
     import esimport.syncers.devices.syncer as mod
     monkeypatch.setattr(mod, "DeviceSqlSyncer", lambda: DummySyncer())
@@ -18,18 +18,18 @@ def patch_sql_and_ddb(monkeypatch):
     return mod
 
 def test_sql_path(monkeypatch, capsys):
-    # Flag en false → debe usar SQL
+    # Flag to false → must use SQL
     monkeypatch.setenv("USE_DDB_DEVICES", "false")
     run_device_sync("a","b",limit=1)
-    # No excepciones: pasa por SQL syncer
+    # No exceptions: go through SQL syncer
 
 def test_ddb_path(monkeypatch):
-    # Flag en true → debe usar DDB
+    # Flag to true → must use DDB
     monkeypatch.setenv("USE_DDB_DEVICES", "true")
     import importlib
     import esimport.syncers.devices.syncer as mod
     importlib.reload(mod)
-    # Reemplazar DdbSyncer por DummySyncer
+    # Replace DdbSyncer with DummySyncer
     mod.DeviceDdbSyncer = lambda: DummySyncer()
     run_device_sync("a","b",limit=1)
-    # No excepciones: pasa por DDB syncer
+    # No exceptions: go through DDB syncer
