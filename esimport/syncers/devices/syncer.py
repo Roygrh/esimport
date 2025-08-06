@@ -10,11 +10,11 @@ from esimport.config import USE_DDB_DEVICES
 from ._queries import GET_DEVICES_ANCESTOR_ORG_NUMBER_TREE_QUERY, GET_DEVICES_QUERY
 from ._schema import DeviceSchema
 
+from .ddb_syncer import DeviceDdbSyncer
+from .sql_syncer import DeviceSqlSyncer
+
 # Feature‐flag driven import: SQL or DynamoDB syncer
-if USE_DDB_DEVICES:
-        from .ddb_syncer import DeviceDdbSyncer as Syncer
-    else:
-        from .sql_syncer import DeviceSqlSyncer as Syncer
+Syncer = DeviceDdbSyncer if USE_DDB_DEVICES else DeviceSqlSyncer
 
 class DeviceSyncer(SyncBase, PropertiesMixin):
 
@@ -75,32 +75,21 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
                 time.sleep(self.db_wait)
                 timer_start = time.time()  # reset timer
 
-    def get_devices(self, start, limit, start_date="1900-01-01"):
-
+    def get_devices(self, start: int, limit: int, start_date: str = "1900-01-01") -> Generator[Record, None, None]:
         for device in self.fetch_rows_as_dict(
             GET_DEVICES_QUERY, limit, start, start_date
         ):
-            for key in list(device.keys()):
-                if isinstance(device[key], datetime):
+            for key, value in list(device.items()):
+                if isinstance(value, datetime):
                     if key in self.dates_from_pacific:
-                        device[
-                            self.dates_from_pacific[key]
-                        ] = self.convert_pacific_to_utc(
-                            self.set_pacific_timezone(device[key])
+                        device[self.dates_from_pacific[key]] = self.convert_pacific_to_utc(
+                            self.set_pacific_timezone(value)
                         )
-                        # As there's no `Date` field in ElevenAPI's Device model
                         del device[key]
                     else:
-                        device[key] = self.set_utc_timezone(device[key])
+                        device[key] = self.set_utc_timezone(value)
 
-            org_number_tree = []
-
-            # FIXME: this is very slow, causing the devices records to stay way behind on PROD
-            # find a better way to attach the org_number tree for devices. this must NOT be done for EACH device!
-            # org_number_tree_query = self.query_get_org_number_tree()
-            # for org in list(self.fetch(org_number_tree_query, row['ID'])):
-            #     org_number_tree.append(org[0])
-            device["AncestorOrgNumberTree"] = org_number_tree
+            device["AncestorOrgNumberTree"] = []
 
             record_date = device[self.record_date_fieldname]
             yield Record(
@@ -113,15 +102,14 @@ class DeviceSyncer(SyncBase, PropertiesMixin):
 def run_device_sync(start_dt: str, end_dt: str, limit: int = 1000):
     """
     Main entry point for device sync:
-    chooses SQL or DynamoDB syncer based on environment flag,
-    collects records, and sends them to Elasticsearch.
+    chooses SQL or DynamoDB syncer based on env flag,
+    collects records, and publishes to SNS for ES indexing.
     """
     syncer = Syncer()
-    bulk_actions = []
+    batch = []
 
     for record in syncer.fetch(start_dt, end_dt, limit):
-        action, doc = to_bulk_action(record)
-        bulk_actions.extend([action, doc])
+        batch.append(record)
 
-    if bulk_actions:
-        send_to_es(bulk_actions)
+    if batch:
+        publish_batch(batch)
