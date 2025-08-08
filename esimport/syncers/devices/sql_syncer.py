@@ -1,7 +1,7 @@
 import os
 import pyodbc
 from ._queries import GET_ALL_DEVICES, GET_DEVICES_UPDATED_AFTER
-from ._schema import Device
+from ._schema import DeviceSchema as Device
 
 class DeviceSqlSyncer:
     """

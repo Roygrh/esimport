@@ -4,26 +4,38 @@ from esimport.core import BaseSchema
 
 
 class DeviceSchema(BaseSchema):
-    ID: int
 
-    ServiceArea: str
-    ZoneType: str
-    UserName: str
-    Name: str
-    MemberNumber: str
-    NasIdentifier: str
-    CalledStation: str
-    VLAN: str
-    MacAddress: str
+    DateUTC: datetime
+    IP: str
+    MAC: str
+    UserAgentRaw: str
 
-    LoginTime: datetime.datetime
-    LogoutTime: datetime.datetime
+    DeviceId: str | None = None
+    PlatformId: str | None = None
+    BrowserId: str | None = None
 
-    SessionID: str
-    SessionLength: str
+    # (Optional) names if you choose to resolve them:
+    #Device: str | None = None
+    #Platform: str | None = None
+    #Browser: str | None = None
+    #MemberName: str | None = None
 
-    BytesOut: int
-    BytesIn: int
+    Username: str | None = None
+    MemberID: int | str | None = None
+    MemberNumber: str | None = None
+    ServiceArea: str | None = None
+    ZoneType: str | None = None
 
-    TerminationReason: str
-    ServicePlan: str
+    # Extra event fields:
+    Origin: str | None = None
+    Scope: str | None = None
+    GpnsEnabled: bool | None = None
+    SchemaName: str | None = None
+    SchemaVersion: str | None = None
+    Subject: str | None = None
+    ChangeType: str | None = None
+    AuthMethod: str | None = None
+    ZonePlanName: str | None = None
+    CurrencyCode: str | None = None
+    Price: float | None = None
+    TimeZoneId: str | None = None

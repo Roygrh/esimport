@@ -2,7 +2,8 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Attr
 from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION
-from ._schema import Device
+from ._schema import DeviceSchema as Device
+from esimport.config import Config
 
 
 class DeviceDdbSyncer:
@@ -10,46 +11,73 @@ class DeviceDdbSyncer:
     Fetch device records from DynamoDB by scanning and filtering on DateUTC.
     """
     def __init__(self):
-        dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
-        self.table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+        cfg = Config()
+        dynamodb = boto3.resource("dynamodb", region_name=cfg.aws_region)
+        self.table = dynamodb.Table(cfg.dynamodb_table_name)
+        self.query_limit = cfg.ddb_query_limit
 
-    def fetch(self, start_dt: str, end_dt: str, limit: int = 1000):
+    def fetch_from_ddb(self, start_dt: datetime, end_dt: datetime):
         """
         Scan the DynamoDB table for items where DateUTC is between start_dt and end_dt.
         Paginates automatically using LastEvaluatedKey.
         """
+        # Convert datetimes to ISO strings
+        start_iso = start_dt.isoformat()
+        end_iso = end_dt.isoformat()
+
         scan_kwargs = {
-            "FilterExpression": Attr("DateUTC").between(start_dt, end_dt),
-            "Limit": limit
+            'FilterExpression': Attr('DateUTC').between(start_iso, end_iso),
+            'Limit': self.query_limit
         }
         response = self.table.scan(**scan_kwargs)
 
-        for item in response.get("Items", []):
-            yield self._map_item(item)
+        while True:
+            for raw in response.get("Items", []):
+                yield self._map_item(raw)
 
-        # Continue scanning if there are more items
-        while "LastEvaluatedKey" in response:
-            scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
-            response = self.table.scan(**scan_kwargs)
-            for item in response.get("Items", []):
-                yield self._map_item(item)
+            # Continue scanning if there are more pages
+            if 'LastEvaluatedKey' in response:
+                scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+                response = self.table.scan(**scan_kwargs)
+            else:
+                break
 
     def _map_item(self, item: dict) -> Device:
         """
         Convert a DynamoDB item to a Device model instance.
         """
-        return Device(
-            id=None,                    # Let Elasticsearch generate its own ID
-            Date=item.get("DateUTC"),
-            IP=item.get("IP"),
-            MAC=item.get("MAC"),
-            UserAgentRaw=item.get("UserAgentRaw"),
-            Device=item.get("Device"),
-            Platform=item.get("Platform"),
-            Browser=item.get("Browser"),
-            Username=item.get("Username"),
-            MemberID=item.get("MemberID"),
-            MemberNumber=item.get("MemberNumber"),
-            ServiceArea=item.get("ServiceArea"),
-            ZoneType=item.get("ZoneType")
+        return DeviceSchema(
+            DateUTC = item.get("DateTime"),             # renamed
+            IP      = item.get("IpAddress"),
+            MAC     = item.get("MacAddress"),
+            UserAgentRaw = item.get("UserAgentRaw"),
+
+            DeviceId   = item.get("ClientDeviceTypeId"),
+            PlatformId = item.get("PlatformTypeId"),
+            BrowserId  = item.get("BrowserTypeId"),
+
+            # Optional if you can resolve names:
+            # Device   = item.get("")
+            # Platform = item.get("")
+            # Browser  = item.get("")
+
+            Username     = item.get("MemberName"),
+            MemberID     = item.get("MemberId"),
+            MemberNumber = item.get("MemberNumber"),
+            ServiceArea  = item.get("OrgNumber"),
+            ZoneType     = item.get("ZoneType"),
+
+            # Event extras (pass-through)
+            Origin        = item.get("Origin"),
+            Scope         = item.get("Scope"),
+            GpnsEnabled   = item.get("GpnsEnabled"),
+            SchemaName    = item.get("SchemaName"),
+            SchemaVersion = item.get("SchemaVersion"),
+            Subject       = item.get("Subject"),
+            ChangeType    = item.get("ChangeType"),
+            AuthMethod    = item.get("AuthMethod"),
+            ZonePlanName  = item.get("ZonePlanName"),
+            CurrencyCode  = item.get("CurrencyCode"),
+            Price         = item.get("Price"),
+            TimeZoneId    = item.get("TimeZoneId"),
         )
