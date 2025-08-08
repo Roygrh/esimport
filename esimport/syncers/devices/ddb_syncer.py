@@ -1,9 +1,10 @@
 import os
 import boto3
+from datetime import datetime
 from boto3.dynamodb.conditions import Attr
-from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION
 from ._schema import DeviceSchema as Device
-from esimport.config import Config
+#from esimport.config import Config
+from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION, DDB_QUERY_LIMIT
 
 
 class DeviceDdbSyncer:
@@ -11,10 +12,10 @@ class DeviceDdbSyncer:
     Fetch device records from DynamoDB by scanning and filtering on DateUTC.
     """
     def __init__(self):
-        cfg = Config()
-        dynamodb = boto3.resource("dynamodb", region_name=cfg.aws_region)
-        self.table = dynamodb.Table(cfg.dynamodb_table_name)
-        self.query_limit = cfg.ddb_query_limit
+
+        dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
+        self.table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+        self.query_limit = DDB_QUERY_LIMIT
 
     def fetch_from_ddb(self, start_dt: datetime, end_dt: datetime):
         """
