@@ -15,9 +15,8 @@ def _env():
     os.environ["DYNAMODB_TABLE_NAME"] = TABLE_NAME
     os.environ["DDB_QUERY_LIMIT"] = "2" # force pagination
     yield
-    os.environ.pop("AWS_REGION", None)
-    os.environ.pop("DYNAMODB_TABLE_NAME", None)
-    os.environ.pop("DDB_QUERY_LIMIT", None)
+    os.environ.pop("AWS_ENDPOINT_URL", None)
+    os.environ.pop("DYNAMODB_PORT", None)
 
 @mock_aws
 def test_fetch_from_ddb_maps_and_paginates():
@@ -58,7 +57,7 @@ def test_fetch_from_ddb_maps_and_paginates():
     put("k3", out_range)
 
     # Act
-    helper = DeviceDdbSyncer()
+    helper = DeviceDdbSyncer(region=REGION, table_name=TABLE_NAME, query_limit=2)
     docs = list(helper.fetch_from_ddb(start_dt=now - timedelta(minutes=10), end_dt=now))
 
     # Assert: only 2 in range and with expected fields

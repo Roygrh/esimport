@@ -11,11 +11,11 @@ class DeviceDdbSyncer:
     """
     Fetch device records from DynamoDB by scanning and filtering on DateUTC.
     """
-    def __init__(self):
+    def __init__(self, *, region: str, table_name: str, query_limit: str):
 
-        dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
-        self.table = dynamodb.Table(DYNAMODB_TABLE_NAME)
-        self.query_limit = DDB_QUERY_LIMIT
+        dynamodb = boto3.resource("dynamodb", region_name=region)
+        self.table = dynamodb.Table(table_name)
+        self.query_limit = int(query_limit)
 
     def fetch_from_ddb(self, start_dt: datetime, end_dt: datetime):
         """
@@ -47,7 +47,7 @@ class DeviceDdbSyncer:
         """
         Convert a DynamoDB item to a Device model instance.
         """
-        return DeviceSchema(
+        return Device(
             DateUTC = item.get("DateTime"),             # renamed
             IP      = item.get("IpAddress"),
             MAC     = item.get("MacAddress"),

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from esimport.core import Record, SyncBase
 from .ddb_syncer import DeviceDdbSyncer
+from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION, DDB_QUERY_LIMIT
 
 
 class DeviceSyncer(SyncBase):
@@ -12,8 +13,15 @@ class DeviceSyncer(SyncBase):
     Synchronize devices exclusively from DynamoDB,
     delegating data retrieval to DeviceDdbSyncer.
     """
-    # Instantiate helper using values from Config
-    ddb_helper = DeviceDdbSyncer()
+
+    def __init__(self):
+
+        # Dependency injection: pass params to helper
+        self.ddb_helper = DeviceDdbSyncer(
+            region=AWS_REGION,
+            table_name=DYNAMODB_TABLE_NAME,
+            query_limit=query_limit,
+        )
 
     def sync(self, start_date: datetime):
         """
