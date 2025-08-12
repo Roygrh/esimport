@@ -2,7 +2,7 @@ import os
 import boto3
 from datetime import datetime
 from boto3.dynamodb.conditions import Attr
-from ._schema import DeviceSchema as Device
+from ._schema import DeviceSchema
 #from esimport.config import Config
 from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION, DDB_QUERY_LIMIT
 
@@ -11,7 +11,7 @@ class DeviceDdbSyncer:
     """
     Fetch device records from DynamoDB by scanning and filtering on DateUTC.
     """
-    def __init__(self, *, region: str, table_name: str, query_limit: str):
+    def __init__(self, *, region: str, table_name: str, query_limit: int = 1000):
 
         dynamodb = boto3.resource("dynamodb", region_name=region)
         self.table = dynamodb.Table(table_name)
@@ -27,14 +27,20 @@ class DeviceDdbSyncer:
         end_iso = end_dt.isoformat()
 
         scan_kwargs = {
-            'FilterExpression': Attr('DateUTC').between(start_iso, end_iso),
+            'FilterExpression': Attr('DateTime').between(start_iso, end_iso),
             'Limit': self.query_limit
         }
         response = self.table.scan(**scan_kwargs)
 
         while True:
             for raw in response.get("Items", []):
-                yield self._map_item(raw)
+                model = self._map_item(raw)                         # -> DeviceSchema
+                doc = {k: v for k, v in model.dict().items() if v is not None}
+                # The test expects a string; we guarantee ISO-8601:
+                if isinstance(doc.get("DateUTC"), datetime):
+                    doc["DateUTC"] = doc["DateUTC"].isoformat()
+                yield doc
+                #yield self._map_item(raw)
 
             # Continue scanning if there are more pages
             if 'LastEvaluatedKey' in response:
@@ -43,11 +49,11 @@ class DeviceDdbSyncer:
             else:
                 break
 
-    def _map_item(self, item: dict) -> Device:
+    def _map_item(self, item: dict) -> DeviceSchema:
         """
         Convert a DynamoDB item to a Device model instance.
         """
-        return Device(
+        return DeviceSchema(
             DateUTC = item.get("DateTime"),             # renamed
             IP      = item.get("IpAddress"),
             MAC     = item.get("MacAddress"),
