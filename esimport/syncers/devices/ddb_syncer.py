@@ -4,7 +4,6 @@ from datetime import datetime
 from boto3.dynamodb.conditions import Attr
 from ._schema import DeviceSchema
 #from esimport.config import Config
-from esimport.config import DYNAMODB_TABLE_NAME, AWS_REGION, DDB_QUERY_LIMIT
 
 
 class DeviceDdbSyncer:
